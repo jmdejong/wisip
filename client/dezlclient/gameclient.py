@@ -109,19 +109,13 @@ class Client:
 		msgType = msg[0]
 		if msgType == 'field':
 			field = msg[1]
-			fieldWidth = field['width']
-			fieldHeight = field['height']
-			self.display.resizeField((fieldWidth, fieldHeight))
-			fieldCells = field['field']
-			mapping = field['mapping']
-			offset = field['offset']
-			self.display.setFieldOffset(offset)
-			self.display.drawFieldCells(
-				(
-					(lambda y, x: (x + offset[0], y + offset[1]))(*divmod(i, fieldWidth)),
-					mapping[spr]
-				)
-				for i, spr in enumerate(fieldCells))
+			self.display.drawField(
+				field["width"],
+				field["height"],
+				field["field"],
+				field["mapping"],
+				field["offset"]
+			)
 		
 		if msgType == 'changecells' and len(msg[1]):
 			self.display.drawFieldCells(msg[1])
