@@ -13,7 +13,6 @@ use crate::{
 	timestamp::{Timestamp},
 	creature::{Creature, Mind},
 	tile::Tile,
-	item::{ItemRef, ItemDef},
 	player::Player,
 	mapgen::{MapTemplate, MapType, create_map},
 	grid::Grid,
@@ -131,7 +130,7 @@ impl World {
 				Some(Control::Suicide) => {
 					creature.kill();
 				}
-				Some(Control::Use(item, direction)) => {
+				Some(Control::Use(direction)) => {
 				
 				}
 				None => { }
@@ -141,7 +140,7 @@ impl World {
 	}
 	
 	
-	fn spawn(&mut self, dead_creatures: Vec<Creature>){
+	fn spawn(&mut self){
 		
 		// spawn players
 		for (playerid, player) in self.players.iter_mut() {
@@ -159,14 +158,8 @@ impl World {
 	
 	pub fn update(&mut self) {
 		self.update_creatures();
-		let mut dead_creatures = Vec::new();
-		let creatureids: Vec<usize> = self.creatures.keys().cloned().collect();
-		for creatureid in creatureids {
-			if self.creatures.get(&creatureid).unwrap().is_dead() {
-				dead_creatures.push(self.creatures.remove(&creatureid).unwrap());
-			}
-		}
-		self.spawn(dead_creatures);
+		
+		self.spawn();
 		
 		self.time.increment();
 	}

@@ -115,7 +115,6 @@ impl GameServer {
 	pub fn send(&mut self, player: &PlayerId, value: Value) -> Result<(), io::Error> {
 		match self.connections.get(player) {
 			Some((serverid, id)) => {
-				println!("sending {}", value);
 				self.servers[*serverid].send(*id, value.to_string().as_str())
 			}
 			None => Err(io::Error::new(io::ErrorKind::Other, "unknown player name"))

@@ -1,18 +1,11 @@
 
 
-use std::fmt;
 use serde::{Serialize, Serializer};
 use strum_macros::Display;
 
 #[derive(Debug, Clone, Copy, PartialEq, Hash, Eq, Display)]
-// #[serde(rename_all="lowercase", untagged)]
-
 pub enum Sprite {
-// 	#[serde(serialize_with="serialize_custom_sprite")]
-	Custom(&'static str),
-// 	#[serde(serialize_with="serialize_letter_sprite")]
 	Letter(char),
-// 	#[serde(serialize_with="serialize_player_sprite")]
 	Player(&'static str, char),
 	Stone,
 	Dirt,
@@ -21,6 +14,10 @@ pub enum Sprite {
 	Grass3,
 	Sanctuary,
 	Water,
+	Wall,
+	Gate,
+	Rubble,
+	Rock,
 	#[strum(serialize=" ")]
 	Empty
 }
@@ -29,9 +26,6 @@ const VALID_COLOURS: &'static[&'static str] = &["r", "g", "b", "c", "m", "y", "l
 
 impl Sprite {
 	
-	pub const fn new(name: &'static str) -> Self {
-		Self::Custom(name)
-	}
 	
 	pub fn player_sprite(spritename: &str) -> Option<Sprite> {
 		let lowername = spritename.to_lowercase();
@@ -52,39 +46,18 @@ impl Sprite {
 			None
 		}
 	}
-	
-	pub const DIRT: Sprite = Sprite::Custom("dirt");
-	pub const STONE: Sprite = Sprite::Custom("stone");
-	pub const GRASS1: Sprite = Sprite::Custom("grass1");
-	pub const GRASS2: Sprite = Sprite::Custom("grass2");
-	pub const GRASS3: Sprite = Sprite::Custom("grass3");
-	pub const SANCTUARY: Sprite = Sprite::Custom("sanctuary");
-	pub const WATER: Sprite = Sprite::Custom("water");
 }
 
-fn serialize_custom_sprite<S>(name: &'static str, serializer: S) -> Result<S::Ok, S::Error>
-		where S: Serializer {
-	name.serialize(serializer)
-}
-fn serialize_letter_sprite<S>(letter: &char, serializer: S) -> Result<S::Ok, S::Error>
-		where S: Serializer {
-	format!("emptyletter-{}", letter).serialize(serializer)
-}
-fn serialize_player_sprite<S>(colour: &'static str, letter: &char, serializer: S) -> Result<S::Ok, S::Error>
-		where S: Serializer {
-	format!("player_{}-{}", colour, letter).serialize(serializer)
-}
 
 
 impl Serialize for Sprite {
 	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 	where S: Serializer {
-		(match self {
-			Sprite::Custom(name) => format!("{}", name),
-			Sprite::Letter(letter) => format!("emptyletter-{}", letter),
-			Sprite::Player(colour, letter) => format!("player_{}-{}", colour, letter),
-			sprite => format!("{}", self).to_lowercase()
-		}).serialize(serializer)
+		match self {
+			Sprite::Letter(letter) => format!("emptyletter-{}", letter).serialize(serializer),
+			Sprite::Player(colour, letter) => format!("player_{}-{}", colour, letter).serialize(serializer),
+			_ => format!("{}", self).to_lowercase().serialize(serializer)
+		}
 	}
 }
 
@@ -92,21 +65,22 @@ impl Serialize for Sprite {
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use serde_json::{Value, json};
 	
 	#[test]
 	fn test_player_sprite_creation() {
 		assert_eq!(Sprite::player_sprite("player_lg-a"), Some(Sprite::Player("lg", 'a')));
 	}
-// 	#[test]
-// 	fn test_player_sprite_display() {
-// 		assert_eq!(format!("{}", Sprite::Player("lg", 'a')), "player_lg-a".to_string());
-// 	}
+	#[test]
+	fn test_player_sprite_serialize() {
+		assert_eq!(json!(Sprite::Player("lg", 'a')), json!("player_lg-a"));
+	}
 	#[test]
 	fn test_letter_sprite_creation() {
 		assert_eq!(Sprite::letter_sprite('A'), Some(Sprite::Letter('A')));
 	}
-// 	#[test]
-// 	fn test_letter_sprite_display() {
-// 		assert_eq!(format!("{}", Sprite::Letter('A')), "emptyletter-A".to_string());
-// 	}
+	#[test]
+	fn test_letter_sprite_display() {
+		assert_eq!(json!(Sprite::Letter('A')), json!("emptyletter-A"));
+	}
 }

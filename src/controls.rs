@@ -4,8 +4,7 @@ use serde::{Serialize, Deserialize};
 use crate::{
 	PlayerId,
 	Direction,
-	sprite::Sprite,
-	item::ItemRef
+	sprite::Sprite
 };
 
 
@@ -14,7 +13,7 @@ use crate::{
 pub enum Control {
 	Move(Direction),
 	Suicide,
-	Use(ItemRef, Direction)
+	Use(Direction)
 }
 
 #[derive(Debug, Clone)]

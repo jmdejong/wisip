@@ -21,7 +21,7 @@ mod errors;
 mod holder;
 mod creature;
 mod tile;
-mod item;
+// mod item;
 mod mapgen;
 mod grid;
 

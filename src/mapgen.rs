@@ -5,7 +5,7 @@ use rand::Rng;
 use crate::{
 	Pos,
 	Direction,
-	tile::Tile,
+	tile::{Tile, Ground, Structure},
 	util::randomize,
 	errors::AnyError,
 	aerr,
@@ -56,7 +56,7 @@ fn create_square_map() -> MapTemplate {
 	let size = Pos::new(1024, 1024);
 	let mut map = MapTemplate {
 		size,
-		ground: Grid::new(size, Tile::Dirt),
+		ground: Grid::new(size, Tile::ground(Ground::Dirt)),
 		spawnpoint: Pos::new(size.x / 2, size.y / 2),
 		monsterspawn: vec![Pos::new(0,0), Pos::new(size.x - 1, 0), Pos::new(0, size.y - 1), Pos::new(size.x - 1, size.y - 1)],
 	};
@@ -66,13 +66,13 @@ fn create_square_map() -> MapTemplate {
 			let pos = Pos::new(x, y);
 			let dspawn = (Pos::new(x, y) - map.spawnpoint).abs();
 			let floor = if dspawn.x <= 3 && dspawn.y <= 3 {
-				Tile::Sanctuary
+				Tile::ground(Ground::Sanctuary)
 			} else if dspawn.x <= 4 && dspawn.y <= 4 && dspawn.x != dspawn.y{
-				Tile::Sanctuary
+				Tile::ground(Ground::Sanctuary)
 			} else if dspawn.x <= 1 || dspawn.y <= 1 {
-				Tile::Dirt
+				Tile::ground(Ground::Dirt)
 			} else {
-				[Tile::Grass1, Tile::Grass2, Tile::Grass3][randomize((x+1) as u32 + randomize((y+1) as u32)) as usize % 3]
+				Tile::ground([Ground::Grass1, Ground::Grass2, Ground::Grass3][randomize((x+1) as u32 + randomize((y+1) as u32)) as usize % 3])
 			};
 			map.ground.set(pos, floor);
 		}
@@ -81,7 +81,7 @@ fn create_square_map() -> MapTemplate {
 	let d: Vec<(i64, i64)> = vec![(1, 1), (1, -1), (-1, 1), (-1, -1)];
 	for (dx, dy) in d {
 		for (px, py) in &[(3, 3), (4, 3), (4, 2), (3, 4), (2, 4), (4, 4)] {
-			map.ground.set(map.spawnpoint + Pos::new(px * dx, py * dy), Tile::Wall);
+			map.ground.set(map.spawnpoint + Pos::new(px * dx, py * dy), Tile::structure(Ground::Dirt, Structure::Wall));
 		}
 		
 		if rand::random() {
@@ -91,7 +91,7 @@ fn create_square_map() -> MapTemplate {
 				) + map.spawnpoint;
 			let mut p = lakepos;
 			for _i in 0..16 {
-				map.ground.set(p, Tile::Water);
+				map.ground.set(p, Tile::ground(Ground::Water));
 				p = p + Direction::DIRECTIONS[rand::thread_rng().gen_range(0..4)];
 				if lakepos.distance_to(p) > Distance(4){
 					break;
@@ -116,7 +116,7 @@ impl<'de> Deserialize<'de> for MapTemplate {
 	where D: Deserializer<'de> {
 		let MapTemplateSave{size, ground, spawnpoint, monsterspawn} =
 			MapTemplateSave::deserialize(deserializer)?;
-		let mut groundmap = Grid::new(size, Tile::Dirt);
+		let mut groundmap = Grid::new(size, Tile::ground(Ground::Dirt));
 		for (y, line) in ground.iter().enumerate(){
 			for (x, c) in line.chars().enumerate(){
 				let tile = Tile::from_char(c).ok_or_else(||de::Error::custom(format!("Invalid tile character '{}'", c)))?;
