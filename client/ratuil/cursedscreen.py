@@ -139,11 +139,11 @@ class CursedScreen(BaseScreen):
 		self.width = x
 		self.height = y
 	
-	def _addstr(self, y, x, string, *args):
+	def _addstr(self, y, x, string, raw_style):
 		if not self.screen:
 			return
 		try:
-			self.screen.addstr(y, x, string, *args)
+			self.screen.addstr(y, x, string, raw_style)
 		except curses.error:
 			# ncurses has a weird problem:
 			# it always raises an error when drawing to the last character in the window
@@ -154,6 +154,13 @@ class CursedScreen(BaseScreen):
 		
 	def write(self, x, y, text, style=None):
 		self._addstr(y, x, text, self.colours.attrs(style))
+	
+	
+	def get_raw_style(self, style):
+		return self.colours.attrs(style)
+	
+	def set_char(self, x, y, char, raw_style):
+		self._addstr(y, x, text, raw_style)
 	
 	def clear(self):
 		self.screen.clear();

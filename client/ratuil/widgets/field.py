@@ -4,9 +4,9 @@ from . import Widget
 class Field(Widget):
 	
 	
-	def __init__(self, width=0, height=0, char_size=1):
-		self.width = width
-		self.height = height
+	def __init__(self, char_size=1):
+		self.width = 0
+		self.height = 0
 		self.char_size = char_size
 		self.pad = None
 		self.center = (0, 0)
@@ -21,10 +21,11 @@ class Field(Widget):
 		self.char_size = char_size
 		self.pad = self.backend.create_pad(self.width * self.char_size, self.height)
 	
-	def set_size(self, width, height):
+	def set_dimensions(self, offset, width, height, keep=False):
+		self.pad.resize(width * self.char_size, height)
+		self.offset = offset
 		self.width = width
 		self.height = height
-		self.pad.resize(width * self.char_size, height)
 		self.redraw = True
 		self.change()
 	
@@ -36,12 +37,18 @@ class Field(Widget):
 		self.pad.write(x * self.char_size, y, char, style)
 		self.change()
 	
-	def set_center(self, x, y):
-		self.center = (x, y)
+	def draw_all(self, values, mapping):
+		# This code is hot. Performance gains can be worth the price of code quality
+		brushes = [(char, self.pad.get_raw_style(style)) for (char, style) in mapping]
+		for x in range(0, self.width):
+			sized_x = x * self.char_size
+			for y in range(0, self.height):
+				brush = brushes[values[x+self.width*y]]
+				self.pad.set_char(sized_x, y, brush[0], brush[1])
 		self.change()
 	
-	def set_offset(self, x, y):
-		self.offset = (x, y)
+	def set_center(self, x, y):
+		self.center = (x, y)
 		self.change()
 	
 	def _round_width(self, x):

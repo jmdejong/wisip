@@ -36,15 +36,11 @@ class Display:
 	
 	def drawField(self, fieldWidth, fieldHeight, fieldCells, mapping, offset):
 		field = self.getWidget("field")
-		field.set_size(fieldWidth, fieldHeight)
-		field.set_offset(*offset)
+		field.set_dimensions(offset, fieldWidth, fieldHeight, keep=True)
 		
 		brushes = [self.brush(spriteNames) for spriteNames in mapping]
-		for i, spr in enumerate(fieldCells):
-			original_y, original_x = divmod(i, fieldWidth)
-			x = original_x + offset[0]
-			y = original_y + offset[1]
-			field.change_cell(x, y, *brushes[spr])
+		
+		field.draw_all(fieldCells, brushes)
 		
 	
 	def drawFieldCells(self, cells):

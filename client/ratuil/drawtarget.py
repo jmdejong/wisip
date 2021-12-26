@@ -20,7 +20,12 @@ class DrawTarget:
 		for text, style in styledtext:
 			self.write(x, y, text, style.add(extrastyle))
 			x += len(text)
-		
+	
+	def set_char(self, x, y, char, raw_style):
+		self.write(x, y, char, raw_style)
+	
+	def get_raw_style(self, style):
+		return style
 	
 	def draw_pad(self, src, dest_x=0, dest_y=0, width=INT_INFINITY, height=INT_INFINITY, src_x=0, src_y=0):
 		raise NotImplementedError()

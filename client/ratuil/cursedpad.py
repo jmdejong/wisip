@@ -34,15 +34,15 @@ class CursedPad(DrawTarget):
 			w = charwidth(char)
 			if x + w > self.width:
 				break
-			self.set_char(x, y, char, style)
+			self.set_char(x, y, char, self.get_raw_style(style))
 			#if w == 2:
 				#self.delete(x + 1, y)
 			x += w
 			
 	
-	def set_char(self, x, y, char, style=None):
+	def set_char(self, x, y, char, raw_style):
 		try:
-			self.pad.addstr(y, x, char, self.colours.attrs(style))
+			self.pad.addstr(y, x, char, raw_style)
 		except curses.error:
 			# ncurses has a weird problem:
 			# it always raises an error when drawing to the last character in the window
@@ -50,6 +50,9 @@ class CursedPad(DrawTarget):
 			# therefore to draw in the last place of the window the last character needs to be ingored
 			# other solutions might be possible, but are more hacky
 			pass
+	
+	def get_raw_style(self, style):
+		return self.colours.attrs(style)
 	
 	def draw_pad(self, src, dest_x=0, dest_y=0, width=INT_INFINITY, height=INT_INFINITY, src_x=0, src_y=0):
 		raise NotImplementedError()

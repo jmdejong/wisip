@@ -1,6 +1,6 @@
 // #![recursion_limit="512"]
 use std::thread::sleep;
-use std::time::Duration;
+use std::time::{Instant, Duration};
 use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
 use structopt::StructOpt;
 use chrono::Utc;
@@ -128,6 +128,7 @@ fn main(){
 			sleep(Duration::from_millis(500));
 			continue;
 		}
+		let now = Instant::now();
 		world.update();
 		let messages = world.view();
 		for (player, mut message) in messages {
@@ -140,7 +141,10 @@ fn main(){
 				println!("Error: failed to send to {:?}: {:?}", player, err);
 			}
 		}
-		
+		let elapsed_time = now.elapsed();
+		if elapsed_time > Duration::new(0, 10_000_000) {
+			println!("Running update() took {} milliseconds.", elapsed_time.as_millis());
+		}
 		sleep(Duration::from_millis(config.step_duration));
 	}
 	println!("shutting down on {}", Utc::now());
