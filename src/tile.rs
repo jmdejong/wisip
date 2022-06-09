@@ -33,7 +33,11 @@ enum_properties! {
 		Wall {sprite: Sprite::Wall, blocking: true},
 		Rubble {sprite: Sprite::Rubble, blocking: true},
 		Rock {sprite: Sprite::Rock, blocking: true},
-		Gate {sprite: Sprite::Gate, blocking: true}
+		Gate {sprite: Sprite::Gate, blocking: true},
+		Tree {sprite: Sprite::Tree, blocking: true},
+		DenseGrass {sprite: Sprite::DenseGrass, blocking: false},
+		Shrub {sprite: Sprite::Shrub, blocking: false},
+		Bush {sprite: Sprite::Bush, blocking: false}
 	}
 }
 

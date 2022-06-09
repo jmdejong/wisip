@@ -3,8 +3,7 @@
 use serde::{Serialize, Deserialize};
 use crate::{
 	PlayerId,
-	Direction,
-	sprite::Sprite
+	Direction
 };
 
 
@@ -18,7 +17,7 @@ pub enum Control {
 
 #[derive(Debug, Clone)]
 pub enum Action {
-	Join(PlayerId, Sprite),
+	Join(PlayerId),
 	Leave(PlayerId),
 	Input(PlayerId, Control)
 }

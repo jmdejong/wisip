@@ -4,8 +4,8 @@ use serde::{Serialize, Deserialize};
 
 use crate::{
 	Pos,
-	sprite::Sprite,
-	controls::Control
+	controls::Control,
+	item::ItemRef as Item
 };
 
 #[derive(Debug, Default, PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]
@@ -20,8 +20,8 @@ impl fmt::Display for PlayerId {
 #[derive(Debug, Clone)]
 pub struct Player {
 	pub plan: Option<Control>,
-	pub sprite: Sprite,
 	pub body: usize,
 	pub is_new: bool,
-	pub view_center: Option<Pos>
+	pub view_center: Option<Pos>,
+	pub inventory: Vec<Item>
 }

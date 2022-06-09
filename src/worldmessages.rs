@@ -70,8 +70,8 @@ pub type SoundMessage = Vec<(String, String, Option<Value>)>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
 pub struct FieldMessage {
-	pub width: i64,
-	pub height: i64,
+	pub width: i32,
+	pub height: i32,
 	pub field: Vec<usize>,
 	pub mapping: Vec<Vec<Sprite>>,
 	pub offset: Pos

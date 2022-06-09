@@ -21,9 +21,10 @@ mod errors;
 mod holder;
 mod creature;
 mod tile;
-// mod item;
+mod item;
 mod mapgen;
 mod grid;
+mod random;
 
 use self::{
 	pos::{Pos, Direction},
@@ -104,8 +105,8 @@ fn main(){
 						println!("error controlling player {:?}: {:?}", player, err);
 					}
 				}
-				Action::Join(player, sprite) => {
-					if let Err(err) = world.add_player(&player, sprite) {
+				Action::Join(player) => {
+					if let Err(err) = world.add_player(&player) {
 						println!("Error: can not add player {:?}: {:?}", player, err);
 						if let Err(senderr) = gameserver.send_player_error(&player, "worlderror", "invalid room or savefile") {
 							println!("Error: can not send error message to {:?}: {:?}", player, senderr);
@@ -142,7 +143,7 @@ fn main(){
 			}
 		}
 		let elapsed_time = now.elapsed();
-		if elapsed_time > Duration::new(0, 10_000_000) {
+		if elapsed_time > Duration::new(0, 1_000_000) {
 			println!("Running update() took {} milliseconds.", elapsed_time.as_millis());
 		}
 		sleep(Duration::from_millis(config.step_duration));
@@ -151,5 +152,50 @@ fn main(){
 }
 
 
+#[cfg(test)]
+mod tests {
+	use super::*;
+	use crate::mapgen::BuiltinMap;
+	
+	#[inline(never)]
+	fn actually_redraw(world: &mut World, message_cache: &mut MessageCache){
+	
+		let now = Instant::now();
+		world.update();
+		let updated = now.elapsed();
+		let messages = world.view();
+		let viewed = now.elapsed();
+		for (player, mut message) in messages {
+			message_cache.trim(&player, &mut message);
+			if message.is_empty(){
+				continue;
+			}
+			println!("m {}", message.to_json());
+		}
+		let shown = now.elapsed();
+		println!(
+			"update: {}ms, view: {}ms, shown: {}ms",
+			updated.as_millis(),
+			(viewed - updated).as_millis(),
+			(shown - viewed).as_millis()
+		);
+	}
+	
+	#[test]
+	fn redraw_field(){
+		let map = MapType::Builtin(BuiltinMap::Rectangle(1024, 1024));
+		
+		let mut world = World::new(map);
+	
+		let mut message_cache = MessageCache::default();
+		
+		for i in 0..200{
+			
+			let player = PlayerId(format!("player{}", i));
+			world.add_player(&player);
+			actually_redraw(&mut world, &mut message_cache);
+		}
+	}
+}
 
 

@@ -33,7 +33,7 @@ def main(argv=None):
         print("ERROR: Could not connect to server.\nAre you sure that the server is running and that you're connecting to the right address?", file=sys.stderr)
         return
     
-    if not introduce(connection, name, sprite):
+    if not introduce(connection, name):
         return
     error = None
     closeMessage = None
@@ -68,8 +68,8 @@ def main(argv=None):
         print(closeMessage, file=sys.stderr)
 
 
-def introduce(connection, name, sprite):
-    connection.send(messages.IntroductionMessage(name, "player_"+sprite))
+def introduce(connection, name):
+    connection.send(messages.IntroductionMessage(name))
     print("introducing to server as {}".format(name))
     response = connection.receive()
     if response is None:

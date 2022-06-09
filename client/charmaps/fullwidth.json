@@ -4,6 +4,7 @@
     "mapping": {
         "house": ["^^", 3, 1],
         "spikes": ["^^",7],
-        "densegrass": [";;", 2]
+        "densegrass": [";;", 2],
+        "reed": ["||", 2]
     }
 }

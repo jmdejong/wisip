@@ -31,23 +31,23 @@ impl Direction {
 
 
 #[derive(Debug, Hash, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Default)]
-pub struct Distance(pub i64);
+pub struct Distance(pub i32);
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy, Default)]
 pub struct Pos {
-	pub x: i64,
-	pub y: i64
+	pub x: i32,
+	pub y: i32
 }
 
 
 impl Pos {
 	
-	pub fn new(x: i64, y: i64) -> Pos {
+	pub fn new(x: i32, y: i32) -> Pos {
 		Pos {x, y}
 	}
 	
 	#[allow(dead_code)]
-	pub fn from_tuple(p: (i64, i64)) -> Pos {
+	pub fn from_tuple(p: (i32, i32)) -> Pos {
 		let (x, y) = p;
 		Pos {x, y}
 	}
@@ -107,7 +107,7 @@ impl Serialize for Pos {
 impl<'de> Deserialize<'de> for Pos {
 	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
 	where D: Deserializer<'de> {
-		let (x, y) = <(i64, i64)>::deserialize(deserializer)?;
+		let (x, y) = <(i32, i32)>::deserialize(deserializer)?;
 		Ok(Self{x, y})
 	}
 }
@@ -151,9 +151,9 @@ impl Neg for Pos {
     }
 }
 
-impl Mul<i64> for Pos {
+impl Mul<i32> for Pos {
 	type Output = Pos;
-	fn mul(self, n: i64) -> Pos {
+	fn mul(self, n: i32) -> Pos {
 		Pos {
 			x: self.x * n,
 			y: self.y * n
@@ -171,9 +171,9 @@ impl Mul<Distance> for Pos {
 	}
 }
 
-impl Div<i64> for Pos {
+impl Div<i32> for Pos {
 	type Output = Pos;
-	fn div(self, n: i64) -> Pos {
+	fn div(self, n: i32) -> Pos {
 		Pos {
 			x: self.x / n,
 			y: self.y / n

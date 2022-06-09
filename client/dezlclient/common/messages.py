@@ -56,7 +56,7 @@ class IntroductionMessage(ClientToServerMessage):
     categories = {"Lu", "Ll", "Lt", "Lm", "Lo", "Nd", "Nl", "No", "Pc"}
     
     
-    def __init__(self, name, sprite):
+    def __init__(self, name):
         assert isinstance(name, str), InvalidNameError("name must be a string")
         assert (len(name) > 0), InvalidNameError("name needs at least one character")
         assert (len(bytes(name, "utf-8")) <= 256), InvalidNameError("name may not be longer than 256 utf8 bytes")
@@ -65,10 +65,9 @@ class IntroductionMessage(ClientToServerMessage):
                 category = unicodedata.category(char)
                 assert category in self.categories, InvalidNameError("all name caracters must be in these unicode categories: " + "|".join(self.categories) + " ")
         self.name = name
-        self.sprite = sprite
     
     def body(self):
-        return [self.name, self.sprite]
+        return self.name
 
 
 

@@ -29,13 +29,13 @@ impl Creature {
 	}
 	
 	
-	pub fn new_player(playerid: PlayerId, sprite: Sprite, pos: Pos) -> Self {
+	pub fn new_player(playerid: PlayerId, pos: Pos) -> Self {
 		Self {
 			mind: Mind::Player(playerid.clone()),
 			pos,
 			cooldown: Duration(0),
 			walk_cooldown: Duration(0),
-			sprite,
+			sprite: Sprite::PlayerDefault,
 			is_dead: false
 		}
 	}

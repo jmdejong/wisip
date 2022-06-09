@@ -15,8 +15,7 @@ use crate::{
 	tile::Tile,
 	player::Player,
 	mapgen::{MapTemplate, MapType, create_map},
-	grid::Grid,
-	pos::Distance
+	grid::Grid
 };
 
 pub struct World {
@@ -60,7 +59,7 @@ impl World {
 		}
 	}
 	
-	pub fn add_player(&mut self, playerid: &PlayerId, sprite: Sprite) -> Result<()> {
+	pub fn add_player(&mut self, playerid: &PlayerId) -> Result<()> {
 		if self.players.contains_key(playerid){
 			return Err(aerr!("player {} already exists", playerid));
 		}
@@ -68,10 +67,10 @@ impl World {
 			playerid.clone(),
 			Player{
 				plan: None,
-				sprite: sprite,
 				body: 0,
 				is_new: true,
-				view_center: None
+				view_center: None,
+				inventory: Vec::new()
 			}
 		);
 		Ok(())
@@ -130,7 +129,7 @@ impl World {
 				Some(Control::Suicide) => {
 					creature.kill();
 				}
-				Some(Control::Use(direction)) => {
+				Some(Control::Use(_direction)) => {
 				
 				}
 				None => { }
@@ -147,7 +146,6 @@ impl World {
 			if !self.creatures.contains_key(&player.body) {
 				let body = self.creatures.insert(Creature::new_player(
 					playerid.clone(),
-					player.sprite,
 					self.spawnpoint
 				));
 				player.body = body
@@ -201,15 +199,15 @@ impl World {
 					.map_or(
 						false,
 						|view_center|
-							(view_center.x - body.pos.x).abs() <= 16 && 
-							(view_center.y - body.pos.y).abs() <= 16
+							(view_center.x - body.pos.x).abs() < 32 && 
+							(view_center.y - body.pos.y).abs() < 32
 					);
 				if changes.is_some() && !player.is_new && in_view_range {
 					wm.change = changes.clone();
 				} else {
 					let view_center = body.pos;
 					if field.is_none(){
-						field = Some(draw_field(view_center, Pos::new(96, 96), &self.ground, &dynamic_sprites));
+						field = Some(draw_field(view_center, Pos::new(128, 128), &self.ground, &dynamic_sprites));
 					}
 					wm.field = Some(field.clone().unwrap());
 					player.is_new = false;

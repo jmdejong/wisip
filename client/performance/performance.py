@@ -28,10 +28,10 @@ try:
 	client.display.update()
 	
 	def update():
-		for i in range(10):
+		for i in range(100):
 			client.update(message)
 			client.display.update()
-	#update()
+	update()
 	cProfile.run('update()', "updateprofile")
 	closeMessage = client.closeMessage
 finally:

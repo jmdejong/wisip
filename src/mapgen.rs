@@ -1,16 +1,15 @@
 
 use std::str::FromStr;
 use serde::{Serialize, de, Deserialize, Deserializer};
-use rand::Rng;
 use crate::{
 	Pos,
 	Direction,
 	tile::{Tile, Ground, Structure},
-	util::randomize,
 	errors::AnyError,
 	aerr,
 	grid::Grid,
-	pos::Distance
+	pos::Distance,
+	random
 };
 
 
@@ -46,59 +45,138 @@ pub enum MapType {
 
 pub fn create_map(typ: &MapType) -> MapTemplate {
 	match typ {
-		MapType::Builtin(BuiltinMap::Square) => create_square_map(),
+		MapType::Builtin(BuiltinMap::Square) => create_rectangular_map(999, 1024, 1024),
 		MapType::Custom(template) => template.clone()
 	}
 }
 
 
-fn create_square_map() -> MapTemplate {
-	let size = Pos::new(1024, 1024);
+#[derive(Debug, Clone, PartialEq, Eq, Copy)]
+enum Biome {
+	Start,
+	Forest,
+	Field,
+	Lake
+}
+
+
+struct BiomeMap {
+	size: Pos,
+	noise: random::WhiteNoise,
+	height: random::Fractal,
+	biome_size: i32
+}
+
+impl BiomeMap {
+
+	fn new(size: Pos, seed: u32, biome_size: i32) -> Self {
+		Self {
+			size,
+			noise: random::WhiteNoise::new(seed + 333),
+			height: random::Fractal::new(seed + 344, vec![(3,0.12), (5,0.20), (7,0.26), (11,0.42)]),
+			biome_size: 48
+		}
+	}
+
+	fn start_biome(&self) -> Pos {
+		self.size / 2 / self.biome_size
+	}
+
+	fn start_pos(&self) -> Pos{
+		self.start_biome() * self.biome_size + Pos::new(self.biome_size / 2, self.biome_size / 2)
+	}
+
+	fn biome_at(&self, pos: Pos) -> (Biome, Pos) {
+		let rind = self.noise.gen(pos);
+		let edge_size = self.biome_size / 3;
+		let offset = Pos::new((rind % edge_size as u32) as i32 - edge_size / 2, ((rind / edge_size as u32) % edge_size as u32) as i32 - edge_size / 2);
+		let b_pos = (pos + offset) / self.biome_size;
+		let biome = if b_pos == self.start_biome() {
+			Biome::Start
+		} else {
+			*random::pick_weighted(self.noise.gen(b_pos), &[(Biome::Forest, 10), (Biome::Field, 10), (Biome::Lake, 12)])
+		};
+		let dpos = pos - b_pos * self.biome_size - Pos::new(self.biome_size / 2, self.biome_size / 2);
+		(biome, dpos)
+	}
+
+	fn tile(&self, biome: Biome, dpos: Pos, rind: u32) -> Tile {
+		match biome {
+			Biome::Start => {
+				let dspawn = dpos.abs();
+				if dspawn.x <= 4 && dspawn.y <= 4 {
+					if dspawn.x + dspawn.y <= 5 {
+						Tile::ground(Ground::Sanctuary)
+					} else {
+						Tile::structure(Ground::Dirt, Structure::Wall)
+					}
+				} else if dspawn.x <= 1 || dspawn.y <= 1 {
+					Tile::ground(Ground::Dirt)
+				} else {
+					*random::pick(rind, &[
+						Tile::ground(Ground::Grass1),
+						Tile::ground(Ground::Grass2),
+						Tile::ground(Ground::Grass3)
+					])
+				}
+			}
+			Biome::Field =>
+				*random::pick_weighted(rind, &[
+					(Tile::ground(Ground::Grass1), 10),
+					(Tile::ground(Ground::Grass2), 10),
+					(Tile::ground(Ground::Grass3), 10),
+					(Tile::structure(Ground::Grass1, Structure::DenseGrass), 10),
+					(Tile::structure(Ground::Grass1, Structure::Shrub), 1)
+				]),
+			Biome::Forest =>
+				*random::pick_weighted(rind, &[
+					(Tile::ground(Ground::Grass1), 10),
+					(Tile::ground(Ground::Grass2), 10),
+					(Tile::ground(Ground::Grass3), 10),
+					(Tile::ground(Ground::Dirt), 20),
+					(Tile::structure(Ground::Dirt, Structure::Tree), 7)
+				]),
+			Biome::Lake => {
+				let d_center = ((dpos.x * dpos.x + dpos.y * dpos.y) as f32).sqrt() / (self.biome_size as f32 * 0.5);
+				if d_center < 1.0 {
+					Tile::ground(Ground::Water)
+				} else if rind % 64 == 0 {
+					Tile::structure(Ground::Grass1, Structure::Shrub)
+				} else {
+					*random::pick_weighted(rind, &[
+						(Tile::ground(Ground::Grass1), 10),
+						(Tile::ground(Ground::Grass2), 10),
+						(Tile::ground(Ground::Grass3), 10),
+						(Tile::structure(Ground::Grass1, Structure::DenseGrass), 10),
+						(Tile::structure(Ground::Grass1, Structure::Shrub), 1)
+					])
+				}
+			}
+		}
+	}
+}
+
+
+fn create_rectangular_map(seed: u32, width: i32, height: i32) -> MapTemplate {
+	let size = Pos::new(width, height);
+	let biomes = BiomeMap::new(size, seed, 48);
 	let mut map = MapTemplate {
 		size,
 		ground: Grid::new(size, Tile::ground(Ground::Dirt)),
-		spawnpoint: Pos::new(size.x / 2, size.y / 2),
+		spawnpoint: biomes.start_pos(),
 		monsterspawn: vec![Pos::new(0,0), Pos::new(size.x - 1, 0), Pos::new(0, size.y - 1), Pos::new(size.x - 1, size.y - 1)],
 	};
 
 	for x in 0..map.size.x {
 		for y in 0..map.size.y {
 			let pos = Pos::new(x, y);
-			let dspawn = (Pos::new(x, y) - map.spawnpoint).abs();
-			let floor = if dspawn.x <= 3 && dspawn.y <= 3 {
-				Tile::ground(Ground::Sanctuary)
-			} else if dspawn.x <= 4 && dspawn.y <= 4 && dspawn.x != dspawn.y{
-				Tile::ground(Ground::Sanctuary)
-			} else if dspawn.x <= 1 || dspawn.y <= 1 {
-				Tile::ground(Ground::Dirt)
-			} else {
-				Tile::ground([Ground::Grass1, Ground::Grass2, Ground::Grass3][randomize((x+1) as u32 + randomize((y+1) as u32)) as usize % 3])
-			};
+			let (biome, dpos) = biomes.biome_at(pos);
+			let rind = random::WhiteNoise::new(seed + 7943).gen(pos);
+			let floor = biomes.tile(biome, dpos, rind);
 			map.ground.set(pos, floor);
 		}
 	}
 	
-	let d: Vec<(i64, i64)> = vec![(1, 1), (1, -1), (-1, 1), (-1, -1)];
-	for (dx, dy) in d {
-		for (px, py) in &[(3, 3), (4, 3), (4, 2), (3, 4), (2, 4), (4, 4)] {
-			map.ground.set(map.spawnpoint + Pos::new(px * dx, py * dy), Tile::structure(Ground::Dirt, Structure::Wall));
-		}
-		
-		if rand::random() {
-			let lakepos = Pos::new(
-					rand::thread_rng().gen_range(12..size.x / 2 - 8) * dx,
-					rand::thread_rng().gen_range(12..size.y / 2 - 8) * dy
-				) + map.spawnpoint;
-			let mut p = lakepos;
-			for _i in 0..16 {
-				map.ground.set(p, Tile::ground(Ground::Water));
-				p = p + Direction::DIRECTIONS[rand::thread_rng().gen_range(0..4)];
-				if lakepos.distance_to(p) > Distance(4){
-					break;
-				}
-			}
-		}
-	}
 	map
 }
 
@@ -120,7 +198,7 @@ impl<'de> Deserialize<'de> for MapTemplate {
 		for (y, line) in ground.iter().enumerate(){
 			for (x, c) in line.chars().enumerate(){
 				let tile = Tile::from_char(c).ok_or_else(||de::Error::custom(format!("Invalid tile character '{}'", c)))?;
-				groundmap.set(Pos::new(x as i64, y as i64), tile);
+				groundmap.set(Pos::new(x as i32, y as i32), tile);
 			}
 		}
 		Ok(MapTemplate {

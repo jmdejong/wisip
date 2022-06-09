@@ -22,13 +22,6 @@ use crate::{
 	aerr
 };
 
-pub fn randomize (mut seed: u32) -> u32 {
-	seed ^= seed << 13;
-	seed ^= seed >> 17;
-	seed ^= seed << 5;
-	seed
-}
-
 #[allow(dead_code)]
 pub fn partition_by(s: &str, pat: &str) -> (String, String) {
 	let mut parts: Vec<String> = s.splitn(2, pat).map(String::from).collect();

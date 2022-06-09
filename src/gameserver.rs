@@ -11,7 +11,6 @@ use chrono::Utc;
 use crate::{
 	controls::{Control, Action},
 	server::Server,
-	sprite::Sprite,
 	PlayerId
 };
 
@@ -20,7 +19,7 @@ use crate::{
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all="lowercase")]
 enum Message {
-	Introduction(String, String),
+	Introduction(String),
 	Chat(String),
 	Input(Value)
 }
@@ -128,8 +127,7 @@ impl GameServer {
 	fn handle_message(&mut self, (serverid, connectionid): (usize, usize), msg: Message) -> Result<Option<Action>, MessageError> {
 		let id = (serverid, connectionid);
 		match msg {
-			Message::Introduction(name, spritename) => {
-				let sprite = Sprite::player_sprite(&spritename).ok_or(merr!(name, format!("Invalid player sprite: {}", spritename)))?;
+			Message::Introduction(name) => {
 				if name.len() > 99 {
 					return Err(merr!(name, "A name can not be longer than 99 bytes"));
 				}
@@ -154,7 +152,7 @@ impl GameServer {
 				if let Err(_) = self.send(&player, json!(["connected", format!("successfully connected as {}", player)])){
 					return Err(merr!("server", "unable to send connected message"))
 				}
-				Ok(Some(Action::Join(player, sprite)))
+				Ok(Some(Action::Join(player)))
 			}
 			Message::Chat(text) => {
 				let player = self.players.get(&id).ok_or(merr!(action, "Set a valid name before you send any other messages"))?.clone();
