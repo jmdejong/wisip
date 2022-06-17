@@ -62,7 +62,7 @@ enum Biome {
 
 struct BiomeMap {
 	size: Pos,
-	noise: random::WhiteNoise,
+	seed: u32,
 	height: random::Fractal,
 	biome_size: i32
 }
@@ -72,9 +72,9 @@ impl BiomeMap {
 	fn new(size: Pos, seed: u32, biome_size: i32) -> Self {
 		Self {
 			size,
-			noise: random::WhiteNoise::new(seed + 333),
+			seed,
 			height: random::Fractal::new(seed + 344, vec![(3,0.12), (5,0.20), (7,0.26), (11,0.42)]),
-			biome_size: 48
+				biome_size: 50
 		}
 	}
 
@@ -82,25 +82,32 @@ impl BiomeMap {
 		self.size / 2 / self.biome_size
 	}
 
-	fn start_pos(&self) -> Pos{
+	fn start_pos(&self) -> Pos {
 		self.start_biome() * self.biome_size + Pos::new(self.biome_size / 2, self.biome_size / 2)
 	}
 
-	fn biome_at(&self, pos: Pos) -> (Biome, Pos) {
-		let rind = self.noise.gen(pos);
+	fn biome_at(&self, b_pos: Pos) -> Biome {
+		if b_pos == self.start_biome() {
+			Biome::Start
+		} else {
+			*random::pick_weighted(random::WhiteNoise::new(self.seed+333).gen(b_pos), &[(Biome::Forest, 10), (Biome::Field, 10), (Biome::Lake, 12)])
+		}
+	}
+
+	fn biome_pos(&self, pos: Pos) -> (Pos, Pos) {
+		let rind = random::WhiteNoise::new(self.seed+343).gen(pos);
 		let edge_size = self.biome_size / 3;
 		let offset = Pos::new((rind % edge_size as u32) as i32 - edge_size / 2, ((rind / edge_size as u32) % edge_size as u32) as i32 - edge_size / 2);
 		let b_pos = (pos + offset) / self.biome_size;
-		let biome = if b_pos == self.start_biome() {
-			Biome::Start
-		} else {
-			*random::pick_weighted(self.noise.gen(b_pos), &[(Biome::Forest, 10), (Biome::Field, 10), (Biome::Lake, 12)])
-		};
 		let dpos = pos - b_pos * self.biome_size - Pos::new(self.biome_size / 2, self.biome_size / 2);
-		(biome, dpos)
+		(b_pos, dpos)
 	}
 
-	fn tile(&self, biome: Biome, dpos: Pos, rind: u32) -> Tile {
+
+	fn tile(&self, pos: Pos) -> Tile {
+		let (bpos, dpos) = self.biome_pos(pos);
+		let biome = self.biome_at(bpos);
+		let rind = random::WhiteNoise::new(self.seed + 7943).gen(pos);
 		match biome {
 			Biome::Start => {
 				let dspawn = dpos.abs();
@@ -138,17 +145,16 @@ impl BiomeMap {
 				]),
 			Biome::Lake => {
 				let d_center = ((dpos.x * dpos.x + dpos.y * dpos.y) as f32).sqrt() / (self.biome_size as f32 * 0.5);
-				if d_center < 1.0 {
+				let lake_size_factor = random::WhiteNoise::new(self.seed+276).gen_f(bpos);
+				if d_center + 0.0 * lake_size_factor * lake_size_factor * lake_size_factor < self.height.gen_f(pos) {
 					Tile::ground(Ground::Water)
-				} else if rind % 64 == 0 {
-					Tile::structure(Ground::Grass1, Structure::Shrub)
 				} else {
 					*random::pick_weighted(rind, &[
 						(Tile::ground(Ground::Grass1), 10),
 						(Tile::ground(Ground::Grass2), 10),
 						(Tile::ground(Ground::Grass3), 10),
 						(Tile::structure(Ground::Grass1, Structure::DenseGrass), 10),
-						(Tile::structure(Ground::Grass1, Structure::Shrub), 1)
+						(Tile::structure(Ground::Grass1, Structure::Shrub), 2)
 					])
 				}
 			}
@@ -170,9 +176,7 @@ fn create_rectangular_map(seed: u32, width: i32, height: i32) -> MapTemplate {
 	for x in 0..map.size.x {
 		for y in 0..map.size.y {
 			let pos = Pos::new(x, y);
-			let (biome, dpos) = biomes.biome_at(pos);
-			let rind = random::WhiteNoise::new(seed + 7943).gen(pos);
-			let floor = biomes.tile(biome, dpos, rind);
+			let floor = biomes.tile(pos);
 			map.ground.set(pos, floor);
 		}
 	}
