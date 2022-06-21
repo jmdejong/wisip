@@ -60,8 +60,16 @@ impl Pos {
 		}
 	}
 	
-	pub fn abs(self) -> Pos {
+	pub fn abs(&self) -> Pos {
 		Pos{x: self.x.abs(), y: self.y.abs()}
+	}
+
+	pub fn max(&self) -> i32 {
+		if self.x > self.y {
+			self.x
+		} else {
+			self.y
+		}
 	}
 	
 	pub fn size(&self) -> Distance {

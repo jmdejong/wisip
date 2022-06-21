@@ -56,7 +56,8 @@ enum Biome {
 	Start,
 	Forest,
 	Field,
-	Lake
+	Lake,
+	Hamlet
 }
 
 
@@ -90,7 +91,15 @@ impl BiomeMap {
 		if b_pos == self.start_biome() {
 			Biome::Start
 		} else {
-			*random::pick_weighted(random::WhiteNoise::new(self.seed+333).gen(b_pos), &[(Biome::Forest, 10), (Biome::Field, 10), (Biome::Lake, 12)])
+			*random::pick_weighted(
+				random::WhiteNoise::new(self.seed+333).gen(b_pos),
+				&[
+					(Biome::Forest, 10),
+					(Biome::Field, 10),
+					(Biome::Hamlet, 10),
+					(Biome::Lake, 2)
+				]
+			)
 		}
 	}
 
@@ -98,7 +107,8 @@ impl BiomeMap {
 		let rind = random::WhiteNoise::new(self.seed+343).gen(pos);
 		let edge_size = self.biome_size / 3;
 		let offset = Pos::new((rind % edge_size as u32) as i32 - edge_size / 2, ((rind / edge_size as u32) % edge_size as u32) as i32 - edge_size / 2);
-		let b_pos = (pos + offset) / self.biome_size;
+		let fuzzy_pos = pos + offset;
+		let b_pos = (fuzzy_pos) / self.biome_size;
 		let dpos = pos - b_pos * self.biome_size - Pos::new(self.biome_size / 2, self.biome_size / 2);
 		(b_pos, dpos)
 	}
@@ -155,6 +165,40 @@ impl BiomeMap {
 						(Tile::ground(Ground::Grass3), 10),
 						(Tile::structure(Ground::Grass1, Structure::DenseGrass), 10),
 						(Tile::structure(Ground::Grass1, Structure::Shrub), 2)
+					])
+				}
+			}
+			Biome::Hamlet => {
+				let brind = random::WhiteNoise::new(self.seed+863).gen(bpos);
+				let village_width = self.biome_size * 2 / 3;
+				let twidth = village_width / 3;
+				let vpos = (dpos + Pos::new(village_width, village_width) / 2) * 3 / village_width;
+				if  dpos.x.abs() < village_width / 2 && dpos.y.abs() < village_width / 2 {
+					let ind: i32 = vpos.x + 3 * vpos.y;
+					let trind = random::randomize_u32(brind + ind as u32);
+					let tpos = dpos - (vpos - Pos::new(1,1)) * twidth;
+					let tmax = tpos.abs().max();
+					let wd = twidth / 2 * (trind as i32 & 1) - 1 - ((trind as i32) >> 1 & 1 );
+					if tmax == wd {
+						Tile::structure(Ground::Dirt, Structure::Wall)
+					} else if tmax < wd {
+						Tile::ground(Ground::Dirt)
+					} else {
+						*random::pick_weighted(rind, &[
+							(Tile::ground(Ground::Grass1), 10),
+							(Tile::ground(Ground::Grass2), 10),
+							(Tile::ground(Ground::Dirt), 20)
+						])
+					}
+// 					[Tile::ground(Ground::Stone), Tile::ground(Ground::Empty), Tile::ground(Ground::Water), Tile::ground(Ground::Dirt)][(ind & 3) as usize]
+// 				let dcenter = dpos.abs();
+// 				if dcenter.x >= 3 && dcenter.x < 10 && dcenter.y >= 3 && dcenter.y < 10 {
+// 					Tile::structure(Ground::Dirt, Structure::Wall)
+				} else {
+					*random::pick_weighted(rind, &[
+						(Tile::ground(Ground::Grass1), 10),
+						(Tile::ground(Ground::Grass2), 10),
+						(Tile::ground(Ground::Grass3), 10)
 					])
 				}
 			}
