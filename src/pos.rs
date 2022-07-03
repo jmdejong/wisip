@@ -71,6 +71,13 @@ impl Pos {
 			self.y
 		}
 	}
+	pub fn min(&self) -> i32 {
+		if self.x < self.y {
+			self.x
+		} else {
+			self.y
+		}
+	}
 	
 	pub fn size(&self) -> Distance {
 		Distance(self.x.abs() + self.y.abs())

@@ -25,15 +25,6 @@ impl<T: Clone> Grid<T> {
 		}
 	}
 	
-	#[inline]
-	pub fn set_unchecked(&mut self, pos: Pos, val: T){
-		self.storage[(pos.x + self.size.x * pos.y) as usize] = val;
-	}
-	
-	#[inline]
-	pub fn get_unchecked(&self, pos: Pos) -> &T{
-		&self.storage[(pos.x + self.size.x * pos.y) as usize]
-	}
 	#[allow(dead_code)]
 	#[inline]
 	pub fn get_mut_unchecked(&mut self, pos: Pos) -> &T{

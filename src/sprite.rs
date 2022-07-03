@@ -22,6 +22,7 @@ pub enum Sprite {
 	Rubble,
 	Rock,
 	Tree,
+	Crop,
 	#[serde(rename=" ")]
 	Empty
 }

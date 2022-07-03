@@ -7,9 +7,6 @@ from ratuil.layout import Layout
 from .listselector import ListSelector
 from ratuil.boxstyle import Value, Relativity
 
-
-SIDEWIDTH = 24
-
 ALPHABET = "!\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~"
 
 class Display:

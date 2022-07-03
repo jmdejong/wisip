@@ -178,11 +178,20 @@ impl BiomeMap {
 					let trind = random::randomize_u32(brind + ind as u32);
 					let tpos = dpos - (vpos - Pos::new(1,1)) * twidth;
 					let tmax = tpos.abs().max();
-					let wd = twidth / 2 * (trind as i32 & 1) - 1 - ((trind as i32) >> 1 & 1 );
-					if tmax == wd {
-						Tile::structure(Ground::Dirt, Structure::Wall)
-					} else if tmax < wd {
+					let di = (tpos.x > tpos.y) as u32 + 2 * (tpos.x.abs() < tpos.y.abs()) as u32;
+					let wd = twidth / 2 - 1 - ((trind as i32) >> (4 + di) & 1 );
+					if tmax == wd && trind & 3 == 1 {
+						let side = vpos.directions_to(tpos)[0];
+// 						if side == Direction::DIRECTIONS[trind as usize >> 3 & 3] /*&& tpos.abs().min() == 0*/ {
+						if di == trind >> 2 & 3 && tpos.abs().min() == 0 {
+							Tile::ground(Ground::Dirt)
+						} else {
+							Tile::structure(Ground::Dirt, Structure::Wall)
+						}
+					} else if tmax < wd && trind & 3 == 1 {
 						Tile::ground(Ground::Dirt)
+					} else if tmax < wd && trind & 3 == 2 {
+						Tile::structure(Ground::Dirt, Structure::Crop)
 					} else {
 						*random::pick_weighted(rind, &[
 							(Tile::ground(Ground::Grass1), 10),
