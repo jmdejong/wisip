@@ -3,31 +3,36 @@
 use std::io;
 use std::net::SocketAddr;
 use mio::net::{TcpListener, TcpStream};
-use slab::Slab;
 
-use super::streamconnection::StreamConnection;
-use super::Server;
+use super::{
+	streamconnection::StreamConnection,
+	Server,
+	ConnectionId,
+	Message,
+	MessageUpdates,
+	holder::Holder
+};
 
 
 pub struct TcpServer {
 	listener: TcpListener,
-	connections: Slab<StreamConnection<TcpStream>>
+	connections: Holder<ConnectionId, StreamConnection<TcpStream>>
 }
 
 impl TcpServer {
 
-	pub fn new(addr: &SocketAddr) -> Result<TcpServer, io::Error> {
+	pub fn new(addr: SocketAddr) -> Result<TcpServer, io::Error> {
 		let listener = TcpListener::bind(addr)?;
 		Ok( TcpServer {
 			listener,
-			connections: Slab::new()
+			connections: Holder::new()
 		})
 	}
 }
 
 impl Server for TcpServer {
 
-	fn accept_pending_connections(&mut self) -> Vec<usize> {
+	fn accept_pending_connections(&mut self) -> Vec<ConnectionId> {
 		let mut new_connections = Vec::new();
 		loop {
 			match self.listener.accept() {
@@ -45,29 +50,28 @@ impl Server for TcpServer {
 	}
 
 
-	fn recv_pending_messages(&mut self) -> (Vec<(usize, String)>, Vec<usize>){
-	// 	let mut buf = [0; 2048];
-		let mut messages: Vec<(usize, String)> = Vec::new();
-		let mut to_remove = Vec::new();
-		for (key, connection) in self.connections.iter_mut(){
+	fn recv_pending_messages(&mut self) -> MessageUpdates {
+		let mut messages: Vec<Message> = Vec::new();
+		let mut to_remove: Vec<ConnectionId> = Vec::new();
+		for (connection_id, connection) in self.connections.iter_mut(){
 			match connection.read() {
 				Err(_e) => {
-					to_remove.push(key);
+					to_remove.push(*connection_id);
 				}
 				Ok((con_messages, closed)) => {
 					for message in con_messages {
-						messages.push((key, message));
+						messages.push(Message{connection: *connection_id, content: message});
 					}
 					if closed {
-						to_remove.push(key);
+						to_remove.push(*connection_id);
 					}
 				}
 			}
 		}
 		for key in to_remove.iter() {
-			self.connections.remove(*key);
+			self.connections.remove(key);
 		}
-		(messages, to_remove)
+		MessageUpdates{messages, to_remove}
 	}
 
 	fn broadcast(&mut self, text: &str) {
@@ -76,8 +80,8 @@ impl Server for TcpServer {
 		}
 	}
 	
-	fn send(&mut self, id: usize, text: &str) -> Result<(), io::Error> {
-		match self.connections.get_mut(id){
+	fn send(&mut self, id: ConnectionId, text: &str) -> Result<(), io::Error> {
+		match self.connections.get_mut(&id){
 			Some(conn) => {
 				conn.send(text)
 			}

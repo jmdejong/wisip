@@ -67,7 +67,7 @@ fn main(){
 		.map(|a| a.to_server().unwrap())
 		.collect();
 	
-	let mut gameserver = GameServer::new(servers, config.admins);
+	let mut gameserver = GameServer::new(servers);
 	
 	let map = if let Some(map_path) = config.custom_map {
 		let maptext = fs::read_to_string(&map_path).unwrap_or_else(|_| panic!("can't read map {:?}", map_path));

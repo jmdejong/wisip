@@ -3,12 +3,10 @@ use std::str::FromStr;
 use serde::{Serialize, de, Deserialize, Deserializer};
 use crate::{
 	Pos,
-	Direction,
 	tile::{Tile, Ground, Structure},
 	errors::AnyError,
 	aerr,
 	grid::Grid,
-	pos::Distance,
 	random
 };
 

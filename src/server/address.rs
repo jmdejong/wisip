@@ -20,7 +20,7 @@ pub enum Address {
 impl Address {
 	pub fn to_server(&self) -> Result<Box<dyn Server>> {
 		match self {
-			Address::Inet(addr) => Ok(Box::new(TcpServer::new(addr)?)),
+			Address::Inet(addr) => Ok(Box::new(TcpServer::new(addr.clone())?)),
 			Address::Unix(path) => Ok(Box::new(UnixServer::new(path)?)),
 		}
 	}

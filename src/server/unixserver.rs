@@ -3,18 +3,23 @@
 use std::io;
 use std::path::Path;
 use std::os::unix::io::AsRawFd;
-use mio_uds::{UnixListener, UnixStream};
-use slab::Slab;
+use mio::net::{UnixListener, UnixStream};
 use nix::sys::socket::getsockopt;
 use nix::sys::socket::sockopt;
 
-use super::streamconnection::StreamConnection;
-use super::Server;
+use super::{
+	streamconnection::StreamConnection,
+	Server,
+	ConnectionId,
+	Message,
+	MessageUpdates,
+	holder::Holder
+};
 
 
 pub struct UnixServer {
 	listener: UnixListener,
-	connections: Slab<StreamConnection<UnixStream>>
+	connections: Holder<ConnectionId, StreamConnection<UnixStream>>
 }
 
 impl UnixServer {
@@ -23,7 +28,7 @@ impl UnixServer {
 		let listener = UnixListener::bind(addr)?;
 		Ok( UnixServer {
 			listener,
-			connections: Slab::new()
+			connections: Holder::new()
 		})
 	}
 	
@@ -32,17 +37,14 @@ impl UnixServer {
 
 impl Server for UnixServer {
 
-	fn accept_pending_connections(&mut self) -> Vec<usize> {
+	fn accept_pending_connections(&mut self) -> Vec<ConnectionId> {
 		let mut new_connections = Vec::new();
 		loop {
 			match self.listener.accept() {
-				Ok(Some((stream, _address))) => {
+				Ok((stream, _address)) => {
 					let con = StreamConnection::new(stream);
 					let id = self.connections.insert(con);
 					new_connections.push(id);
-				}
-				Ok(None) => {
-					break;
 				}
 				Err(_e) => {
 					break;
@@ -53,29 +55,28 @@ impl Server for UnixServer {
 	}
 
 
-	fn recv_pending_messages(&mut self) -> (Vec<(usize, String)>, Vec<usize>){
-	// 	let mut buf = [0; 2048];
-		let mut messages: Vec<(usize, String)> = Vec::new();
-		let mut to_remove = Vec::new();
-		for (key, connection) in self.connections.iter_mut(){
+	fn recv_pending_messages(&mut self) -> MessageUpdates{
+		let mut messages: Vec<Message> = Vec::new();
+		let mut to_remove: Vec<ConnectionId> = Vec::new();
+		for (connection_id, connection) in self.connections.iter_mut(){
 			match connection.read() {
 				Err(_e) => {
-					to_remove.push(key);
+					to_remove.push(*connection_id);
 				}
 				Ok((con_messages, closed)) => {
 					for message in con_messages {
-						messages.push((key, message));
+						messages.push(Message{connection: *connection_id, content: message})
 					}
 					if closed {
-						to_remove.push(key);
+						to_remove.push(*connection_id);
 					}
 				}
 			}
 		}
 		for key in to_remove.iter() {
-			self.connections.remove(*key);
+			self.connections.remove(key);
 		}
-		(messages, to_remove)
+		MessageUpdates{messages, to_remove}
 	}
 
 	fn broadcast(&mut self, text: &str) {
@@ -84,8 +85,8 @@ impl Server for UnixServer {
 		}
 	}
 	
-	fn send(&mut self, id: usize, text: &str) -> Result<(), io::Error> {
-		match self.connections.get_mut(id){
+	fn send(&mut self, id: ConnectionId, text: &str) -> Result<(), io::Error> {
+		match self.connections.get_mut(&id){
 			Some(conn) => {
 				conn.send(text)
 			}
@@ -94,8 +95,8 @@ impl Server for UnixServer {
 	}
 	
 	#[cfg(any(target_os = "linux", target_os = "android"))]
-	fn get_name(&self, id: usize) -> Option<String> {
-		let connection = self.connections.get(id)?;
+	fn get_name(&self, id: ConnectionId) -> Option<String> {
+		let connection = self.connections.get(&id)?;
 		let fd = connection.stream.as_raw_fd();
 		let peercred = getsockopt(fd, sockopt::PeerCredentials).ok()?;
 		let uid = peercred.uid();
@@ -105,7 +106,7 @@ impl Server for UnixServer {
 	}
 	
 	#[cfg(not(any(target_os = "linux", target_os = "android")))]
-	fn get_name(&self, id: usize) -> Option<String> {
+	fn get_name(&self, id: ConnectionId) -> Option<String> {
 		None
 	}
 }

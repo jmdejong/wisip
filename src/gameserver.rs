@@ -10,7 +10,7 @@ use chrono::Utc;
 
 use crate::{
 	controls::{Control, Action},
-	server::Server,
+	server::{Server, ConnectionId, holder, holder::Holder},
 	PlayerId
 };
 
@@ -29,6 +29,18 @@ struct MessageError {
 	text: String
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+struct ServerId(usize);
+
+impl holder::HolderId for ServerId {
+	fn next(&self) -> Self { ServerId(self.0 + 1) }
+	fn initial() -> Self { ServerId(1) }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+struct ClientId(ServerId, ConnectionId);
+
+
 macro_rules! merr {
 	(name, $text: expr) => {merr!("invalidname", $text)};
 	(action, $text: expr) => {merr!("invalidaction", $text)};
@@ -38,62 +50,75 @@ macro_rules! merr {
 
 
 pub struct GameServer {
-	players: HashMap<(usize, usize), PlayerId>,
-	connections: HashMap<PlayerId, (usize, usize)>,
-	servers: Vec<Box<dyn Server>>,
-	#[allow(dead_code)]
-	admins: String
+	players: HashMap<ClientId, PlayerId>,
+	connections: HashMap<PlayerId, ClientId>,
+	servers: Holder<ServerId, Box<dyn Server>>,
 }
 
 impl GameServer {
-	pub fn new(servers: Vec<Box<dyn Server>>, admins: String) -> GameServer {
+	pub fn new(raw_servers: Vec<Box<dyn Server>>) -> GameServer {
+		let mut servers = Holder::new();
+		for server in raw_servers.into_iter() {
+			servers.insert(server);
+		}
 		GameServer {
 			players: HashMap::new(),
 			connections: HashMap::new(),
-			servers,
-			admins
+			servers
 		}
 	}
 	
 	pub fn update(&mut self) -> Vec<Action>{
-		for server in self.servers.iter_mut(){
+		for (_serverid, server) in self.servers.iter_mut(){
 			let _ = server.accept_pending_connections();
 		}
 		
 		let mut actions: Vec<Action> = Vec::new();
-		let mut input = Vec::new();
-		for (serverid, server) in self.servers.iter_mut().enumerate(){
-			let (messages, left) = server.recv_pending_messages();
-			input.push((serverid, messages, left));
+		
+		let mut raw_messages: Vec<(ClientId, String)> = Vec::new();
+		let mut to_remove: Vec<ClientId> = Vec::new();
+		
+		for (serverid, server) in self.servers.iter_mut() {
+			let message_updates = server.recv_pending_messages();
+			for connectionid in message_updates.to_remove {
+				to_remove.push(ClientId(*serverid, connectionid));
+			}
+			for raw_message in message_updates.messages{
+				raw_messages.push((ClientId(*serverid, raw_message.connection), raw_message.content));
+			}
 		}
-		for (serverid, messages, left) in input {
-			for (id, message) in messages {
-				match serde_json::from_str(&message) {
-					Ok(msg) => {
-						match self.handle_message((serverid, id), msg){
-							Ok(Some(action)) => {actions.push(action);}
-							Ok(None) => {}
-							Err(err) => {let _ = self.send_error((serverid, id), &err.typ, &err.text);}
-						}
+		for (clientid, content) in raw_messages {
+			match serde_json::from_str(&content) {
+				Ok(msg) => {
+					match self.handle_message(clientid, msg){
+						Ok(Some(action)) => {actions.push(action);}
+						Ok(None) => {}
+						Err(err) => {let _ = self.send_error(clientid, &err.typ, &err.text);}
 					}
-					Err(_err) => {
-						{let _ = self.send_error((serverid, id), "invalidmessage", &format!("Invalid message structure: {}", &message));}
-					}
+				}
+				Err(_err) => {
+					let _ = self.send_error(
+						clientid,
+						"invalidmessage",
+						&format!("Invalid message structure: {}", &content)
+					);
 				}
 			}
-			for id in left {
-				if let Some(player) = self.players.remove(&(serverid, id)){
-					self.connections.remove(&player);
-					self.broadcast_message(&format!("{} disconnected", player));
-					actions.push(Action::Leave(player.clone()));
-				}
+		}
+		for clientid in to_remove {
+			if let Some(player) = self.players.remove(&clientid){
+				self.connections.remove(&player);
+				self.broadcast_message(&format!("{} disconnected", player));
+				actions.push(Action::Leave(player.clone()));
 			}
 		}
 		actions
 	}
 	
-	fn send_error(&mut self, (serverid, connectionid): (usize, usize), errname: &str, err_text: &str) -> Result<(), io::Error>{
-		self.servers[serverid].send(connectionid, &json!(["error", errname, err_text]).to_string().as_str())
+	fn send_error(&mut self, clientid: ClientId, errname: &str, err_text: &str) -> Result<(), io::Error>{
+		self.servers.get_mut(&clientid.0)
+			.unwrap()
+			.send(clientid.1, &json!(["error", errname, err_text]).to_string().as_str())
 	}
 	
 	pub fn broadcast_message(&mut self, text: &str){
@@ -106,15 +131,19 @@ impl GameServer {
 	}
 	
 	pub fn broadcast(&mut self, txt: &str){
-		for (serverid, id) in self.players.keys() {
-			let _ = self.servers[*serverid].send(*id, txt);
+		for ClientId(serverid, id) in self.players.keys() {
+			let _ = self.servers.get_mut(serverid)
+				.unwrap()
+				.send(*id, txt);
 		}
 	}
 	
 	pub fn send(&mut self, player: &PlayerId, value: Value) -> Result<(), io::Error> {
 		match self.connections.get(player) {
-			Some((serverid, id)) => {
-				self.servers[*serverid].send(*id, value.to_string().as_str())
+			Some(ClientId(serverid, id)) => {
+				self.servers.get_mut(serverid)
+					.unwrap()
+					.send(*id, value.to_string().as_str())
 			}
 			None => Err(io::Error::new(io::ErrorKind::Other, "unknown player name"))
 		}
@@ -124,8 +153,8 @@ impl GameServer {
 		self.send(player, json!(["error", errname, err_text]))
 	}
 	
-	fn handle_message(&mut self, (serverid, connectionid): (usize, usize), msg: Message) -> Result<Option<Action>, MessageError> {
-		let id = (serverid, connectionid);
+	fn handle_message(&mut self, clientid: ClientId, msg: Message) -> Result<Option<Action>, MessageError> {
+		let id = clientid;
 		match msg {
 			Message::Introduction(name) => {
 				if name.len() > 99 {
