@@ -21,7 +21,7 @@ impl Display for AError {
 }
 #[macro_export]
 macro_rules! aerr {
-	($($description:tt)*) => {Box::new(crate::errors::AError{text: format!($($description)*)})}
+	($($description:tt)*) => {Box::new($crate::errors::AError{text: format!($($description)*)})}
 }
 
 

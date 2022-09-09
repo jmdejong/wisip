@@ -24,9 +24,9 @@ pub enum Address {
 impl Address {
 	pub fn to_server(&self) -> Result<ServerEnum> {
 		match self {
-			Address::Inet(addr) => Ok(TcpServer::new(addr.clone())?.into()),
+			Address::Inet(addr) => Ok(TcpServer::new(*addr)?.into()),
 			Address::Unix(path) => Ok(UnixServer::new(path)?.into()),
-			Address::Web(addr) => Ok(WebSocketServer::new(addr.clone())?.into())
+			Address::Web(addr) => Ok(WebSocketServer::new(*addr)?.into())
 		}
 	}
 }

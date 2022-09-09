@@ -123,7 +123,7 @@ impl GameServer {
 	fn send_error(&mut self, clientid: ClientId, errname: &str, err_text: &str) -> Result<(), ConnectionError>{
 		self.servers.get_mut(&clientid.0)
 			.unwrap()
-			.send(clientid.1, &json!(["error", errname, err_text]).to_string().as_str())
+			.send(clientid.1, json!(["error", errname, err_text]).to_string().as_str())
 	}
 	
 	pub fn broadcast_message(&mut self, text: &str){
@@ -162,10 +162,10 @@ impl GameServer {
 		let id = clientid;
 		match msg {
 			Message::Introduction(name) => {
-				if name.len() > 99 {
-					return Err(merr!(name, "A name can not be longer than 99 bytes"));
+				if name.len() > 60 {
+					return Err(merr!(name, "A name can not be longer than 60 bytes"));
 				}
-				if name.len() == 0 {
+				if name.is_empty() {
 					return Err(merr!(name, "A name must have at least one character"));
 				}
 				for chr in name.chars() {
@@ -183,7 +183,8 @@ impl GameServer {
 				self.broadcast_message(&format!("{} connected", player));
 				self.players.insert(id, player.clone());
 				self.connections.insert(player.clone(), id);
-				if let Err(_) = self.send(&player, json!(["connected", format!("successfully connected as {}", player)])){
+				let confirmation_message = json!(["connected", format!("successfully connected as {}", player)]);
+				if self.send(&player, confirmation_message).is_err() {
 					return Err(merr!("server", "unable to send connected message"))
 				}
 				Ok(Some(Action::Join(player)))

@@ -112,7 +112,7 @@ impl Server for WebSocketServer {
 	fn send(&mut self, id: ConnectionId, text: &str) -> Result<(), ConnectionError> {
 		match self.connections.get_mut(&id){
 			Some(conn) => {
-				conn.write_message(WsMessage::Text(text.to_string())).map_err(|err| ConnectionError::Tungstenite(err))
+				conn.write_message(WsMessage::Text(text.to_string())).map_err(ConnectionError::Tungstenite)
 			}
 			None => Err(ConnectionError::InvalidIndex(id))
 		}

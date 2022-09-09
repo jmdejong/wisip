@@ -21,7 +21,7 @@ pub fn pick<T>(seed: u32, choices: &[T]) -> &T {
 }
 
 
-pub fn pick_weighted<'a, T>(seed: u32, choices: &'a [(T, u32)]) -> &'a T {
+pub fn pick_weighted<T>(seed: u32, choices: &[(T, u32)]) -> &T {
 	let total: u32 = choices.iter().map(|(_v, c)| c).sum();
 	let mut rind = (seed % total) as i32;
 	for (value, chance) in choices {

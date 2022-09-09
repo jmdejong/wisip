@@ -40,17 +40,10 @@ impl Server for UnixServer {
 
 	fn accept_pending_connections(&mut self) -> Vec<ConnectionId> {
 		let mut new_connections = Vec::new();
-		loop {
-			match self.listener.accept() {
-				Ok((stream, _address)) => {
-					let con = StreamConnection::new(stream);
-					let id = self.connections.insert(con);
-					new_connections.push(id);
-				}
-				Err(_e) => {
-					break;
-				}
-			}
+		while let Ok((stream, _address)) = self.listener.accept() {
+			let con = StreamConnection::new(stream);
+			let id = self.connections.insert(con);
+			new_connections.push(id);
 		}
 		new_connections
 	}
@@ -89,7 +82,7 @@ impl Server for UnixServer {
 	fn send(&mut self, id: ConnectionId, text: &str) -> Result<(), ConnectionError> {
 		match self.connections.get_mut(&id){
 			Some(conn) => {
-				conn.send(text).map_err(|err| ConnectionError::IO(err))
+				conn.send(text).map_err(ConnectionError::IO)
 			}
 			None => Err(ConnectionError::InvalidIndex(id))
 		}

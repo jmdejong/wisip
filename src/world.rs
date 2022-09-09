@@ -77,7 +77,7 @@ impl World {
 	}
 	
 	pub fn remove_player(&mut self, playerid: &PlayerId) -> Result<()> {
-		let player = self.players.remove(playerid).ok_or(aerr!("player {} not found", playerid))?;
+		let player = self.players.remove(playerid).ok_or_else(|| aerr!("player {} not found", playerid))?;
 		if let Some(body) = &player.body {
 			self.creatures.remove(body);
 		}
@@ -85,7 +85,7 @@ impl World {
 	}
 	
 	pub fn control_player(&mut self, playerid: PlayerId, control: Control) -> Result<()>{
-		let player = self.players.get_mut(&playerid).ok_or(aerr!("player not found"))?;
+		let player = self.players.get_mut(&playerid).ok_or_else(|| aerr!("player not found"))?;
 		player.plan = Some(control);
 		Ok(())
 	}
@@ -93,7 +93,7 @@ impl World {
 	fn creature_plan(&self, creature: &Creature) -> Option<Control> {
 		match &creature.mind {
 			Mind::Player(playerid) => {
-				if let Some(player) = self.players.get(&playerid) {
+				if let Some(player) = self.players.get(playerid) {
 					player.plan.clone()
 				} else {Some(Control::Suicide)}
 			}

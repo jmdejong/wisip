@@ -87,7 +87,7 @@ impl MessageCache {
 	pub fn trim(&mut self, player: &PlayerId, msg: &mut WorldMessage){
 		if let Some(cached) = self.cache.get_mut(player){
 			msg.remove_old(cached);
-			cached.add(&msg);
+			cached.add(msg);
 		} else {
 			self.cache.insert(player.clone(), msg.clone());
 		}

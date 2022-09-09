@@ -60,7 +60,7 @@ impl <T: Read+Write> StreamConnection<T> {
 	pub fn send(&mut self, text: &str) -> Result<(), io::Error> {
 		let bytes: &[u8] = text.as_bytes();
 		let len: u32 = bytes.len() as u32;
-		let header: [u8; 4] = unsafe { transmute(len.to_be()) };
+		let header: [u8; 4] = len.to_be_bytes();
 		self.stream.write_all(&header)?;
 		self.stream.write_all(bytes)
 	}

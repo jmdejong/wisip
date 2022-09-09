@@ -23,7 +23,7 @@ pub fn write_file_safe<P: AsRef<Path>, C: AsRef<[u8]>>(path: P, contents: C) -> 
 		.with_file_name(
 			format!(
 				"tempfile_{}_{}.tmp",
-				path.as_ref().file_name().ok_or(aerr!("writing to directory"))?.to_str().unwrap_or("invalid"),
+				path.as_ref().file_name().ok_or_else(|| aerr!("writing to directory"))?.to_str().unwrap_or("invalid"),
 				rand::random::<u64>()
 			)
 		);

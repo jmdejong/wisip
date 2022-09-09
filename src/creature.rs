@@ -33,7 +33,7 @@ impl Creature {
 	
 	pub fn new_player(playerid: PlayerId, pos: Pos) -> Self {
 		Self {
-			mind: Mind::Player(playerid.clone()),
+			mind: Mind::Player(playerid),
 			pos,
 			cooldown: Duration(0),
 			walk_cooldown: Duration(0),

@@ -73,7 +73,7 @@ impl BiomeMap {
 			size,
 			seed,
 			height: random::Fractal::new(seed + 344, vec![(3,0.12), (5,0.20), (7,0.26), (11,0.42)]),
-				biome_size: biome_size
+			biome_size
 		}
 	}
 
