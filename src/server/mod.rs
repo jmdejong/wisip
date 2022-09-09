@@ -1,17 +1,17 @@
 use std::io;
+use crate::util::HolderId;
 
 pub mod tcpserver;
 pub mod unixserver;
 pub mod websocketserver;
 pub mod address;
-pub mod holder;
 
 mod streamconnection;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ConnectionId(pub usize);
 
-impl holder::HolderId for ConnectionId {
+impl HolderId for ConnectionId {
 	fn next(&self) -> Self { ConnectionId(self.0 + 1) }
 	fn initial() -> Self { ConnectionId(1) }
 }

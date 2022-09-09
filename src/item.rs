@@ -11,11 +11,13 @@ pub enum ItemRef {
 	Radish,
 }
 
+#[allow(dead_code)]
 pub struct ItemDef {
 	is_tool: bool,
 }
 
 impl ItemRef {
+	#[allow(dead_code)]
 	pub fn properties(&self) -> ItemDef {
 		match self {
 			ItemRef::Axe => ItemDef{is_tool: true},

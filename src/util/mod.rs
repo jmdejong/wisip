@@ -1,18 +1,12 @@
 
-use std::cmp::{min, max};
+mod holder;
 
+pub use holder::{Holder, HolderId};
+
+use std::cmp::{min, max};
 
 pub fn clamp<T: Ord>(val: T, lower: T, upper: T) -> T{
 	max(min(val, upper), lower)
-}
-
-#[allow(dead_code)]
-pub fn strip_prefix<'a>(txt: &'a str, prefix: &'a str) -> Option<&'a str> {
-	if txt.starts_with(prefix) {
-		Some(txt.split_at(prefix.len()).1)
-	} else {
-		None
-	}
 }
 
 use std::fs;
@@ -21,16 +15,6 @@ use crate::{
 	errors::AnyError,
 	aerr
 };
-
-#[allow(dead_code)]
-pub fn partition_by(s: &str, pat: &str) -> (String, String) {
-	let mut parts: Vec<String> = s.splitn(2, pat).map(String::from).collect();
-	while parts.len() < 2 {
-		parts.push("".to_string())
-	}
-	(parts.remove(0), parts.remove(0))
-}
-
 
 #[allow(dead_code)]
 pub fn write_file_safe<P: AsRef<Path>, C: AsRef<[u8]>>(path: P, contents: C) -> Result<(), AnyError> {
@@ -63,19 +47,6 @@ macro_rules! hashmap {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Percentage(pub i64);
-
-pub struct Tuple2;
-
-#[allow(dead_code)]
-impl Tuple2 {
-	pub fn first<T, U>((a, _): &(T, U)) -> &T {
-		a
-	}
-	pub fn second<T, U>((_, b): &(T, U)) -> &U {
-		b
-	}
-}
-
 
 
 #[cfg(test)]

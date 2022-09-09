@@ -18,7 +18,6 @@ mod sprite;
 mod timestamp;
 mod config;
 mod errors;
-mod holder;
 mod creature;
 mod tile;
 mod item;

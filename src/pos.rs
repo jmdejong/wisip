@@ -26,6 +26,7 @@ impl Direction {
 		}
 	}
 	
+	#[allow(dead_code)]
 	pub const DIRECTIONS: [Direction; 4] = [Direction::North, Direction::South, Direction::East, Direction::West];
 }
 
@@ -79,6 +80,7 @@ impl Pos {
 		}
 	}
 	
+	#[allow(dead_code)]
 	pub fn size(&self) -> Distance {
 		Distance(self.x.abs() + self.y.abs())
 	}
@@ -88,6 +90,7 @@ impl Pos {
 		self.x == 0 && self.y == 0
 	}
 	
+	#[allow(dead_code)]
 	pub fn distance_to(&self, other: Pos) -> Distance {
 		(other - *self).size()
 	}

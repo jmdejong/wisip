@@ -3,6 +3,7 @@
 use std::io;
 use std::net::SocketAddr;
 use mio::net::{TcpListener, TcpStream};
+use crate::util::Holder;
 
 use super::{
 	streamconnection::StreamConnection,
@@ -10,8 +11,7 @@ use super::{
 	ConnectionId,
 	Message,
 	MessageUpdates,
-	ConnectionError,
-	holder::Holder
+	ConnectionError
 };
 
 

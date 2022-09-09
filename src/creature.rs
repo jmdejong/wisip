@@ -24,6 +24,7 @@ pub struct Creature {
 
 impl Creature {
 	
+	#[allow(dead_code)]
 	pub fn is_player(&self) -> bool {
 		matches!(self.mind, Mind::Player(_))
 	}
@@ -41,6 +42,7 @@ impl Creature {
 	}
 	
 	
+	#[allow(dead_code)]
 	pub fn is_dead(&self) -> bool {
 		self.is_dead
 	}

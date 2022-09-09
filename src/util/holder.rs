@@ -1,6 +1,7 @@
 
 
 use std::collections::HashMap;
+use std::collections::hash_map::{Iter, IterMut, Values};
 use std::hash::Hash;
 
 pub trait HolderId: Copy + Eq + Hash {
@@ -30,21 +31,50 @@ impl <K: HolderId, V> Holder<K, V> {
 		key
 	}
 	
+	#[inline]
+	pub fn contains_key(&self, key: &K) -> bool {
+		self.storage.contains_key(key)
+	}
+	
+	#[inline]
 	pub fn get(&self, key: &K) -> Option<&V> {
 		self.storage.get(key)
 	}
 	
+	#[inline]
 	pub fn get_mut(&mut self, key: &K) -> Option<&mut V> {
 		self.storage.get_mut(key)
 	}
 	
-	pub fn iter_mut(&mut self) -> std::collections::hash_map::IterMut<K, V> {
-		self.storage.iter_mut()
-	}
-	
+	#[inline]
 	pub fn remove(&mut self, key: &K) -> Option<V> {
 		self.storage.remove(key)
 	}
+	
+	#[inline]
+	pub fn iter(&self) -> Iter<K, V> {
+		self.storage.iter()
+	}
+	
+	#[inline]
+	pub fn iter_mut(&mut self) -> IterMut<K, V> {
+		self.storage.iter_mut()
+	}
+	
+	#[inline]
+	pub fn values(&self) -> Values<K, V> {
+		self.storage.values()
+	}
+	
+	#[inline]
+	pub fn clear(&mut self) {
+		self.storage.clear()
+	}
+}
+
+impl HolderId for usize {
+	fn next(&self) -> Self { self + 1 }
+	fn initial() -> Self { 1 }
 }
 
 

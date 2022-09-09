@@ -9,14 +9,14 @@ use tungstenite::{
 	WebSocket,
 	error::Error as WsError
 };
+use crate::util::Holder;
 
 use super::{
 	Server,
 	ConnectionId,
 	Message,
 	MessageUpdates,
-	ConnectionError,
-	holder::Holder
+	ConnectionError
 };
 
 fn is_wouldblock_error(error: &WsError) -> bool {

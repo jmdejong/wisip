@@ -6,6 +6,7 @@ use std::os::unix::io::AsRawFd;
 use mio::net::{UnixListener, UnixStream};
 use nix::sys::socket::getsockopt;
 use nix::sys::socket::sockopt;
+use crate::util::Holder;
 
 use super::{
 	streamconnection::StreamConnection,
@@ -13,8 +14,7 @@ use super::{
 	ConnectionId,
 	Message,
 	MessageUpdates,
-	ConnectionError,
-	holder::Holder
+	ConnectionError
 };
 
 

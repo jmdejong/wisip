@@ -6,14 +6,13 @@ use serde_json::{Value, json};
 use serde::{Serialize, Deserialize};
 use unicode_categories::UnicodeCategories;
 use chrono::Utc;
+use crate::util::{HolderId, Holder};
 
 use crate::{
 	controls::{Control, Action},
 	server::{
 		Server,
 		ConnectionId,
-		holder,
-		holder::Holder,
 		ConnectionError
 	},
 	PlayerId
@@ -37,7 +36,7 @@ struct MessageError {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 struct ServerId(usize);
 
-impl holder::HolderId for ServerId {
+impl HolderId for ServerId {
 	fn next(&self) -> Self { ServerId(self.0 + 1) }
 	fn initial() -> Self { ServerId(1) }
 }

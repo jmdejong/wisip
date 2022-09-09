@@ -73,7 +73,7 @@ impl BiomeMap {
 			size,
 			seed,
 			height: random::Fractal::new(seed + 344, vec![(3,0.12), (5,0.20), (7,0.26), (11,0.42)]),
-				biome_size: 50
+				biome_size: biome_size
 		}
 	}
 
@@ -179,7 +179,7 @@ impl BiomeMap {
 					let di = (tpos.x > tpos.y) as u32 + 2 * (tpos.x.abs() < tpos.y.abs()) as u32;
 					let wd = twidth / 2 - 1 - ((trind as i32) >> (4 + di) & 1 );
 					if tmax == wd && trind & 3 == 1 {
-						let side = vpos.directions_to(tpos)[0];
+// 						let side = vpos.directions_to(tpos)[0];
 // 						if side == Direction::DIRECTIONS[trind as usize >> 3 & 3] /*&& tpos.abs().min() == 0*/ {
 						if di == trind >> 2 & 3 && tpos.abs().min() == 0 {
 							Tile::ground(Ground::Dirt)
