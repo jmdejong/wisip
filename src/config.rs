@@ -10,7 +10,7 @@ use crate::{
 #[structopt(name = "Battilde", about = "Multiplayer terminal shooter (server)")]
 pub struct Config {
 	
-	#[structopt(short, long, help="A server type and address. Allowed server types: 'inet', 'unix', 'abstract'. Example: \"inet:127.0.0.1:1234\" or \"abstract:battilde\" or \"unix:/tmp/battilde\" or \"inet:[::1]:1234\"")]
+	#[structopt(short, long, help="A server type and address. Allowed server types: 'inet', 'unix', 'abstract', 'web'. Example: \"inet:127.0.0.1:1234\" or \"abstract:battilde\" or \"unix:/tmp/battilde\" or \"inet:[::1]:1234\" or \"web:127.0.0.1:1234\"")]
 	pub address: Option<Vec<Address>>,
 	
 	#[structopt(long, env="USER", help="The name(s) of the server admin(s)")]

@@ -2,6 +2,8 @@ use std::io;
 
 pub mod tcpserver;
 pub mod unixserver;
+pub mod websocketserver;
+pub mod wsserver;
 pub mod address;
 pub mod holder;
 
@@ -27,6 +29,14 @@ pub struct MessageUpdates {
 	pub to_remove: Vec<ConnectionId>
 }
 
+#[derive(Debug)]
+pub enum ConnectionError {
+	IO(io::Error),
+	InvalidIndex(ConnectionId),
+	Tungstenite(tungstenite::Error),
+	Custom(String)
+}
+
 
 pub trait Server {
 	
@@ -34,7 +44,7 @@ pub trait Server {
 	
 	fn recv_pending_messages(&mut self) -> MessageUpdates;
 	
-	fn send(&mut self, id: ConnectionId, text: &str) -> Result<(), io::Error>;
+	fn send(&mut self, id: ConnectionId, text: &str) -> Result<(), ConnectionError>;
 	
 	fn broadcast(&mut self, text: &str);
 	

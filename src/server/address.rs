@@ -7,14 +7,18 @@ use crate::{
 	aerr,
 	errors::AnyError
 };
-use super::tcpserver::TcpServer;
-use super::unixserver::UnixServer;
-use super::Server;
+use super::{
+	tcpserver::TcpServer,
+	unixserver::UnixServer,
+	websocketserver::WebSocketServer,
+	Server
+};
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Address {
 	Inet(SocketAddr),
-	Unix(PathBuf)
+	Unix(PathBuf),
+	Web(SocketAddr)
 }
 
 impl Address {
@@ -22,6 +26,7 @@ impl Address {
 		match self {
 			Address::Inet(addr) => Ok(Box::new(TcpServer::new(addr.clone())?)),
 			Address::Unix(path) => Ok(Box::new(UnixServer::new(path)?)),
+			Address::Web(addr) => Ok(Box::new(WebSocketServer::new(addr.clone())?))
 		}
 	}
 }
@@ -45,6 +50,7 @@ impl FromStr for Address {
 						Err(aerr!("abstract adresses are only for linux"))
 					}
 				}
+			"web" => Ok(Address::Web(text.parse().map_err(|e| aerr!("'{}' is not a valid websocket address: {}", text, e))?)),
 			_ => Err(aerr!("'{}' is not a valid address type", typename))
 		}
 	}

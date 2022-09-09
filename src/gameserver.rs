@@ -10,7 +10,13 @@ use chrono::Utc;
 
 use crate::{
 	controls::{Control, Action},
-	server::{Server, ConnectionId, holder, holder::Holder},
+	server::{
+		Server,
+		ConnectionId,
+		holder,
+		holder::Holder,
+		ConnectionError
+	},
 	PlayerId
 };
 
@@ -115,7 +121,7 @@ impl GameServer {
 		actions
 	}
 	
-	fn send_error(&mut self, clientid: ClientId, errname: &str, err_text: &str) -> Result<(), io::Error>{
+	fn send_error(&mut self, clientid: ClientId, errname: &str, err_text: &str) -> Result<(), ConnectionError>{
 		self.servers.get_mut(&clientid.0)
 			.unwrap()
 			.send(clientid.1, &json!(["error", errname, err_text]).to_string().as_str())
@@ -138,18 +144,18 @@ impl GameServer {
 		}
 	}
 	
-	pub fn send(&mut self, player: &PlayerId, value: Value) -> Result<(), io::Error> {
+	pub fn send(&mut self, player: &PlayerId, value: Value) -> Result<(), ConnectionError> {
 		match self.connections.get(player) {
 			Some(ClientId(serverid, id)) => {
 				self.servers.get_mut(serverid)
 					.unwrap()
 					.send(*id, value.to_string().as_str())
 			}
-			None => Err(io::Error::new(io::ErrorKind::Other, "unknown player name"))
+			None => Err(ConnectionError::Custom(format!("unknown player name {}", player)))
 		}
 	}
 	
-	pub fn send_player_error(&mut self, player: &PlayerId, errname: &str, err_text: &str) -> Result<(), io::Error> {
+	pub fn send_player_error(&mut self, player: &PlayerId, errname: &str, err_text: &str) -> Result<(), ConnectionError> {
 		self.send(player, json!(["error", errname, err_text]))
 	}
 	

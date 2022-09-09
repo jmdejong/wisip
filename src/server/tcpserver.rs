@@ -10,6 +10,7 @@ use super::{
 	ConnectionId,
 	Message,
 	MessageUpdates,
+	ConnectionError,
 	holder::Holder
 };
 
@@ -80,12 +81,12 @@ impl Server for TcpServer {
 		}
 	}
 	
-	fn send(&mut self, id: ConnectionId, text: &str) -> Result<(), io::Error> {
+	fn send(&mut self, id: ConnectionId, text: &str) -> Result<(), ConnectionError> {
 		match self.connections.get_mut(&id){
 			Some(conn) => {
-				conn.send(text)
+				conn.send(text).map_err(|err| ConnectionError::IO(err))
 			}
-			None => Err(io::Error::new(io::ErrorKind::Other, "index is empty"))
+			None => Err(ConnectionError::InvalidIndex(id))
 		}
 	}
 	

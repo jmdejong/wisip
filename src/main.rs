@@ -52,9 +52,9 @@ fn main(){
 	let adresses = config.address
 		.unwrap_or_else(||
 			(if cfg!(target_os = "linux") {
-				vec!["abstract:dezl", "inet:127.0.0.1:9231"]
+				vec!["abstract:dezl", "inet:127.0.0.1:9231", "web:127.0.0.1:9232"]
 			} else {
-				vec!["inet:127.0.0.1:9231"]
+				vec!["inet:127.0.0.1:9231", "web:127.0.0.1:9232"]
 			})
 			.iter()
 			.map(|a| a.parse().unwrap())
@@ -91,7 +91,7 @@ fn main(){
 	}).expect("can't set close handler");
 	
 	
-	println!("battilde started on {}", Utc::now());
+	println!("dezl started on {}", Utc::now());
 	
 	let mut empty_timer = 1000000;
 	
@@ -143,7 +143,7 @@ fn main(){
 			}
 		}
 		let elapsed_time = now.elapsed();
-		if elapsed_time > Duration::new(0, 1_000_000) {
+		if elapsed_time > Duration::from_millis(3) {
 			println!("Running update() took {} milliseconds.", elapsed_time.as_millis());
 		}
 		sleep(Duration::from_millis(config.step_duration));
