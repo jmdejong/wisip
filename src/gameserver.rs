@@ -12,6 +12,7 @@ use crate::{
 	controls::{Control, Action},
 	server::{
 		Server,
+		ServerEnum,
 		ConnectionId,
 		ConnectionError
 	},
@@ -56,11 +57,11 @@ macro_rules! merr {
 pub struct GameServer {
 	players: HashMap<ClientId, PlayerId>,
 	connections: HashMap<PlayerId, ClientId>,
-	servers: Holder<ServerId, Box<dyn Server>>,
+	servers: Holder<ServerId, ServerEnum>,
 }
 
 impl GameServer {
-	pub fn new(raw_servers: Vec<Box<dyn Server>>) -> GameServer {
+	pub fn new(raw_servers: Vec<ServerEnum>) -> GameServer {
 		let mut servers = Holder::new();
 		for server in raw_servers.into_iter() {
 			servers.insert(server);

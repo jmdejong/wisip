@@ -1,10 +1,16 @@
-use std::io;
-use crate::util::HolderId;
+mod tcpserver;
+mod unixserver;
+mod websocketserver;
+mod address;
 
-pub mod tcpserver;
-pub mod unixserver;
-pub mod websocketserver;
-pub mod address;
+use std::io;
+use enum_dispatch::enum_dispatch;
+
+use crate::util::HolderId;
+pub use tcpserver::TcpServer;
+pub use unixserver::UnixServer;
+pub use websocketserver::WebSocketServer;
+pub use address::Address;
 
 mod streamconnection;
 
@@ -37,6 +43,8 @@ pub enum ConnectionError {
 }
 
 
+
+#[enum_dispatch]
 pub trait Server {
 	
 	fn accept_pending_connections(&mut self) -> Vec<ConnectionId>;
@@ -52,5 +60,11 @@ pub trait Server {
 	}
 }
 
+#[enum_dispatch(Server)]
+pub enum ServerEnum {
+	TcpServer,
+	UnixServer,
+	WebSocketServer
+}
 
 

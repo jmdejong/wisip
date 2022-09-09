@@ -8,10 +8,10 @@ use crate::{
 	errors::AnyError
 };
 use super::{
-	tcpserver::TcpServer,
-	unixserver::UnixServer,
-	websocketserver::WebSocketServer,
-	Server
+	TcpServer,
+	UnixServer,
+	WebSocketServer,
+	ServerEnum
 };
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -22,11 +22,11 @@ pub enum Address {
 }
 
 impl Address {
-	pub fn to_server(&self) -> Result<Box<dyn Server>> {
+	pub fn to_server(&self) -> Result<ServerEnum> {
 		match self {
-			Address::Inet(addr) => Ok(Box::new(TcpServer::new(addr.clone())?)),
-			Address::Unix(path) => Ok(Box::new(UnixServer::new(path)?)),
-			Address::Web(addr) => Ok(Box::new(WebSocketServer::new(addr.clone())?))
+			Address::Inet(addr) => Ok(TcpServer::new(addr.clone())?.into()),
+			Address::Unix(path) => Ok(UnixServer::new(path)?.into()),
+			Address::Web(addr) => Ok(WebSocketServer::new(addr.clone())?.into())
 		}
 	}
 }

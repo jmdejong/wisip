@@ -32,8 +32,7 @@ use self::{
 	sprite::Sprite,
 	
 	gameserver::GameServer,
-	server::Server,
-	server::address::Address,
+	server::ServerEnum,
 	controls::Action,
 	world::World,
 	worldmessages::MessageCache,
@@ -60,7 +59,7 @@ fn main(){
 			.collect()
 		);
 	println!("adresses: {:?}", adresses);
-	let servers: Vec<Box<dyn Server>> = 
+	let servers: Vec<ServerEnum> = 
 		adresses
 		.iter()
 		.map(|a| a.to_server().unwrap())

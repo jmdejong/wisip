@@ -21,4 +21,5 @@ enum_properties = "0.3"
 strum = "0.23"
 strum_macros = "0.23"
 tungstenite = "0.17.3"
+enum_dispatch = "0.3.8"
 

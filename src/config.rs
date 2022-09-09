@@ -2,7 +2,7 @@
 use structopt::StructOpt;
 use std::path::PathBuf;
 use crate::{
-	Address,
+	server::Address,
 	mapgen::BuiltinMap
 };
 
