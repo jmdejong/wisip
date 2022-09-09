@@ -5,6 +5,7 @@ use crate::{
 	Pos,
 	PlayerId,
 	timestamp::Duration,
+	util::HolderId
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -50,4 +51,12 @@ impl Creature {
 	pub fn kill(&mut self) {
 		self.is_dead = true;
 	}
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct CreatureId(pub usize);
+
+impl HolderId for CreatureId {
+	fn next(&self) -> Self { Self(self.0 + 1) }
+	fn initial() -> Self { Self(1) }
 }

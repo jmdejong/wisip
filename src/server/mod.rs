@@ -12,8 +12,8 @@ mod streamconnection;
 pub struct ConnectionId(pub usize);
 
 impl HolderId for ConnectionId {
-	fn next(&self) -> Self { ConnectionId(self.0 + 1) }
-	fn initial() -> Self { ConnectionId(1) }
+	fn next(&self) -> Self { Self(self.0 + 1) }
+	fn initial() -> Self { Self(1) }
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]

@@ -37,8 +37,8 @@ struct MessageError {
 struct ServerId(usize);
 
 impl HolderId for ServerId {
-	fn next(&self) -> Self { ServerId(self.0 + 1) }
-	fn initial() -> Self { ServerId(1) }
+	fn next(&self) -> Self { Self(self.0 + 1) }
+	fn initial() -> Self { Self(1) }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

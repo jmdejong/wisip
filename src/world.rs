@@ -11,7 +11,7 @@ use crate::{
 	sprite::Sprite,
 	worldmessages::{WorldMessage, FieldMessage, ChangeMessage},
 	timestamp::{Timestamp},
-	creature::{Creature, Mind},
+	creature::{Creature, Mind, CreatureId},
 	tile::Tile,
 	player::Player,
 	mapgen::{MapTemplate, MapType, create_map},
@@ -23,7 +23,7 @@ pub struct World {
 	size: Pos,
 	ground: Grid<Tile>,
 	players: HashMap<PlayerId, Player>,
-	creatures: Holder<usize, Creature>,
+	creatures: Holder<CreatureId, Creature>,
 	spawnpoint: Pos,
 	map: MapType,
 	drawing: Option<HashMap<Pos, Vec<Sprite>>>,
@@ -67,7 +67,7 @@ impl World {
 			playerid.clone(),
 			Player{
 				plan: None,
-				body: 0,
+				body: None,
 				is_new: true,
 				view_center: None,
 				inventory: Vec::new()
@@ -78,7 +78,9 @@ impl World {
 	
 	pub fn remove_player(&mut self, playerid: &PlayerId) -> Result<()> {
 		let player = self.players.remove(playerid).ok_or(aerr!("player {} not found", playerid))?;
-		self.creatures.remove(&player.body);
+		if let Some(body) = &player.body {
+			self.creatures.remove(body);
+		}
 		Ok(())
 	}
 	
@@ -99,10 +101,10 @@ impl World {
 	}
 	
 	fn update_creatures(&mut self) -> Option<()> {
-		let mut creature_map: HashMap<Pos, usize> = self.creatures.iter()
+		let mut creature_map: HashMap<Pos, CreatureId> = self.creatures.iter()
 			.map(|(creatureid, creature)| (creature.pos, *creatureid))
 			.collect();
-		let plans: HashMap<usize, Control> = self.creatures.iter()
+		let plans: HashMap<CreatureId, Control> = self.creatures.iter()
 			.filter(|(_k, c)| c.cooldown.0 <= 0)
 			.filter_map(|(k, c)|
 				Some((*k, self.creature_plan(c)?))
@@ -143,12 +145,12 @@ impl World {
 		
 		// spawn players
 		for (playerid, player) in self.players.iter_mut() {
-			if !self.creatures.contains_key(&player.body) {
+			if player.body.map_or(true, |id| !self.creatures.contains_key(&id)) {
 				let body = self.creatures.insert(Creature::new_player(
 					playerid.clone(),
 					self.spawnpoint
 				));
-				player.body = body
+				player.body = Some(body)
 			}
 			player.plan = None;
 		}
@@ -194,7 +196,7 @@ impl World {
 		let mut views: HashMap<PlayerId, WorldMessage> = HashMap::new();
 		for (playerid, player) in self.players.iter_mut() {
 			let mut wm = WorldMessage::default();
-			if let Some(body) = self.creatures.get(&player.body){
+			if let Some(body) = player.body.as_ref().and_then(|id| self.creatures.get(id)){
 				let in_view_range = player.view_center
 					.map_or(
 						false,

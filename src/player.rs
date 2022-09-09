@@ -5,7 +5,8 @@ use serde::{Serialize, Deserialize};
 use crate::{
 	Pos,
 	controls::Control,
-	item::ItemRef as Item
+	item::ItemRef as Item,
+	creature::CreatureId
 };
 
 #[derive(Debug, Default, PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]
@@ -20,7 +21,7 @@ impl fmt::Display for PlayerId {
 #[derive(Debug, Clone)]
 pub struct Player {
 	pub plan: Option<Control>,
-	pub body: usize,
+	pub body: Option<CreatureId>,
 	pub is_new: bool,
 	pub view_center: Option<Pos>,
 	pub inventory: Vec<Item>
