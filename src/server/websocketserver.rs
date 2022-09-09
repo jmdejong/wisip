@@ -59,7 +59,7 @@ impl Server for WebSocketServer {
 							new_connections.push(id);
 						}
 						Err(err) => {
-							println!("failed to open websocket connection: {:?}", err);
+							eprintln!("failed to open websocket connection: {:?}", err);
 						}
 					}
 				}
@@ -78,9 +78,11 @@ impl Server for WebSocketServer {
 					if is_wouldblock_error(&e) {
 						break;
 					}
-					println!("error reading websocket message: {:?}", e);
+					eprintln!("error reading websocket message: {:?}", e);
 					to_remove.push(*connection_id);
-					connection.close(None);
+					if let Err(close_err) = connection.close(None) {
+						eprintln!("error closing websocket: {:?}", close_err);
+					}
 				}
 				Ok(WsMessage::Text(text)) => {
 					println!("websocket text: {}", text.clone());

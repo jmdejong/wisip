@@ -3,7 +3,6 @@ use std::io;
 pub mod tcpserver;
 pub mod unixserver;
 pub mod websocketserver;
-pub mod wsserver;
 pub mod address;
 pub mod holder;
 
