@@ -14,7 +14,7 @@ use crate::{
 		Server,
 		ServerEnum,
 		ConnectionId,
-		ConnectionError
+		ServerError
 	},
 	PlayerId
 };
@@ -120,7 +120,7 @@ impl GameServer {
 		actions
 	}
 	
-	fn send_error(&mut self, clientid: ClientId, errname: &str, err_text: &str) -> Result<(), ConnectionError>{
+	fn send_error(&mut self, clientid: ClientId, errname: &str, err_text: &str) -> Result<(), ServerError>{
 		self.servers.get_mut(&clientid.0)
 			.unwrap()
 			.send(clientid.1, json!(["error", errname, err_text]).to_string().as_str())
@@ -143,18 +143,18 @@ impl GameServer {
 		}
 	}
 	
-	pub fn send(&mut self, player: &PlayerId, value: Value) -> Result<(), ConnectionError> {
+	pub fn send(&mut self, player: &PlayerId, value: Value) -> Result<(), ServerError> {
 		match self.connections.get(player) {
 			Some(ClientId(serverid, id)) => {
 				self.servers.get_mut(serverid)
 					.unwrap()
 					.send(*id, value.to_string().as_str())
 			}
-			None => Err(ConnectionError::Custom(format!("unknown player name {}", player)))
+			None => Err(ServerError::Custom(format!("unknown player name {}", player)))
 		}
 	}
 	
-	pub fn send_player_error(&mut self, player: &PlayerId, errname: &str, err_text: &str) -> Result<(), ConnectionError> {
+	pub fn send_player_error(&mut self, player: &PlayerId, errname: &str, err_text: &str) -> Result<(), ServerError> {
 		self.send(player, json!(["error", errname, err_text]))
 	}
 	

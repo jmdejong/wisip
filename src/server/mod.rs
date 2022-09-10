@@ -1,18 +1,15 @@
 mod tcpserver;
 mod unixserver;
-mod websocketserver;
 mod address;
+mod connection;
 
-use std::io;
 use enum_dispatch::enum_dispatch;
 
 use crate::util::HolderId;
-pub use tcpserver::TcpServer;
-pub use unixserver::UnixServer;
-pub use websocketserver::WebSocketServer;
+use unixserver::UnixServer;
 pub use address::Address;
+pub use connection::ConnectionError;
 
-mod streamconnection;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct ConnectionId(pub usize);
@@ -34,15 +31,13 @@ pub struct MessageUpdates {
 	pub to_remove: Vec<ConnectionId>
 }
 
+
 #[derive(Debug)]
-pub enum ConnectionError {
-	IO(io::Error),
+pub enum ServerError {
 	InvalidIndex(ConnectionId),
-	Tungstenite(tungstenite::Error),
-	Custom(String)
+	Connection(ConnectionError),
+	Custom(String),
 }
-
-
 
 #[enum_dispatch]
 pub trait Server {
@@ -51,7 +46,7 @@ pub trait Server {
 	
 	fn recv_pending_messages(&mut self) -> MessageUpdates;
 	
-	fn send(&mut self, id: ConnectionId, text: &str) -> Result<(), ConnectionError>;
+	fn send(&mut self, id: ConnectionId, text: &str) -> Result<(), ServerError>;
 	
 	fn broadcast(&mut self, text: &str);
 	
@@ -60,11 +55,12 @@ pub trait Server {
 	}
 }
 
+type VarInetServer = tcpserver::TcpServer<connection::DynCon<mio::net::TcpStream>>;
+
 #[enum_dispatch(Server)]
 pub enum ServerEnum {
-	TcpServer,
+	VarInetServer,
 	UnixServer,
-	WebSocketServer
 }
 
 

@@ -6,23 +6,23 @@ use mio::net::{TcpListener, TcpStream};
 use crate::util::Holder;
 
 use super::{
-	streamconnection::StreamConnection,
+	connection::Connection,
 	Server,
 	ConnectionId,
 	Message,
 	MessageUpdates,
-	ConnectionError
+	ServerError
 };
 
 
-pub struct TcpServer {
+pub struct TcpServer<T: Connection<TcpStream>> {
 	listener: TcpListener,
-	connections: Holder<ConnectionId, StreamConnection<TcpStream>>
+	connections: Holder<ConnectionId, T>
 }
 
-impl TcpServer {
+impl <T: Connection<TcpStream>> TcpServer<T> {
 
-	pub fn new(addr: SocketAddr) -> Result<TcpServer, io::Error> {
+	pub fn new(addr: SocketAddr) -> Result<TcpServer<T>, io::Error> {
 		let listener = TcpListener::bind(addr)?;
 		Ok( TcpServer {
 			listener,
@@ -31,12 +31,12 @@ impl TcpServer {
 	}
 }
 
-impl Server for TcpServer {
+impl <T: Connection<TcpStream>> Server for TcpServer<T> {
 
 	fn accept_pending_connections(&mut self) -> Vec<ConnectionId> {
 		let mut new_connections = Vec::new();
 		while let Ok((stream, _address)) = self.listener.accept() {
-			let con = StreamConnection::new(stream);
+			let con = Connection::new(stream).unwrap();
 			let id = self.connections.insert(con);
 			new_connections.push(id);
 		}
@@ -74,12 +74,12 @@ impl Server for TcpServer {
 		}
 	}
 	
-	fn send(&mut self, id: ConnectionId, text: &str) -> Result<(), ConnectionError> {
+	fn send(&mut self, id: ConnectionId, text: &str) -> Result<(), ServerError> {
 		match self.connections.get_mut(&id){
 			Some(conn) => {
-				conn.send(text).map_err(ConnectionError::IO)
+				conn.send(text).map_err(ServerError::Connection)
 			}
-			None => Err(ConnectionError::InvalidIndex(id))
+			None => Err(ServerError::InvalidIndex(id))
 		}
 	}
 	

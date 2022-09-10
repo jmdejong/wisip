@@ -8,25 +8,22 @@ use crate::{
 	errors::AnyError
 };
 use super::{
-	TcpServer,
+	VarInetServer,
 	UnixServer,
-	WebSocketServer,
 	ServerEnum
 };
 
 #[derive(Debug, PartialEq, Eq, Clone)]
 pub enum Address {
 	Inet(SocketAddr),
-	Unix(PathBuf),
-	Web(SocketAddr)
+	Unix(PathBuf)
 }
 
 impl Address {
 	pub fn to_server(&self) -> Result<ServerEnum> {
 		match self {
-			Address::Inet(addr) => Ok(TcpServer::new(*addr)?.into()),
-			Address::Unix(path) => Ok(UnixServer::new(path)?.into()),
-			Address::Web(addr) => Ok(WebSocketServer::new(*addr)?.into())
+			Address::Inet(addr) => Ok(VarInetServer::new(*addr)?.into()),
+			Address::Unix(path) => Ok(UnixServer::new(path)?.into())
 		}
 	}
 }
@@ -50,7 +47,6 @@ impl FromStr for Address {
 						Err(aerr!("abstract adresses are only for linux"))
 					}
 				}
-			"web" => Ok(Address::Web(text.parse().map_err(|e| aerr!("'{}' is not a valid websocket address: {}", text, e))?)),
 			_ => Err(aerr!("'{}' is not a valid address type", typename))
 		}
 	}

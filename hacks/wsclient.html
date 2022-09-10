@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<script>
+var ws = new WebSocket("ws://localhost:9231");
+ws.addEventListener("message", mev => console.log(mev.data));
+ws.addEventListener("open", () => ws.send(JSON.stringify({"introduction": "web"})));
+</script>
+</head>
+<body>
+</body>
+</html>

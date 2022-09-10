@@ -50,9 +50,9 @@ fn main(){
 	let adresses = config.address
 		.unwrap_or_else(||
 			(if cfg!(target_os = "linux") {
-				vec!["abstract:dezl", "inet:127.0.0.1:9231", "web:127.0.0.1:9232"]
+				vec!["abstract:dezl", "inet:127.0.0.1:9231"]
 			} else {
-				vec!["inet:127.0.0.1:9231", "web:127.0.0.1:9232"]
+				vec!["inet:127.0.0.1:9231"]
 			})
 			.iter()
 			.map(|a| a.parse().unwrap())

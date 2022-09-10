@@ -9,18 +9,18 @@ use nix::sys::socket::sockopt;
 use crate::util::Holder;
 
 use super::{
-	streamconnection::StreamConnection,
+	connection::{Connection, StreamConnection},
 	Server,
 	ConnectionId,
 	Message,
 	MessageUpdates,
-	ConnectionError
+	ServerError
 };
 
 
 pub struct UnixServer {
 	listener: UnixListener,
-	connections: Holder<ConnectionId, StreamConnection<UnixStream>>
+	connections: Holder<ConnectionId, (StreamConnection<UnixStream>, std::os::unix::io::RawFd)>
 }
 
 impl UnixServer {
@@ -41,8 +41,9 @@ impl Server for UnixServer {
 	fn accept_pending_connections(&mut self) -> Vec<ConnectionId> {
 		let mut new_connections = Vec::new();
 		while let Ok((stream, _address)) = self.listener.accept() {
-			let con = StreamConnection::new(stream);
-			let id = self.connections.insert(con);
+			let fd = stream.as_raw_fd();
+			let con = StreamConnection::new(stream).unwrap();
+			let id = self.connections.insert((con, fd));
 			new_connections.push(id);
 		}
 		new_connections
@@ -52,7 +53,7 @@ impl Server for UnixServer {
 	fn recv_pending_messages(&mut self) -> MessageUpdates{
 		let mut messages: Vec<Message> = Vec::new();
 		let mut to_remove: Vec<ConnectionId> = Vec::new();
-		for (connection_id, connection) in self.connections.iter_mut(){
+		for (connection_id, (connection, _fd)) in self.connections.iter_mut(){
 			match connection.read() {
 				Err(_e) => {
 					to_remove.push(*connection_id);
@@ -74,25 +75,25 @@ impl Server for UnixServer {
 	}
 
 	fn broadcast(&mut self, text: &str) {
-		for (_id, conn) in self.connections.iter_mut() {
+		for (_id, (conn, _fd)) in self.connections.iter_mut() {
 			let _ = conn.send(text);
 		}
 	}
 	
-	fn send(&mut self, id: ConnectionId, text: &str) -> Result<(), ConnectionError> {
+	fn send(&mut self, id: ConnectionId, text: &str) -> Result<(), ServerError> {
 		match self.connections.get_mut(&id){
-			Some(conn) => {
-				conn.send(text).map_err(ConnectionError::IO)
+			Some((conn, _fd)) => {
+				conn.send(text).map_err(ServerError::Connection)
 			}
-			None => Err(ConnectionError::InvalidIndex(id))
+			None => Err(ServerError::InvalidIndex(id))
 		}
 	}
 	
 	#[cfg(any(target_os = "linux", target_os = "android"))]
 	fn get_name(&self, id: ConnectionId) -> Option<String> {
-		let connection = self.connections.get(&id)?;
-		let fd = connection.stream.as_raw_fd();
-		let peercred = getsockopt(fd, sockopt::PeerCredentials).ok()?;
+		let (_conn, fd) = self.connections.get(&id)?;
+// 		let fd = connection.stream.as_raw_fd();
+		let peercred = getsockopt(*fd, sockopt::PeerCredentials).ok()?;
 		let uid = peercred.uid();
 		let user = users::get_user_by_uid(uid)?;
 		let name = user.name();
