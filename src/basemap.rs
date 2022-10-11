@@ -13,11 +13,11 @@ pub trait BaseMap {
 	
 	fn region(&mut self, minpos: Pos, maxpos: Pos, time: Timestamp) -> Grid<Tile> {
 		let area = maxpos - minpos;
-		let mut grid = Grid::new(area, Tile::ground(Ground::Dirt));
-		for x in 0..area.x {
-			for y in 0..area.y {
+		let mut grid = Grid::with_offset(area, minpos, Tile::ground(Ground::Dirt));
+		for x in minpos.x..maxpos.x {
+			for y in minpos.y..maxpos.y {
 				let localpos = Pos::new(x, y);
-				grid.set(localpos, self.cell(localpos + minpos, time));
+				grid.set(localpos, self.cell(localpos, time));
 			}
 		}
 		grid
@@ -32,6 +32,7 @@ pub struct InfiniteMap {
 }
 
 impl InfiniteMap {
+	#[allow(dead_code)]
 	pub fn new(seed: u32) -> Self {
 		Self {
 			biomes: BiomeMap::new(seed, 48)

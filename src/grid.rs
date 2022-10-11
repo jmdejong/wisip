@@ -4,6 +4,7 @@ use crate::Pos;
 #[derive(Debug, Clone)]
 pub struct Grid<T> {
 	size: Pos,
+	offset: Pos,
 	storage: Vec<T>
 }
 
@@ -12,27 +13,28 @@ impl<T: Clone> Grid<T> {
 	pub fn empty() -> Grid<T> {
 		Self {
 			size: Pos::new(0, 0),
+			offset: Pos::new(0, 0),
 			storage: Vec::new()
 		}
 	}
 	
 	pub fn new(size: Pos, filler: T) -> Grid<T> {
+		Self::with_offset(size, Pos::new(0, 0), filler)
+	}
+	
+	pub fn with_offset(size: Pos, offset: Pos, filler: T) -> Grid<T> {
 		let mut storage = Vec::with_capacity((size.x * size.y) as usize);
 		storage.resize((size.x * size.y) as usize, filler);
 		Self {
 			size,
+			offset,
 			storage,
 		}
 	}
 	
-	#[allow(dead_code)]
 	#[inline]
-	pub fn get_mut_unchecked(&mut self, pos: Pos) -> &T{
-		&mut self.storage[(pos.x + self.size.x * pos.y) as usize]
-	}
-	
-	#[inline]
-	fn index(&self, pos: Pos) -> Option<usize> {
+	fn index(&self, global_pos: Pos) -> Option<usize> {
+		let pos = global_pos - self.offset;
 		if pos.x >= 0 && pos.y >= 0 && pos.x < self.size.x && pos.y < self.size.y {
 			Some((pos.x + self.size.x * pos.y) as usize)
 		} else {
