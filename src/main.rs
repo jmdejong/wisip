@@ -24,6 +24,7 @@ mod item;
 mod mapgen;
 mod grid;
 mod random;
+mod basemap;
 
 use self::{
 	pos::{Pos, Direction},

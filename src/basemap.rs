@@ -1,53 +1,54 @@
 
-use std::str::FromStr;
-use serde::{Serialize, de, Deserialize, Deserializer};
+
 use crate::{
-	Pos,
+	pos::Pos,
+	timestamp::Timestamp,
 	tile::{Tile, Ground, Structure},
-	errors::AnyError,
-	aerr,
 	grid::Grid,
 	random
 };
 
-
-
-#[derive(Debug, Clone)]
-pub struct MapTemplate {
-	pub size: Pos,
-	pub ground: Grid<Tile>,
-	pub spawnpoint: Pos,
-	pub monsterspawn: Vec<Pos>,
+pub trait BaseMap {
+	fn cell(&mut self, pos: Pos, time: Timestamp) -> Tile;
+	
+	fn region(&mut self, minpos: Pos, maxpos: Pos, time: Timestamp) -> Grid<Tile> {
+		let area = maxpos - minpos;
+		let mut grid = Grid::new(area, Tile::ground(Ground::Dirt));
+		for x in 0..area.x {
+			for y in 0..area.y {
+				let localpos = Pos::new(x, y);
+				grid.set(localpos, self.cell(localpos + minpos, time));
+			}
+		}
+		grid
+	}
+	
+	fn player_spawn(&mut self) -> Pos;
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum BuiltinMap{
-	Square
+
+pub struct InfiniteMap {
+	biomes: BiomeMap
 }
 
-impl FromStr for BuiltinMap {
-	type Err = AnyError;
-	fn from_str(s: &str) -> Result<Self, Self::Err> {
-		match s {
-			"square" => Ok(Self::Square),
-			_ => Err(aerr!("'{}' is not a valid map", s))
+impl InfiniteMap {
+	pub fn new(seed: u32) -> Self {
+		Self {
+			biomes: BiomeMap::new(seed, 48)
 		}
 	}
 }
 
-#[derive(Debug, Clone)]
-pub enum MapType {
-	Builtin(BuiltinMap),
-	Custom(MapTemplate)
-}
-
-pub fn create_map(typ: &MapType) -> MapTemplate {
-	match typ {
-		MapType::Builtin(BuiltinMap::Square) => create_rectangular_map(999, 1024, 1024),
-		MapType::Custom(template) => template.clone()
+impl BaseMap for InfiniteMap {
+	fn cell(&mut self, pos: Pos, _time: Timestamp) -> Tile {
+		self.biomes.tile(pos)
+	}
+	
+	
+	fn player_spawn(&mut self) -> Pos {
+		self.biomes.start_pos()
 	}
 }
-
 
 #[derive(Debug, Clone, PartialEq, Eq, Copy)]
 enum Biome {
@@ -60,7 +61,6 @@ enum Biome {
 
 
 struct BiomeMap {
-	size: Pos,
 	seed: u32,
 	height: random::Fractal,
 	biome_size: i32
@@ -68,9 +68,8 @@ struct BiomeMap {
 
 impl BiomeMap {
 
-	fn new(size: Pos, seed: u32, biome_size: i32) -> Self {
+	fn new(seed: u32, biome_size: i32) -> Self {
 		Self {
-			size,
 			seed,
 			height: random::Fractal::new(seed + 344, vec![(3,0.12), (5,0.20), (7,0.26), (11,0.42)]),
 			biome_size
@@ -78,7 +77,7 @@ impl BiomeMap {
 	}
 
 	fn start_biome(&self) -> Pos {
-		self.size / 2 / self.biome_size
+		Pos::new(0, 0)
 	}
 
 	fn start_pos(&self) -> Pos {
@@ -179,8 +178,6 @@ impl BiomeMap {
 					let di = (tpos.x > tpos.y) as u32 + 2 * (tpos.x.abs() < tpos.y.abs()) as u32;
 					let wd = twidth / 2 - 1 - ((trind as i32) >> (4 + di) & 1 );
 					if tmax == wd && trind & 3 == 1 {
-// 						let side = vpos.directions_to(tpos)[0];
-// 						if side == Direction::DIRECTIONS[trind as usize >> 3 & 3] /*&& tpos.abs().min() == 0*/ {
 						if di == trind >> 2 & 3 && tpos.abs().min() == 0 {
 							Tile::ground(Ground::Dirt)
 						} else {
@@ -197,10 +194,6 @@ impl BiomeMap {
 							(Tile::ground(Ground::Dirt), 20)
 						])
 					}
-// 					[Tile::ground(Ground::Stone), Tile::ground(Ground::Empty), Tile::ground(Ground::Water), Tile::ground(Ground::Dirt)][(ind & 3) as usize]
-// 				let dcenter = dpos.abs();
-// 				if dcenter.x >= 3 && dcenter.x < 10 && dcenter.y >= 3 && dcenter.y < 10 {
-// 					Tile::structure(Ground::Dirt, Structure::Wall)
 				} else {
 					*random::pick_weighted(rind, &[
 						(Tile::ground(Ground::Grass1), 10),
@@ -212,57 +205,3 @@ impl BiomeMap {
 		}
 	}
 }
-
-
-fn create_rectangular_map(seed: u32, width: i32, height: i32) -> MapTemplate {
-	let size = Pos::new(width, height);
-	let biomes = BiomeMap::new(size, seed, 48);
-	let mut map = MapTemplate {
-		size,
-		ground: Grid::new(size, Tile::ground(Ground::Dirt)),
-		spawnpoint: biomes.start_pos(),
-		monsterspawn: vec![Pos::new(0,0), Pos::new(size.x - 1, 0), Pos::new(0, size.y - 1), Pos::new(size.x - 1, size.y - 1)],
-	};
-
-	for x in 0..map.size.x {
-		for y in 0..map.size.y {
-			let pos = Pos::new(x, y);
-			let floor = biomes.tile(pos);
-			map.ground.set(pos, floor);
-		}
-	}
-	
-	map
-}
-
-
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-struct MapTemplateSave {
-	pub size: Pos,
-	pub ground: Vec<String>,
-	pub spawnpoint: Pos,
-	pub monsterspawn: Vec<Pos>,
-}
-
-impl<'de> Deserialize<'de> for MapTemplate {
-	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-	where D: Deserializer<'de> {
-		let MapTemplateSave{size, ground, spawnpoint, monsterspawn} =
-			MapTemplateSave::deserialize(deserializer)?;
-		let mut groundmap = Grid::new(size, Tile::ground(Ground::Dirt));
-		for (y, line) in ground.iter().enumerate(){
-			for (x, c) in line.chars().enumerate(){
-				let tile = Tile::from_char(c).ok_or_else(||de::Error::custom(format!("Invalid tile character '{}'", c)))?;
-				groundmap.set(Pos::new(x as i32, y as i32), tile);
-			}
-		}
-		Ok(MapTemplate {
-			size,
-			spawnpoint,
-			monsterspawn,
-			ground: groundmap
-		})
-	}
-}
-
-
