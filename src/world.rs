@@ -21,11 +21,9 @@ use crate::{
 
 pub struct World {
 	time: Timestamp,
-	size: Pos,
 	ground: InfiniteMap,
 	players: HashMap<PlayerId, Player>,
 	creatures: Holder<CreatureId, Creature>,
-	spawnpoint: Pos,
 	map: MapType,
 	drawing: Option<HashMap<Pos, Vec<Sprite>>>,
 }
@@ -35,8 +33,6 @@ impl World {
 	pub fn new(map: MapType) -> Self {
 		
 		let mut world = World {
-			size: Pos::new(0, 0),
-			spawnpoint: Pos::new(0, 0),
 			ground: InfiniteMap::new(987),
 			players: HashMap::new(),
 			creatures: Holder::new(),
@@ -50,10 +46,7 @@ impl World {
 	
 	pub fn reset(&mut self) {
 		self.creatures.clear();
-		let template: MapTemplate = create_map(&self.map);
-		self.size = template.size;
 		self.ground = InfiniteMap::new(987);
-		self.spawnpoint = template.spawnpoint;
 		self.drawing = None;
 		for player in self.players.values_mut() {
 			player.is_new = true;
@@ -149,7 +142,7 @@ impl World {
 			if player.body.map_or(true, |id| !self.creatures.contains_key(&id)) {
 				let body = self.creatures.insert(Creature::new_player(
 					playerid.clone(),
-					self.spawnpoint
+					self.ground.player_spawn()
 				));
 				player.body = Some(body)
 			}

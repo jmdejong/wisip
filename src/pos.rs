@@ -193,8 +193,8 @@ impl Div<i32> for Pos {
 	type Output = Pos;
 	fn div(self, n: i32) -> Pos {
 		Pos {
-			x: self.x / n,
-			y: self.y / n
+			x: self.x.div_euclid(n),
+			y: self.y.div_euclid(n)
 		}
 	}
 }
@@ -208,3 +208,11 @@ impl AddAssign for Pos {
     }
 }
 
+#[cfg(test)]
+mod tests {
+	use super::*;
+	#[test]
+	fn division_rounds_to_negative_infinity() {
+		assert_eq!(Pos::new(-3, -3) / 2, Pos::new(-2, -2));
+	}
+}
