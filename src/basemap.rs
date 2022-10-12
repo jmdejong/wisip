@@ -1,7 +1,7 @@
 
 
 use crate::{
-	pos::Pos,
+	pos::{Pos, Area},
 	timestamp::Timestamp,
 	tile::{Tile, Ground, Structure},
 	grid::Grid,
@@ -11,14 +11,11 @@ use crate::{
 pub trait BaseMap {
 	fn cell(&mut self, pos: Pos, time: Timestamp) -> Tile;
 	
-	fn region(&mut self, minpos: Pos, maxpos: Pos, time: Timestamp) -> Grid<Tile> {
-		let area = maxpos - minpos;
-		let mut grid = Grid::with_offset(area, minpos, Tile::ground(Ground::Dirt));
-		for x in minpos.x..maxpos.x {
-			for y in minpos.y..maxpos.y {
-				let localpos = Pos::new(x, y);
-				grid.set(localpos, self.cell(localpos, time));
-			}
+	#[allow(dead_code)]
+	fn region(&mut self, area: Area, time: Timestamp) -> Grid<Tile> {
+		let mut grid = Grid::with_offset(area.size(), area.min(), Tile::ground(Ground::Dirt));
+		for pos in area.iter() {
+			grid.set(pos, self.cell(pos, time));
 		}
 		grid
 	}

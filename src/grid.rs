@@ -8,6 +8,7 @@ pub struct Grid<T> {
 	storage: Vec<T>
 }
 
+	#[allow(dead_code)]
 impl<T: Clone> Grid<T> {
 	
 	pub fn empty() -> Grid<T> {
@@ -47,7 +48,6 @@ impl<T: Clone> Grid<T> {
 		Some(&self.storage[self.index(pos)?])
 	}
 	
-	#[allow(dead_code)]
 	#[inline]
 	pub fn get_mut(&mut self, pos: Pos) -> Option<&mut T>{
 		let index = self.index(pos)?;

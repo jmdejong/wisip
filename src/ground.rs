@@ -1,8 +1,7 @@
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 use crate::{
 	pos::Pos,
-	grid::Grid,
 	tile::{Tile},
 	basemap::{BaseMap, InfiniteMap},
 	timestamp::Timestamp
@@ -31,7 +30,7 @@ impl Ground {
 	}
 	
 	pub fn cell(&mut self, pos: Pos) -> Tile {
-		self.changes.get(&pos).map(|tile| tile.clone()).unwrap_or_else(|| self.base_cell(pos))
+		self.changes.get(&pos).copied().unwrap_or_else(|| self.base_cell(pos))
 	}
 	
 	pub fn set(&mut self, pos: Pos, tile: Tile) {

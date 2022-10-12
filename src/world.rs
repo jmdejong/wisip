@@ -12,11 +12,8 @@ use crate::{
 	worldmessages::{WorldMessage, FieldMessage, ChangeMessage},
 	timestamp::{Timestamp},
 	creature::{Creature, Mind, CreatureId},
-	tile::Tile,
 	player::Player,
-	mapgen::{MapTemplate, MapType, create_map},
-	ground::Ground,
-	grid::Grid
+	ground::Ground
 };
 
 pub struct World {
@@ -24,20 +21,18 @@ pub struct World {
 	ground: Ground,
 	players: HashMap<PlayerId, Player>,
 	creatures: Holder<CreatureId, Creature>,
-	map: MapType,
 	drawing: Option<HashMap<Pos, Vec<Sprite>>>,
 }
 
 impl World {
 	
-	pub fn new(map: MapType) -> Self {
+	pub fn new() -> Self {
 		let time = Timestamp(0);
 		Self {
 			ground: Ground::new(time),
 			players: HashMap::new(),
 			creatures: Holder::new(),
 			time,
-			map,
 			drawing: None,
 		}
 	}
@@ -117,7 +112,7 @@ impl World {
 					
 				}
 				Some(Control::Interact(direction)) => {
-					let pos = creature.pos + direction.map(|dir| dir.to_position()).unwrap_or(Pos::zero());
+					let pos = creature.pos + direction.map(|dir| dir.to_position()).unwrap_or_else(Pos::zero);
 					let tile = self.ground.cell(pos);
 					self.ground.set(pos, tile.interact());
 				}
@@ -167,10 +162,10 @@ impl World {
 	fn draw_changes(&mut self, mut sprites: HashMap<Pos, Vec<Sprite>>) -> Option<ChangeMessage> {
 		if let Some(last_drawing) = &self.drawing {
 			for pos in last_drawing.keys() {
-				sprites.entry(*pos).or_insert(self.ground.cell(*pos).sprites());
+				sprites.entry(*pos).or_insert_with(||self.ground.cell(*pos).sprites());
 			}
 			for (pos, tile) in self.ground.modified().into_iter() {
-				sprites.entry(pos).or_insert(tile.sprites());
+				sprites.entry(pos).or_insert_with(||tile.sprites());
 			}
 			let sprs: ChangeMessage = sprites.iter()
 				.filter(|(pos, spritelist)| last_drawing.get(pos) != Some(spritelist))
@@ -213,10 +208,6 @@ impl World {
 		self.drawing = Some(dynamic_sprites);
 		self.ground.flush();
 		views
-	}
-	
-	pub fn nplayers(&self) -> usize {
-		self.players.len()
 	}
 }
 

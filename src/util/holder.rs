@@ -65,11 +65,6 @@ impl <K: HolderId, V> Holder<K, V> {
 	pub fn values(&self) -> Values<K, V> {
 		self.storage.values()
 	}
-	
-	#[inline]
-	pub fn clear(&mut self) {
-		self.storage.clear()
-	}
 }
 
 impl HolderId for usize {

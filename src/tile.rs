@@ -45,7 +45,6 @@ enum_properties! {
 }
 
 use Ground::*;
-use Structure::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Tile {
@@ -86,23 +85,6 @@ impl Tile {
 				}
 			)
 		}
-	}
-	
-	pub fn from_char(c: char) -> Option<Self>{
-		Some(match c {
-			'"' => Self::ground(Stone),
-			'.' => Self::ground(Dirt),
-			',' => Self::ground(Grass1),
-			'\'' => Self::ground(Grass2),
-			'`' => Self::ground(Grass3),
-			'=' => Self::structure(Stone, Gate),
-			'+' => Self::ground(Sanctuary),
-			'#' => Self::structure(Stone, Wall),
-			'X' => Self::structure(Stone, Rock),
-			'R' => Self::structure(Stone, Rubble),
-			'~' => Self::ground(Water),
-			_ => {return None}
-		})
 	}
 }
 

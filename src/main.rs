@@ -4,7 +4,6 @@ use std::time::{Instant, Duration};
 use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
 use structopt::StructOpt;
 use chrono::Utc;
-use std::fs;
 
 mod server;
 mod gameserver;
@@ -21,7 +20,6 @@ mod errors;
 mod creature;
 mod tile;
 mod item;
-mod mapgen;
 mod grid;
 mod random;
 mod basemap;
@@ -38,7 +36,6 @@ use self::{
 	controls::Action,
 	world::World,
 	worldmessages::MessageCache,
-	mapgen::{MapType},
 };
 
 
@@ -69,15 +66,7 @@ fn main(){
 	
 	let mut gameserver = GameServer::new(servers);
 	
-	let map = if let Some(map_path) = config.custom_map {
-		let maptext = fs::read_to_string(&map_path).unwrap_or_else(|_| panic!("can't read map {:?}", map_path));
-		let template = json5::from_str(&maptext).unwrap_or_else(|_| panic!("invalid map text:\n{:?}", maptext));
-		MapType::Custom(template)
-	} else {
-		MapType::Builtin(config.map)
-	};
-	
-	let mut world = World::new(map);
+	let mut world = World::new();
 	
 	let mut message_cache = MessageCache::default();
 	
@@ -93,10 +82,7 @@ fn main(){
 	
 	println!("dezl started on {}", Utc::now());
 	
-	let mut empty_timer = 1000000;
-	
 	while running.load(Ordering::SeqCst) {
-		empty_timer += 1;
 		let actions = gameserver.update();
 		for action in actions {
 			match action {
@@ -118,7 +104,6 @@ fn main(){
 						println!("Error: can not remove player {:?}: {:?}", player, err);
 					}
 					message_cache.remove(&player);
-					empty_timer = 0;
 				}
 			}
 		}
@@ -144,51 +129,5 @@ fn main(){
 	println!("shutting down on {}", Utc::now());
 }
 
-
-#[cfg(test)]
-mod tests {
-	use super::*;
-	use crate::mapgen::BuiltinMap;
-	
-	#[inline(never)]
-	fn actually_redraw(world: &mut World, message_cache: &mut MessageCache){
-	
-		let now = Instant::now();
-		world.update();
-		let updated = now.elapsed();
-		let messages = world.view();
-		let viewed = now.elapsed();
-		for (player, mut message) in messages {
-			message_cache.trim(&player, &mut message);
-			if message.is_empty(){
-				continue;
-			}
-			println!("m {}", message.to_json());
-		}
-		let shown = now.elapsed();
-		println!(
-			"update: {}ms, view: {}ms, shown: {}ms",
-			updated.as_millis(),
-			(viewed - updated).as_millis(),
-			(shown - viewed).as_millis()
-		);
-	}
-	
-	// #[test]
-	fn redraw_field(){
-		let map = MapType::Builtin(BuiltinMap::Square);
-		
-		let mut world = World::new(map);
-	
-		let mut message_cache = MessageCache::default();
-		
-		for i in 0..200{
-			
-			let player = PlayerId(format!("player{}", i));
-			world.add_player(&player);
-			actually_redraw(&mut world, &mut message_cache);
-		}
-	}
-}
 
 

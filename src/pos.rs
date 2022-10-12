@@ -212,6 +212,62 @@ impl AddAssign for Pos {
     }
 }
 
+
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Copy, Default)]
+pub struct Area {
+	min: Pos,
+	size: Pos
+}
+
+impl Area {
+	#[allow(dead_code)]
+	pub fn new(min: Pos, size: Pos) -> Self {
+		Self {min, size}
+	}
+	
+	pub fn min(&self) -> Pos {
+		self.min
+	}
+	
+	pub fn size(&self) -> Pos {
+		self.size
+	}
+	
+	pub fn max(&self) -> Pos {
+		self.min + self.size
+	}
+	
+	pub fn iter(&self) -> AreaIter {
+		AreaIter {
+			area: *self,
+			x: self.min.x,
+			y: self.min.y
+		}
+	}
+}
+
+pub struct AreaIter{
+	area: Area,
+	x: i32,
+	y: i32
+}
+
+impl Iterator for AreaIter {
+	type Item = Pos;
+	fn next(&mut self) -> Option<Self::Item> {
+		self.x += 1;
+		if self.x >= self.area.max().x {
+			self.x = self.area.min().x;
+			self.y += 1;
+		}
+		if self.y >= self.area.max().y {
+			None
+		} else {
+			Some(Pos::new(self.x, self.y))
+		}
+	}
+}
+
 #[cfg(test)]
 mod tests {
 	use super::*;
