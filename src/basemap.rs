@@ -9,11 +9,11 @@ use crate::{
 };
 
 pub trait BaseMap {
-	fn cell(&mut self, pos: Pos, time: Timestamp) -> Option<Tile>;
+	fn cell(&mut self, pos: Pos, time: Timestamp) -> Tile;
 	
-	fn region(&mut self, minpos: Pos, maxpos: Pos, time: Timestamp) -> Grid<Option<Tile>> {
+	fn region(&mut self, minpos: Pos, maxpos: Pos, time: Timestamp) -> Grid<Tile> {
 		let area = maxpos - minpos;
-		let mut grid = Grid::with_offset(area, minpos, Some(Tile::ground(Ground::Dirt)));
+		let mut grid = Grid::with_offset(area, minpos, Tile::ground(Ground::Dirt));
 		for x in minpos.x..maxpos.x {
 			for y in minpos.y..maxpos.y {
 				let localpos = Pos::new(x, y);
@@ -41,8 +41,8 @@ impl InfiniteMap {
 }
 
 impl BaseMap for InfiniteMap {
-	fn cell(&mut self, pos: Pos, _time: Timestamp) -> Option<Tile> {
-		Some(self.biomes.tile(pos))
+	fn cell(&mut self, pos: Pos, _time: Timestamp) -> Tile {
+		self.biomes.tile(pos)
 	}
 	
 	

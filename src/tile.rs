@@ -77,20 +77,25 @@ impl Tile {
 	
 	pub fn from_char(c: char) -> Option<Self>{
 		Some(match c {
-			'"' => Self{ground: Stone, structure: None},
-			'.' => Self{ground: Dirt, structure: None},
-			',' => Self{ground: Grass1, structure: None},
-			'\'' => Self{ground: Grass2, structure: None},
-			'`' => Self{ground: Grass3, structure: None},
-			'=' => Self{ground: Stone, structure: Some(Gate)},
-			'+' => Self{ground: Sanctuary, structure: None},
-			'#' => Self{ground: Stone, structure: Some(Wall)},
-			'X' => Self{ground: Stone, structure: Some(Rock)},
-			'R' => Self{ground: Stone, structure: Some(Rubble)},
-			'~' => Self{ground: Water, structure: None},
+			'"' => Self::ground(Stone),
+			'.' => Self::ground(Dirt),
+			',' => Self::ground(Grass1),
+			'\'' => Self::ground(Grass2),
+			'`' => Self::ground(Grass3),
+			'=' => Self::structure(Stone, Gate),
+			'+' => Self::ground(Sanctuary),
+			'#' => Self::structure(Stone, Wall),
+			'X' => Self::structure(Stone, Rock),
+			'R' => Self::structure(Stone, Rubble),
+			'~' => Self::ground(Water),
 			_ => {return None}
 		})
 	}
-	
+}
+
+impl Default for Tile {
+	fn default() -> Tile {
+		Tile::ground(Empty)
+	}
 }
 

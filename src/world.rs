@@ -15,13 +15,13 @@ use crate::{
 	tile::Tile,
 	player::Player,
 	mapgen::{MapTemplate, MapType, create_map},
-	basemap::{BaseMap, InfiniteMap},
+	ground::Ground,
 	grid::Grid
 };
 
 pub struct World {
 	time: Timestamp,
-	ground: InfiniteMap,
+	ground: Ground,
 	players: HashMap<PlayerId, Player>,
 	creatures: Holder<CreatureId, Creature>,
 	map: MapType,
@@ -32,24 +32,13 @@ impl World {
 	
 	pub fn new(map: MapType) -> Self {
 		
-		let mut world = World {
-			ground: InfiniteMap::new(987),
+		Self {
+			ground: Ground::new(),
 			players: HashMap::new(),
 			creatures: Holder::new(),
 			time: Timestamp(0),
 			map,
 			drawing: None,
-		};
-		world.reset();
-		world
-	}
-	
-	pub fn reset(&mut self) {
-		self.creatures.clear();
-		self.ground = InfiniteMap::new(987);
-		self.drawing = None;
-		for player in self.players.values_mut() {
-			player.is_new = true;
 		}
 	}
 	
@@ -112,14 +101,13 @@ impl World {
 				Some(Control::Move(direction)) => {
 					creature.cooldown = creature.walk_cooldown;
 					let newpos = creature.pos + *direction;
-					if let Some(tile) = self.ground.cell(newpos, self.time) {
-						if !tile.blocking() && !creature_map.contains_key(&newpos) {
-							if creature_map.get(&creature.pos) == Some(id){
-								creature_map.remove(&creature.pos);
-							}
-							creature_map.insert(newpos, *id);
-							creature.pos = newpos;
+					let tile = self.ground.cell(newpos, self.time);
+					if !tile.blocking() && !creature_map.contains_key(&newpos) {
+						if creature_map.get(&creature.pos) == Some(id){
+							creature_map.remove(&creature.pos);
 						}
+						creature_map.insert(newpos, *id);
+						creature.pos = newpos;
 					}
 				}
 				Some(Control::Suicide) => {
@@ -164,16 +152,16 @@ impl World {
 		for creature in self.creatures.values() {
 			sprites.entry(creature.pos).or_insert_with(Vec::new).push(creature.sprite);
 		}
-		sprites.into_iter().filter_map(|(pos, mut sprs)| {
-			sprs.append(&mut self.ground.cell(pos, self.time)?.sprites());
-			Some((pos, sprs))
+		sprites.into_iter().map(|(pos, mut sprs)| {
+			sprs.append(&mut self.ground.cell(pos, self.time).sprites());
+			(pos, sprs)
 		}).collect()
 	}
 	
 	fn draw_changes(&mut self, mut sprites: HashMap<Pos, Vec<Sprite>>) -> Option<ChangeMessage> { 
 		if let Some(last_drawing) = &self.drawing {
 			for pos in last_drawing.keys() {
-				sprites.entry(*pos).or_insert(self.ground.cell(*pos, self.time)?.sprites());
+				sprites.entry(*pos).or_insert(self.ground.cell(*pos, self.time).sprites());
 			}
 			let sprs: ChangeMessage = sprites.iter()
 				.filter(|(pos, spritelist)| last_drawing.get(pos) != Some(spritelist))
@@ -223,7 +211,7 @@ impl World {
 }
 
 
-fn draw_field(center: Pos, size: Pos, tiles: &mut InfiniteMap, time: Timestamp, sprites: &HashMap<Pos, Vec<Sprite>>) -> FieldMessage {
+fn draw_field(center: Pos, size: Pos, tiles: &mut Ground, time: Timestamp, sprites: &HashMap<Pos, Vec<Sprite>>) -> FieldMessage {
 	println!("redrawing field");
 	let mut values :Vec<usize> = Vec::with_capacity((size.x * size.y) as usize);
 	let mut mapping: Vec<Vec<Sprite>> = Vec::new();
@@ -232,15 +220,11 @@ fn draw_field(center: Pos, size: Pos, tiles: &mut InfiniteMap, time: Timestamp, 
 		for x in 0..size.x {
 			let pos = Pos::new(x, y) + min;
 			let mut tile_sprites = Vec::new();
-// 			vec![tiles.get_unchecked(Pos::new(x, y)).sprite()];
-			
 			if let Some(dynamic_sprites) = sprites.get(&pos) {
 				tile_sprites.extend_from_slice(dynamic_sprites);
 			}
-			if let Some(tile) = tiles.cell(pos, time) {
-				tile_sprites.append(&mut tile.sprites());
-			}
-// 			let sprs: &Vec<Sprite> = sprites.get(&Pos{x, y}).unwrap_or(&tilesprite);
+			let tile = tiles.cell(pos, time);
+			tile_sprites.append(&mut tile.sprites());
 			values.push(
 				match mapping.iter().position(|x| x == &tile_sprites) {
 					Some(index) => {

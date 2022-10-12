@@ -25,6 +25,7 @@ mod mapgen;
 mod grid;
 mod random;
 mod basemap;
+mod ground;
 
 use self::{
 	pos::{Pos, Direction},
@@ -120,13 +121,6 @@ fn main(){
 					empty_timer = 0;
 				}
 			}
-		}
-		if world.nplayers() == 0 && empty_timer > 100 {
-			if empty_timer == 600 {
-				world.reset();
-			}
-			sleep(Duration::from_millis(500));
-			continue;
 		}
 		let now = Instant::now();
 		world.update();
