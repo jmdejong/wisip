@@ -26,7 +26,7 @@ pub fn pick_weighted<T>(seed: u32, choices: &[(T, u32)]) -> &T {
 	let mut rind = (seed % total) as i32;
 	for (value, chance) in choices {
 		rind -= *chance as i32;
-		if rind <= 0 {
+		if rind < 0 {
 			return value;
 		}
 	}
@@ -100,5 +100,17 @@ impl Fractal {
 			WhiteNoise::new(seed).gen_f(pos_base + c) * f
 		})
 		.sum::<f32>()
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	#[test]
+	fn pick_weighted_can_pick_last() {
+		for i in 0..15 {
+			let v = if i%6 < 5 { 10 } else { 20 };
+			assert_eq!(*pick_weighted(i, &[(10, 5), (20, 1)]), v);
+		}
 	}
 }

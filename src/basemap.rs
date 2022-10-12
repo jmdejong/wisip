@@ -141,7 +141,8 @@ impl BiomeMap {
 					(Tile::ground(Ground::Grass2), 10),
 					(Tile::ground(Ground::Grass3), 10),
 					(Tile::structure(Ground::Grass1, Structure::DenseGrass), 10),
-					(Tile::structure(Ground::Grass1, Structure::Shrub), 1)
+					(Tile::structure(Ground::Grass1, Structure::Shrub), 1),
+					(Tile::structure(Ground::Grass1, Structure::Flower), 1)
 				]),
 			Biome::Forest =>
 				*random::pick_weighted(rind, &[

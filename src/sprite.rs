@@ -23,6 +23,7 @@ pub enum Sprite {
 	Rock,
 	Tree,
 	Crop,
+	Flower,
 	#[serde(rename=" ")]
 	Empty
 }

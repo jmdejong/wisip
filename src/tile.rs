@@ -24,21 +24,23 @@ enum_properties! {
 
 pub struct StructureProperties {
 	sprite: Sprite,
-	blocking: bool
+	blocking: bool,
+	breakable: bool
 }
 
 enum_properties! {
 	#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 	pub enum Structure: StructureProperties {
-		Wall {sprite: Sprite::Wall, blocking: true},
-		Rubble {sprite: Sprite::Rubble, blocking: true},
-		Rock {sprite: Sprite::Rock, blocking: true},
-		Gate {sprite: Sprite::Gate, blocking: true},
-		Tree {sprite: Sprite::Tree, blocking: true},
-		DenseGrass {sprite: Sprite::DenseGrass, blocking: false},
-		Shrub {sprite: Sprite::Shrub, blocking: false},
-		Bush {sprite: Sprite::Bush, blocking: false},
-		Crop {sprite: Sprite::Crop, blocking: false},
+		Wall {sprite: Sprite::Wall, blocking: true, breakable: false},
+		Rubble {sprite: Sprite::Rubble, blocking: true, breakable: false},
+		Rock {sprite: Sprite::Rock, blocking: true, breakable: false},
+		Gate {sprite: Sprite::Gate, blocking: true, breakable: false},
+		Tree {sprite: Sprite::Tree, blocking: true, breakable: false},
+		DenseGrass {sprite: Sprite::DenseGrass, blocking: false, breakable: false},
+		Shrub {sprite: Sprite::Shrub, blocking: false, breakable: false},
+		Bush {sprite: Sprite::Bush, blocking: false, breakable: false},
+		Crop {sprite: Sprite::Crop, blocking: false, breakable: false},
+		Flower {sprite: Sprite::Flower, blocking: false, breakable: true},
 	}
 }
 
