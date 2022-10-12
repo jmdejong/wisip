@@ -47,6 +47,10 @@ impl Pos {
 		Pos {x, y}
 	}
 	
+	pub fn zero() -> Pos {
+		Pos {x: 0, y: 0}
+	}
+	
 	#[allow(dead_code)]
 	pub fn from_tuple(p: (i32, i32)) -> Pos {
 		let (x, y) = p;

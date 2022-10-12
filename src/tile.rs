@@ -75,6 +75,19 @@ impl Tile {
 		!self.ground.accessible || self.structure.map_or(false, |structure| structure.blocking)
 	}
 	
+	pub fn interact(&self) -> Tile {
+		Self {
+			ground: self.ground,
+			structure: self.structure.and_then(|structure|
+				if structure.breakable {
+					None
+				} else {
+					Some(structure)
+				}
+			)
+		}
+	}
+	
 	pub fn from_char(c: char) -> Option<Self>{
 		Some(match c {
 			'"' => Self::ground(Stone),

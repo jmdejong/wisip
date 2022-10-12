@@ -31,12 +31,12 @@ pub struct World {
 impl World {
 	
 	pub fn new(map: MapType) -> Self {
-		
+		let time = Timestamp(0);
 		Self {
-			ground: Ground::new(),
+			ground: Ground::new(time),
 			players: HashMap::new(),
 			creatures: Holder::new(),
-			time: Timestamp(0),
+			time,
 			map,
 			drawing: None,
 		}
@@ -101,7 +101,7 @@ impl World {
 				Some(Control::Move(direction)) => {
 					creature.cooldown = creature.walk_cooldown;
 					let newpos = creature.pos + *direction;
-					let tile = self.ground.cell(newpos, self.time);
+					let tile = self.ground.cell(newpos);
 					if !tile.blocking() && !creature_map.contains_key(&newpos) {
 						if creature_map.get(&creature.pos) == Some(id){
 							creature_map.remove(&creature.pos);
@@ -114,7 +114,12 @@ impl World {
 					creature.kill();
 				}
 				Some(Control::Use(_direction)) => {
-				
+					
+				}
+				Some(Control::Interact(direction)) => {
+					let pos = creature.pos + direction.map(|dir| dir.to_position()).unwrap_or(Pos::zero());
+					let tile = self.ground.cell(pos);
+					self.ground.set(pos, tile.interact());
 				}
 				None => { }
 			}
@@ -139,6 +144,7 @@ impl World {
 	}
 	
 	pub fn update(&mut self) {
+		self.ground.tick(self.time);
 		self.update_creatures();
 		
 		self.spawn();
@@ -153,15 +159,18 @@ impl World {
 			sprites.entry(creature.pos).or_insert_with(Vec::new).push(creature.sprite);
 		}
 		sprites.into_iter().map(|(pos, mut sprs)| {
-			sprs.append(&mut self.ground.cell(pos, self.time).sprites());
+			sprs.append(&mut self.ground.cell(pos).sprites());
 			(pos, sprs)
 		}).collect()
 	}
 	
-	fn draw_changes(&mut self, mut sprites: HashMap<Pos, Vec<Sprite>>) -> Option<ChangeMessage> { 
+	fn draw_changes(&mut self, mut sprites: HashMap<Pos, Vec<Sprite>>) -> Option<ChangeMessage> {
 		if let Some(last_drawing) = &self.drawing {
 			for pos in last_drawing.keys() {
-				sprites.entry(*pos).or_insert(self.ground.cell(*pos, self.time).sprites());
+				sprites.entry(*pos).or_insert(self.ground.cell(*pos).sprites());
+			}
+			for (pos, tile) in self.ground.modified().into_iter() {
+				sprites.entry(pos).or_insert(tile.sprites());
 			}
 			let sprs: ChangeMessage = sprites.iter()
 				.filter(|(pos, spritelist)| last_drawing.get(pos) != Some(spritelist))
@@ -191,7 +200,7 @@ impl World {
 				} else {
 					let view_center = body.pos;
 					if field.is_none(){
-						field = Some(draw_field(view_center, Pos::new(128, 128), &mut self.ground, self.time, &dynamic_sprites));
+						field = Some(draw_field(view_center, Pos::new(128, 128), &mut self.ground, &dynamic_sprites));
 					}
 					wm.field = Some(field.clone().unwrap());
 					player.is_new = false;
@@ -202,6 +211,7 @@ impl World {
 			views.insert(playerid.clone(), wm);
 		}
 		self.drawing = Some(dynamic_sprites);
+		self.ground.flush();
 		views
 	}
 	
@@ -211,7 +221,7 @@ impl World {
 }
 
 
-fn draw_field(center: Pos, size: Pos, tiles: &mut Ground, time: Timestamp, sprites: &HashMap<Pos, Vec<Sprite>>) -> FieldMessage {
+fn draw_field(center: Pos, size: Pos, tiles: &mut Ground, sprites: &HashMap<Pos, Vec<Sprite>>) -> FieldMessage {
 	println!("redrawing field");
 	let mut values :Vec<usize> = Vec::with_capacity((size.x * size.y) as usize);
 	let mut mapping: Vec<Vec<Sprite>> = Vec::new();
@@ -223,7 +233,7 @@ fn draw_field(center: Pos, size: Pos, tiles: &mut Ground, time: Timestamp, sprit
 			if let Some(dynamic_sprites) = sprites.get(&pos) {
 				tile_sprites.extend_from_slice(dynamic_sprites);
 			}
-			let tile = tiles.cell(pos, time);
+			let tile = tiles.cell(pos);
 			tile_sprites.append(&mut tile.sprites());
 			values.push(
 				match mapping.iter().position(|x| x == &tile_sprites) {

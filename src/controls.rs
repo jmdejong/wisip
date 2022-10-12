@@ -12,7 +12,8 @@ use crate::{
 pub enum Control {
 	Move(Direction),
 	Suicide,
-	Use(Direction)
+	Use(Direction),
+	Interact(Option<Direction>)
 }
 
 #[derive(Debug, Clone)]
