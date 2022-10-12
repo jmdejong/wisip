@@ -1,10 +1,11 @@
 
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 use crate::{
-	pos::Pos,
+	pos::{Pos, Area},
 	tile::{Tile},
 	basemap::{BaseMap, InfiniteMap},
-	timestamp::Timestamp
+	timestamp::{Timestamp, Duration},
+	randomtick
 };
 
 pub struct Ground {
@@ -46,8 +47,26 @@ impl Ground {
 		self.basemap.player_spawn()
 	}
 	
-	pub fn tick(&mut self, time: Timestamp) {
+	pub fn tick(&mut self, time: Timestamp, areas: Vec<Area>) {
+		let chunk_size = randomtick::CHUNK_SIZE;
+		let tick_pos = randomtick::tick_position(time);
+		let tick_positions = areas.iter()
+			.flat_map(|area| {
+				let chunk_min = area.min() / chunk_size;
+				let chunk_max = (area.max() - Pos::new(1, 1) / chunk_size) + Pos::new(1, 1);
+				let chunk_area = Area::new(chunk_min, chunk_max - chunk_min);
+				chunk_area.iter()
+					.map(|chunk_pos| chunk_pos * chunk_size + tick_pos)
+					.filter(|pos| area.contains(*pos))
+			})
+			.collect::<HashSet<Pos>>();
 		self.time = time;
+		let last_tick = time - Duration((chunk_size * chunk_size) as i64);
+		for pos in tick_positions {
+			if self.basemap.cell(pos, last_tick) != self.basemap.cell(pos, time) {
+				self.modifications.insert(pos, self.basemap.cell(pos, time));
+			}
+		}
 	}
 	
 	pub fn flush(&mut self) {

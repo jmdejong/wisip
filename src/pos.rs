@@ -220,9 +220,13 @@ pub struct Area {
 }
 
 impl Area {
-	#[allow(dead_code)]
+	
 	pub fn new(min: Pos, size: Pos) -> Self {
 		Self {min, size}
+	}
+	
+	pub fn centered(center: Pos, size: Pos) -> Self {
+		Self::new(center - size / 2, size)
 	}
 	
 	pub fn min(&self) -> Pos {
@@ -244,6 +248,13 @@ impl Area {
 			y: self.min.y
 		}
 	}
+	
+	pub fn contains(&self, pos: Pos) -> bool {
+		pos.x >= self.min().x
+			&& pos.x < self.max().x
+			&& pos.y >= self.min().y
+			&& pos.y < self.max().y
+	}
 }
 
 pub struct AreaIter{
@@ -255,15 +266,18 @@ pub struct AreaIter{
 impl Iterator for AreaIter {
 	type Item = Pos;
 	fn next(&mut self) -> Option<Self::Item> {
-		self.x += 1;
 		if self.x >= self.area.max().x {
 			self.x = self.area.min().x;
+			if self.x >= self.area.max().x {
+				return None;
+			}
 			self.y += 1;
 		}
 		if self.y >= self.area.max().y {
 			None
 		} else {
-			Some(Pos::new(self.x, self.y))
+			self.x += 1;
+			Some(Pos::new(self.x-1, self.y))
 		}
 	}
 }
@@ -271,8 +285,44 @@ impl Iterator for AreaIter {
 #[cfg(test)]
 mod tests {
 	use super::*;
+	use std::collections::HashSet;
 	#[test]
 	fn division_rounds_to_negative_infinity() {
 		assert_eq!(Pos::new(-3, -3) / 2, Pos::new(-2, -2));
+	}
+	#[test]
+	fn creates_centered_area(){
+		let area = Area::centered(Pos::new(10, 20), Pos::new(4, 6));
+		assert_eq!(area, Area::new(Pos::new(8, 17), Pos::new(4, 6)));
+	}
+	#[test]
+	fn iterates_over_zero_width_area(){
+		let area = Area::new(Pos::new(10, 10), Pos::new(0, 10));
+		assert_eq!(area.iter().next(), None);
+	}
+	#[test]
+	fn iterates_over_zero_height_area(){
+		let area = Area::new(Pos::new(10, 10), Pos::new(10, 0));
+		assert_eq!(area.iter().next(), None);
+	}
+	#[test]
+	fn iterates_over_area(){
+		let area = Area::new(Pos::new(8, 10), Pos::new(4, 1));
+		let mut set = HashSet::new();
+		set.insert(Pos::new(8, 10));
+		set.insert(Pos::new(9, 10));
+		set.insert(Pos::new(10, 10));
+		set.insert(Pos::new(11, 10));
+		assert_eq!(area.iter().collect::<HashSet<Pos>>(), set);
+	}
+	#[test]
+	fn iterates_over_centered_area(){
+		let area = Area::centered(Pos::new(10, 10), Pos::new(4, 1));
+		let mut set = HashSet::new();
+		set.insert(Pos::new(8, 10));
+		set.insert(Pos::new(9, 10));
+		set.insert(Pos::new(10, 10));
+		set.insert(Pos::new(11, 10));
+		assert_eq!(area.iter().collect::<HashSet<Pos>>(), set);
 	}
 }

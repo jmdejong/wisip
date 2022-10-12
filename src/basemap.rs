@@ -5,7 +5,8 @@ use crate::{
 	timestamp::Timestamp,
 	tile::{Tile, Ground, Structure},
 	grid::Grid,
-	random
+	random,
+	randomtick
 };
 
 pub trait BaseMap {
@@ -38,8 +39,8 @@ impl InfiniteMap {
 }
 
 impl BaseMap for InfiniteMap {
-	fn cell(&mut self, pos: Pos, _time: Timestamp) -> Tile {
-		self.biomes.tile(pos)
+	fn cell(&mut self, pos: Pos, time: Timestamp) -> Tile {
+		self.biomes.tile(pos, time)
 	}
 	
 	
@@ -109,7 +110,7 @@ impl BiomeMap {
 	}
 
 
-	fn tile(&self, pos: Pos) -> Tile {
+	fn tile(&self, pos: Pos, time: Timestamp) -> Tile {
 		let (bpos, dpos) = self.biome_pos(pos);
 		let biome = self.biome_at(bpos);
 		let rind = random::WhiteNoise::new(self.seed + 7943).gen(pos);
@@ -139,7 +140,14 @@ impl BiomeMap {
 					(Tile::ground(Ground::Grass3), 10),
 					(Tile::structure(Ground::Grass1, Structure::DenseGrass), 10),
 					(Tile::structure(Ground::Grass1, Structure::Shrub), 1),
-					(Tile::structure(Ground::Grass1, Structure::Flower), 1)
+					(
+						if randomtick::tick_num(pos, time).rem_euclid(2) as u32 == rind.rem_euclid(2) {
+							Tile::structure(Ground::Grass1, Structure::Flower)
+						} else {
+							Tile::ground(Ground::Grass1)
+						},
+						2
+					)
 				]),
 			Biome::Forest =>
 				*random::pick_weighted(rind, &[

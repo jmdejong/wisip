@@ -6,7 +6,7 @@ use crate::{
 	controls::Control,
 	Result,
 	aerr,
-	Pos,
+	pos::{Pos, Area},
 	util::Holder,
 	sprite::Sprite,
 	worldmessages::{WorldMessage, FieldMessage, ChangeMessage},
@@ -138,11 +138,18 @@ impl World {
 		}
 	}
 	
+	fn loaded_areas(&self) -> Vec<Area> {
+		self.players.values()
+			.filter_map(Player::view_area)
+			.collect()
+	}
+	
 	pub fn update(&mut self) {
-		self.ground.tick(self.time);
 		self.update_creatures();
 		
 		self.spawn();
+		
+		self.ground.tick(self.time, self.loaded_areas());
 		
 		self.time.increment();
 	}
@@ -193,13 +200,12 @@ impl World {
 				if changes.is_some() && !player.is_new && in_view_range {
 					wm.change = changes.clone();
 				} else {
-					let view_center = body.pos;
+					player.is_new = false;
+					player.view_center = Some(body.pos);
 					if field.is_none(){
-						field = Some(draw_field(view_center, Pos::new(128, 128), &mut self.ground, &dynamic_sprites));
+						field = Some(draw_field(player.view_area().unwrap(), &mut self.ground, &dynamic_sprites));
 					}
 					wm.field = Some(field.clone().unwrap());
-					player.is_new = false;
-					player.view_center = Some(view_center);
 				}
 				wm.pos = Some(body.pos);
 			}
@@ -212,39 +218,35 @@ impl World {
 }
 
 
-fn draw_field(center: Pos, size: Pos, tiles: &mut Ground, sprites: &HashMap<Pos, Vec<Sprite>>) -> FieldMessage {
+fn draw_field(area: Area, tiles: &mut Ground, sprites: &HashMap<Pos, Vec<Sprite>>) -> FieldMessage {
 	println!("redrawing field");
-	let mut values :Vec<usize> = Vec::with_capacity((size.x * size.y) as usize);
+	let mut values :Vec<usize> = Vec::with_capacity((area.size().x * area.size().y) as usize);
 	let mut mapping: Vec<Vec<Sprite>> = Vec::new();
-	let min = center - size / 2;
-	for y in 0..size.y {
-		for x in 0..size.x {
-			let pos = Pos::new(x, y) + min;
-			let mut tile_sprites = Vec::new();
-			if let Some(dynamic_sprites) = sprites.get(&pos) {
-				tile_sprites.extend_from_slice(dynamic_sprites);
-			}
-			let tile = tiles.cell(pos);
-			tile_sprites.append(&mut tile.sprites());
-			values.push(
-				match mapping.iter().position(|x| x == &tile_sprites) {
-					Some(index) => {
-						index
-					}
-					None => {
-						mapping.push(tile_sprites);
-						mapping.len() - 1
-					}
-				}
-			)
+	for pos in area.iter() {
+		let mut tile_sprites = Vec::new();
+		if let Some(dynamic_sprites) = sprites.get(&pos) {
+			tile_sprites.extend_from_slice(dynamic_sprites);
 		}
+		let tile = tiles.cell(pos);
+		tile_sprites.append(&mut tile.sprites());
+		values.push(
+			match mapping.iter().position(|x| x == &tile_sprites) {
+				Some(index) => {
+					index
+				}
+				None => {
+					mapping.push(tile_sprites);
+					mapping.len() - 1
+				}
+			}
+		)
 	}
 	FieldMessage {
-		width: size.x,
-		height: size.y,
+		width: area.size().x,
+		height: area.size().y,
 		field: values,
 		mapping,
-		offset: min
+		offset: area.min()
 	}
 }
 

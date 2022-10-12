@@ -43,7 +43,8 @@ class Field(Widget):
 		for x in range(0, self.width):
 			sized_x = x * self.char_size
 			for y in range(0, self.height):
-				brush = brushes[values[x+self.width*y]]
+				value = values[x+self.width*y]
+				brush = brushes[value]
 				self.pad.set_char(sized_x, y, brush[0], brush[1])
 		self.change()
 	

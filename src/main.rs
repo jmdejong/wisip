@@ -24,6 +24,7 @@ mod grid;
 mod random;
 mod basemap;
 mod ground;
+mod randomtick;
 
 use self::{
 	pos::{Pos, Direction},

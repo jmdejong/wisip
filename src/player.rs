@@ -3,7 +3,7 @@ use std::fmt;
 use serde::{Serialize, Deserialize};
 
 use crate::{
-	Pos,
+	pos::{Pos, Area},
 	controls::Control,
 	item::ItemRef as Item,
 	creature::CreatureId
@@ -25,4 +25,12 @@ pub struct Player {
 	pub is_new: bool,
 	pub view_center: Option<Pos>,
 	pub inventory: Vec<Item>
+}
+
+
+impl Player {
+
+	pub fn view_area(&self) -> Option<Area>{
+		Some(Area::centered(self.view_center?, Pos::new(128, 128)))
+	}
 }
