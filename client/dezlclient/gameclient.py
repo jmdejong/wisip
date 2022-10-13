@@ -2,6 +2,7 @@
 
 import os
 import sys
+import time
 
 import threading
 from queue import Queue
@@ -48,7 +49,7 @@ class Client:
 	
 	def start(self):
 		threading.Thread(target=self.listen, daemon=True).start()
-		threading.Thread(target=self.getInput, daemon=True).start()
+		threading.Thread(target=self.timeInput, daemon=True).start()
 		
 		self.command_loop()
 	
@@ -63,6 +64,11 @@ class Client:
 	
 	def onConnectionError(self, error):
 		self.queue.put(("error", error))
+	
+	def timeInput(self):
+		while True:
+			self.queue.put(("checkinput", None))
+			time.sleep(0.04)
 	
 	def getInput(self):
 		try:
@@ -176,6 +182,11 @@ class Client:
 				if action[1] == "^C":
 					raise KeyboardInterrupt
 				self.inputHandler.onInput(action[1])
+			elif action[0] == "checkinput":
+				key = self.display.screen.get_key_now()
+				if key == "^C":
+					raise KeyboardInterrupt
+				self.inputHandler.onInput(key)
 			elif action[0] == "error":
 				raise action[1]
 			elif action[0] == "sigwinch":

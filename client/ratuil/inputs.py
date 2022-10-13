@@ -1,5 +1,6 @@
 
 import sys
+import select
 
 BACKSPACE = "backspace"
 ENTER = "\n"
@@ -71,4 +72,8 @@ def get_key(stream=sys.stdin, combine_escape=True, do_interrupt=True):
 	else:
 		return name_char(ord(char))
 		
-	
+
+def get_key_now(stream=sys.stdin, combine_escape=True, do_interrupt=True):
+	if stream in select.select([stream], [], [], 0)[0]:
+		return get_key(stream, combine_escape, do_interrupt)
+	return None

@@ -7,10 +7,10 @@ import termios
 from .constants import INT_INFINITY
 from .drawtarget import DrawTarget
 from .textstyle import TextStyle
-from .strwidth import charwidth
+from .strwidth import strwidth
 from .basescreen import BaseScreen
 from .pad import Pad
-from .inputs import get_key
+from .inputs import get_key, get_key_now
 
 
 class Attr:
@@ -64,6 +64,9 @@ class AnsiScreen(BaseScreen):
 	
 	def get_key(self):
 		return get_key()
+	
+	def get_key_now(self):
+		return get_key_now()
 	
 	def create_pad(self, width, height):
 		return Pad(width, height)
@@ -150,7 +153,7 @@ class AnsiScreen(BaseScreen):
 				screen.style(style, last_style)
 				last_style = style
 				screen.addstr(char)
-				skip += 1 - charwidth(char)
+				skip += 1 - strwidth(char)
 	
 	def hide_cursor(self):
 		self.out.write("\033[?25l")

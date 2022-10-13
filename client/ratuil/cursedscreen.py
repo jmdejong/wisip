@@ -116,6 +116,7 @@ class CursedScreen(BaseScreen):
 		#self.always_reset = always_reset or blink_bright_background # always reset if the style is different than the previous one
 		self.update_size()
 		self.screen.refresh()
+		self.screen.nodelay(True)
 	
 	def finalize_terminal(self):
 		self.screen.keypad(0)
@@ -123,7 +124,7 @@ class CursedScreen(BaseScreen):
 		curses.nocbreak()
 		curses.endwin()
 	
-	def get_key(self):
+	def get_key_now(self):
 		key = self.screen.getch()
 		if key in key_mappings:
 			return key_mappings[key]
