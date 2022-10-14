@@ -164,7 +164,11 @@ impl BiomeMap {
 				if height.abs() < reed_density {
 					Tile::structure(
 						if height > 0.0 { Ground::Dirt } else { Ground::Water },
-						Structure::Reed
+						if randomtick::tick_num(pos, time).rem_euclid(4) as u32 != rind.rem_euclid(4) {
+							Structure::Reed
+						} else {
+							Structure::Air
+						}
 					)
 				} else if height < 0.0 {
 					Tile::ground(Ground::Water)

@@ -28,9 +28,20 @@ pub struct StructureProperties {
 	breakable: bool
 }
 
+impl Default for StructureProperties {
+	fn default() -> Self {
+		Self {
+			sprite: Sprite::Empty,
+			blocking: false,
+			breakable: false
+		}
+	}
+}
+
 enum_properties! {
 	#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 	pub enum Structure: StructureProperties {
+		Air {sprite: Sprite::Empty, blocking: false, breakable: false},
 		Wall {sprite: Sprite::Wall, blocking: true, breakable: false},
 		Rubble {sprite: Sprite::Rubble, blocking: true, breakable: false},
 		Rock {sprite: Sprite::Rock, blocking: true, breakable: false},
@@ -39,59 +50,54 @@ enum_properties! {
 		DenseGrass {sprite: Sprite::DenseGrass, blocking: false, breakable: false},
 		Shrub {sprite: Sprite::Shrub, blocking: false, breakable: false},
 		Bush {sprite: Sprite::Bush, blocking: false, breakable: false},
-		Reed {sprite: Sprite::Reed, blocking: false, breakable: false},
+		Reed {sprite: Sprite::Reed, blocking: false, breakable: true},
 		Crop {sprite: Sprite::Crop, blocking: false, breakable: false},
 		Flower {sprite: Sprite::Flower, blocking: false, breakable: true},
 	}
 }
 
-use Ground::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Tile {
 	ground: Ground,
-	structure: Option<Structure>
+	structure: Structure
 }
 
 impl Tile {
 	pub fn ground(ground: Ground) -> Tile{
-		Self{ground, structure: None}
+		Self{ground, structure: Structure::Air}
 	}
 	
 	pub fn structure(ground: Ground, structure: Structure) -> Tile {
-		Self{ground, structure: Some(structure)}
+		Self{ground, structure}
 	}
 	
 	pub fn sprites(&self) -> Vec<Sprite> {
-		let mut sprites = Vec::new();
-		if let Some(structure) = self.structure {
-			sprites.push(structure.sprite);
-		}
-		sprites.push(self.ground.sprite);
-		sprites
+		[self.structure.sprite, self.ground.sprite].into_iter()
+			.filter(Sprite::visible)
+			.collect()
 	}
 	
 	pub fn blocking(&self) -> bool {
-		!self.ground.accessible || self.structure.map_or(false, |structure| structure.blocking)
+		!self.ground.accessible || self.structure.blocking
 	}
 	
 	pub fn interact(&self) -> Tile {
 		Self {
 			ground: self.ground,
-			structure: self.structure.and_then(|structure|
-				if structure.breakable {
-					None
+			structure: 
+				if self.structure.breakable {
+					Structure::Air
 				} else {
-					Some(structure)
+					self.structure
 				}
-			)
 		}
 	}
 }
 
 impl Default for Tile {
 	fn default() -> Tile {
-		Tile::ground(Empty)
+		Tile::ground(Ground::Empty)
 	}
 }
 

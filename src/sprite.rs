@@ -28,3 +28,9 @@ pub enum Sprite {
 	#[serde(rename=" ")]
 	Empty
 }
+
+impl Sprite {
+	pub fn visible(&self) -> bool {
+		*self != Self::Empty
+	}
+}
