@@ -2,8 +2,8 @@
 use std::thread::sleep;
 use std::time::{Instant, Duration};
 use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
-use structopt::StructOpt;
 use chrono::Utc;
+use clap::Parser;
 
 mod server;
 mod gameserver;
@@ -43,7 +43,7 @@ use self::{
 
 fn main(){
 	
-	let config = config::Config::from_args();
+	let config = config::Config::parse();
 	
 	println!("Server admin(s): {}", config.admins);
 	

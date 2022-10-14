@@ -24,4 +24,10 @@ macro_rules! aerr {
 	($($description:tt)*) => {Box::new($crate::errors::AError{text: format!($($description)*)})}
 }
 
+#[macro_export]
+macro_rules! err {
+	($($description:tt)*) => {$crate::errors::AError{text: format!($($description)*)}}
+}
+
+
 

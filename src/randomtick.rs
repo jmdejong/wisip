@@ -4,8 +4,8 @@ use crate::{
 	timestamp::Timestamp
 };
 
-pub const CHUNK_SIZE: i32 = 16;
-const STEP: i64 = 29; //541;
+pub const CHUNK_SIZE: i32 = 64;
+const STEP: i64 = 541;
 const STEP_INVERSE: i64 = 53;
 pub const CHUNK_AREA: i64 = (CHUNK_SIZE * CHUNK_SIZE) as i64;
 const XOR: i64 = 0b1101110110_i64.rem_euclid(CHUNK_AREA);
