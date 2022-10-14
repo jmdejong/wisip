@@ -5,21 +5,22 @@ use crate::{
 };
 
 pub const CHUNK_SIZE: i32 = 16;
-const STEP : i64 = 29; //541;
+const STEP: i64 = 29; //541;
 const STEP_INVERSE: i64 = 53;
 pub const CHUNK_AREA: i64 = (CHUNK_SIZE * CHUNK_SIZE) as i64;
+const XOR: i64 = 0b1101110110_i64.rem_euclid(CHUNK_AREA);
 
 pub fn tick_position(time: Timestamp) -> Pos {
-	let ind = (time.0 * STEP).rem_euclid(CHUNK_AREA) as i32;
+	let ind = ((time.0^XOR) * STEP).rem_euclid(CHUNK_AREA) as i32;
 	Pos::new(ind % CHUNK_SIZE, ind / CHUNK_SIZE)
 }
 
 fn tick_time(pos: Pos) -> i64 {
-	((pos.x.rem_euclid(CHUNK_SIZE) + pos.y.rem_euclid(CHUNK_SIZE) * CHUNK_SIZE) as i64 * STEP_INVERSE).rem_euclid(CHUNK_AREA)
+	((pos.x.rem_euclid(CHUNK_SIZE) + pos.y.rem_euclid(CHUNK_SIZE) * CHUNK_SIZE) as i64 * STEP_INVERSE).rem_euclid(CHUNK_AREA) ^ XOR
 }
 
 pub fn tick_num(pos: Pos, time: Timestamp) -> i64 {
-	time.0 / CHUNK_AREA
+	time.0.div_euclid(CHUNK_AREA)
 		+ i64::from(tick_time(pos) <= time.0.rem_euclid(CHUNK_AREA))
 }
 
