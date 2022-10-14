@@ -39,6 +39,7 @@ enum_properties! {
 		DenseGrass {sprite: Sprite::DenseGrass, blocking: false, breakable: false},
 		Shrub {sprite: Sprite::Shrub, blocking: false, breakable: false},
 		Bush {sprite: Sprite::Bush, blocking: false, breakable: false},
+		Reed {sprite: Sprite::Reed, blocking: false, breakable: false},
 		Crop {sprite: Sprite::Crop, blocking: false, breakable: false},
 		Flower {sprite: Sprite::Flower, blocking: false, breakable: true},
 	}

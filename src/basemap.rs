@@ -159,8 +159,14 @@ impl BiomeMap {
 				]),
 			Biome::Lake => {
 				let d_center = ((dpos.x * dpos.x + dpos.y * dpos.y) as f32).sqrt() / (self.biome_size as f32 * 0.5);
-				let lake_size_factor = random::WhiteNoise::new(self.seed+276).gen_f(bpos);
-				if d_center + 0.0 * lake_size_factor * lake_size_factor * lake_size_factor < self.height.gen_f(pos) {
+				let reed_density = random::Fractal::new(self.seed+276, vec![(7, 0.5), (11, 0.5)]).gen_f(pos) * 0.4 - 0.2;
+				let height = d_center - self.height.gen_f(pos);
+				if height.abs() < reed_density {
+					Tile::structure(
+						if height > 0.0 { Ground::Dirt } else { Ground::Water },
+						Structure::Reed
+					)
+				} else if height < 0.0 {
 					Tile::ground(Ground::Water)
 				} else {
 					*random::pick_weighted(rind, &[
