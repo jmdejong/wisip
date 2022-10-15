@@ -28,31 +28,29 @@ pub struct StructureProperties {
 	breakable: bool
 }
 
-impl Default for StructureProperties {
-	fn default() -> Self {
-		Self {
-			sprite: Sprite::Empty,
-			blocking: false,
-			breakable: false
-		}
-	}
-}
+const DEFAULT_STRUCTURE_PROPERTIES: StructureProperties =
+	StructureProperties {
+		sprite: Sprite::Empty,
+		blocking: false,
+		breakable: false
+	};
 
 enum_properties! {
 	#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 	pub enum Structure: StructureProperties {
-		Air {sprite: Sprite::Empty, blocking: false, breakable: false},
-		Wall {sprite: Sprite::Wall, blocking: true, breakable: false},
-		Rubble {sprite: Sprite::Rubble, blocking: true, breakable: false},
-		Rock {sprite: Sprite::Rock, blocking: true, breakable: false},
-		Gate {sprite: Sprite::Gate, blocking: true, breakable: false},
-		Tree {sprite: Sprite::Tree, blocking: true, breakable: false},
-		DenseGrass {sprite: Sprite::DenseGrass, blocking: false, breakable: false},
-		Shrub {sprite: Sprite::Shrub, blocking: false, breakable: false},
-		Bush {sprite: Sprite::Bush, blocking: false, breakable: false},
-		Reed {sprite: Sprite::Reed, blocking: false, breakable: true},
-		Crop {sprite: Sprite::Crop, blocking: false, breakable: false},
-		Flower {sprite: Sprite::Flower, blocking: false, breakable: true},
+		Air {sprite: Sprite::Empty},
+		Wall {sprite: Sprite::Wall, blocking: true},
+		Rubble {sprite: Sprite::Rubble, blocking: true},
+		Rock {sprite: Sprite::Rock, blocking: true},
+		Gate {sprite: Sprite::Gate, blocking: true},
+		Tree {sprite: Sprite::Tree, blocking: true},
+		DenseGrass {sprite: Sprite::DenseGrass},
+		Shrub {sprite: Sprite::Shrub},
+		Bush {sprite: Sprite::Bush},
+		Reed {sprite: Sprite::Reed, breakable: true},
+		Crop {sprite: Sprite::Crop, breakable: true},
+		Flower {sprite: Sprite::Flower, breakable: true},
+		..DEFAULT_STRUCTURE_PROPERTIES
 	}
 }
 

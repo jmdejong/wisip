@@ -5,7 +5,7 @@ use serde::{Serialize, Deserialize};
 use crate::{
 	pos::{Pos, Area},
 	controls::Control,
-	item::ItemRef as Item,
+	item::Item,
 	creature::CreatureId
 };
 
