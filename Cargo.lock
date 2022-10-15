@@ -167,8 +167,8 @@ dependencies = [
  "chrono",
  "clap",
  "ctrlc",
+ "enum-assoc",
  "enum_dispatch",
- "enum_properties",
  "json5",
  "mio",
  "nix",
@@ -191,6 +191,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "enum-assoc"
+version = "0.3.5-troido"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "enum_dispatch"
 version = "0.3.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -201,12 +210,6 @@ dependencies = [
  "quote",
  "syn",
 ]
-
-[[package]]
-name = "enum_properties"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b69918c4fbd88f3465ed16714c0270c442abb11dab4cfe4a511f5632d3614384"
 
 [[package]]
 name = "fnv"

@@ -1,57 +1,69 @@
 
 use crate::Sprite;
-use enum_properties::enum_properties;
+use enum_assoc::Assoc;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct GroundProperties {
-	sprite: Sprite,
-	accessible: bool
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Assoc)]
+#[func(fn sprite(&self) -> Sprite)]
+#[func(fn accessible(&self) -> bool {true})]
+pub enum Ground {
+	#[assoc(sprite = Sprite::Stone)]
+	Stone,
+	#[assoc(sprite = Sprite::Dirt)]
+	Dirt,
+	#[assoc(sprite = Sprite::Grass1)]
+	Grass1,
+	#[assoc(sprite = Sprite::Grass2)]
+	Grass2,
+	#[assoc(sprite = Sprite::Grass3)]
+	Grass3,
+	#[assoc(sprite = Sprite::Sanctuary)]
+	Sanctuary,
+	#[assoc(sprite = Sprite::Water)]
+	#[assoc(accessible = false)]
+	Water,
+	#[assoc(sprite = Sprite::Empty)]
+	#[assoc(accessible = false)]
+	Empty
 }
 
-enum_properties! {
-	#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-	pub enum Ground: GroundProperties {
-		Stone {sprite: Sprite::Stone, accessible: true},
-		Dirt {sprite: Sprite::Dirt, accessible: true},
-		Grass1 {sprite: Sprite::Grass1, accessible: true},
-		Grass2 {sprite: Sprite::Grass2, accessible: true},
-		Grass3 {sprite: Sprite::Grass3, accessible: true},
-		Sanctuary {sprite: Sprite::Sanctuary, accessible: true},
-		Water {sprite: Sprite::Water, accessible: false},
-		Empty {sprite: Sprite::Empty, accessible: false},
-	}
-}
-
-pub struct StructureProperties {
-	sprite: Sprite,
-	blocking: bool,
-	breakable: bool
-}
-
-const DEFAULT_STRUCTURE_PROPERTIES: StructureProperties =
-	StructureProperties {
-		sprite: Sprite::Empty,
-		blocking: false,
-		breakable: false
-	};
-
-enum_properties! {
-	#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-	pub enum Structure: StructureProperties {
-		Air {sprite: Sprite::Empty},
-		Wall {sprite: Sprite::Wall, blocking: true},
-		Rubble {sprite: Sprite::Rubble, blocking: true},
-		Rock {sprite: Sprite::Rock, blocking: true},
-		Gate {sprite: Sprite::Gate, blocking: true},
-		Tree {sprite: Sprite::Tree, blocking: true},
-		DenseGrass {sprite: Sprite::DenseGrass},
-		Shrub {sprite: Sprite::Shrub},
-		Bush {sprite: Sprite::Bush},
-		Reed {sprite: Sprite::Reed, breakable: true},
-		Crop {sprite: Sprite::Crop, breakable: true},
-		Flower {sprite: Sprite::Flower, breakable: true},
-		..DEFAULT_STRUCTURE_PROPERTIES
-	}
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Assoc)]
+#[func(fn sprite(&self) -> Sprite)]
+#[func(fn blocking(&self) -> bool {false})]
+#[func(fn breakable(&self) -> bool {false})]
+pub enum Structure {
+	#[assoc(sprite = Sprite::Empty)]
+	Air,
+	#[assoc(sprite = Sprite::Wall)]
+	#[assoc(blocking = true)]
+	Wall,
+	#[assoc(sprite = Sprite::Rubble)]
+	#[assoc(blocking = true)]
+	Rubble,
+	#[assoc(sprite = Sprite::Rock)]
+	#[assoc(blocking = true)]
+	Rock,
+	#[assoc(sprite = Sprite::Gate)]
+	#[assoc(blocking = true)]
+	Gate,
+	#[assoc(sprite = Sprite::Tree)]
+	#[assoc(blocking = true)]
+	Tree,
+	#[assoc(sprite = Sprite::DenseGrass)]
+	DenseGrass,
+	#[assoc(sprite = Sprite::Shrub)]
+	Shrub,
+	#[assoc(sprite = Sprite::Bush)]
+	Bush,
+	#[assoc(sprite = Sprite::Reed)]
+	#[assoc(breakable = true)]
+	Reed,
+	#[assoc(sprite = Sprite::Crop)]
+	#[assoc(breakable = true)]
+	Crop,
+	#[assoc(sprite = Sprite::Flower)]
+	#[assoc(breakable = true)]
+	Flower,
 }
 
 
@@ -71,20 +83,20 @@ impl Tile {
 	}
 	
 	pub fn sprites(&self) -> Vec<Sprite> {
-		[self.structure.sprite, self.ground.sprite].into_iter()
+		[self.structure.sprite(), self.ground.sprite()].into_iter()
 			.filter(Sprite::visible)
 			.collect()
 	}
 	
 	pub fn blocking(&self) -> bool {
-		!self.ground.accessible || self.structure.blocking
+		!self.ground.accessible() || self.structure.blocking()
 	}
 	
 	pub fn interact(&self) -> Tile {
 		Self {
 			ground: self.ground,
 			structure: 
-				if self.structure.breakable {
+				if self.structure.breakable() {
 					Structure::Air
 				} else {
 					self.structure
