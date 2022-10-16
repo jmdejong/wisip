@@ -43,13 +43,7 @@ impl World {
 		}
 		self.players.insert(
 			playerid.clone(),
-			Player{
-				plan: None,
-				body: None,
-				is_new: true,
-				view_center: None,
-				inventory: Vec::new()
-			}
+			Player::new()
 		);
 		Ok(())
 	}
@@ -114,7 +108,11 @@ impl World {
 				Some(Control::Interact(direction)) => {
 					let pos = creature.pos + direction.map(|dir| dir.to_position()).unwrap_or_else(Pos::zero);
 					let tile = self.ground.cell(pos);
-					self.ground.set(pos, tile.interact());
+					let (newtile, items) = tile.interact();
+					for item in items {
+						creature.inventory.add(item);
+					}
+					self.ground.set(pos, newtile);
 				}
 				None => { }
 			}
@@ -208,6 +206,7 @@ impl World {
 					wm.field = Some(field.clone().unwrap());
 				}
 				wm.pos = Some(body.pos);
+				wm.inventory = Some(body.inventory.view());
 			}
 			views.insert(playerid.clone(), wm);
 		}

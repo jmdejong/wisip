@@ -5,7 +5,8 @@ use serde::Serialize;
 use crate::{
 	Pos,
 	Sprite,
-	PlayerId
+	PlayerId,
+	inventory::Item
 };
 
 macro_rules! worldmessages {
@@ -57,14 +58,14 @@ worldmessages!(
 	field, FieldMessage, "field", true;
 	pos, Pos, "playerpos", true;
 	change, ChangeMessage, "changecells", true;
-	weapons, WeaponsMessage, "weapons", true;
+	inventory, InventoryMessage, "inventory", true;
 	ground, GroundMessage, "ground", true;
 	sounds, SoundMessage, "messages", false;
 );
 
 
 pub type ChangeMessage = Vec<(Pos, Vec<Sprite>)>;
-pub type WeaponsMessage = (Vec<&'static str>, usize);
+pub type InventoryMessage = (Vec<(Item, usize)>, usize);
 pub type GroundMessage = Vec<String>;
 pub type SoundMessage = Vec<(String, String, Option<Value>)>;
 

@@ -7,7 +7,6 @@ use serde::{Serialize};
 pub enum Sprite {
 	#[serde(rename="player")]
 	PlayerDefault,
-	Stone,
 	Dirt,
 	Grass1,
 	Grass2,
@@ -18,8 +17,6 @@ pub enum Sprite {
 	Sanctuary,
 	Water,
 	Wall,
-	Gate,
-	Rubble,
 	Rock,
 	Tree,
 	Crop,
@@ -27,10 +24,4 @@ pub enum Sprite {
 	Reed,
 	#[serde(rename=" ")]
 	Empty
-}
-
-impl Sprite {
-	pub fn visible(&self) -> bool {
-		*self != Self::Empty
-	}
 }

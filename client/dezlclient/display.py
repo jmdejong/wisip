@@ -89,8 +89,9 @@ class Display:
 	def setInv(self, items):
 		self.inventory.setItems([(":" if is_equipped else " ") + item for (item, is_equipped) in items])
 	
-	def setWeapons(self, weapons, selected):
-		self.inventory.setItems(weapons)
+	def setInventory(self, items, selected):
+		itemStrs = ["{} {}".format(item, siCount(count)) for item, count in items]
+		self.inventory.setItems(itemStrs)
 		self.inventory.select(selected)
 	
 	def addMessage(self, message, msgtype=None):
@@ -128,3 +129,18 @@ class Display:
 	def update_size(self):
 		self.screen.reset()
 
+def siCount(count):
+	if count == 1:
+		return ""
+	elif count < 1000:
+		return str(count)
+	else:
+		thousands = 0
+		while count >= 1000:
+			thousands += 1
+			count /= 1000
+		suffix = "_KMGTPEZY"[thousands]
+		if count < 10:
+			return "{:.1f}{}".format(count, suffix)
+		else:
+			return "{:.0f}{}".format(count, suffix)

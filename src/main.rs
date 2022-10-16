@@ -19,7 +19,7 @@ mod config;
 mod errors;
 mod creature;
 mod tile;
-mod item;
+mod inventory;
 mod grid;
 mod random;
 mod basemap;

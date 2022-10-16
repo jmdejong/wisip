@@ -5,7 +5,7 @@ use serde::{Serialize, Deserialize};
 use crate::{
 	pos::{Pos, Area},
 	controls::Control,
-	item::Item,
+	inventory::Inventory,
 	creature::CreatureId
 };
 
@@ -24,13 +24,22 @@ pub struct Player {
 	pub body: Option<CreatureId>,
 	pub is_new: bool,
 	pub view_center: Option<Pos>,
-	pub inventory: Vec<Item>
 }
 
 
 impl Player {
 
+	pub fn new() -> Self {
+		Self {
+			plan: None,
+			body: None,
+			is_new: true,
+			view_center: None
+		}
+	}
+
 	pub fn view_area(&self) -> Option<Area>{
 		Some(Area::centered(self.view_center?, Pos::new(128, 128)))
 	}
+	
 }

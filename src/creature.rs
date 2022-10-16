@@ -5,7 +5,8 @@ use crate::{
 	Pos,
 	PlayerId,
 	timestamp::Duration,
-	util::HolderId
+	util::HolderId,
+	inventory::Inventory
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -20,6 +21,7 @@ pub struct Creature {
 	pub cooldown: Duration,
 	pub walk_cooldown: Duration,
 	pub sprite: Sprite,
+	pub inventory: Inventory,
 	is_dead: bool
 }
 
@@ -38,6 +40,7 @@ impl Creature {
 			cooldown: Duration(0),
 			walk_cooldown: Duration(0),
 			sprite: Sprite::PlayerDefault,
+			inventory: Inventory::new(),
 			is_dead: false
 		}
 	}
