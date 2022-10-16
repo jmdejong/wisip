@@ -8,6 +8,8 @@ use crate::{
 	randomtick
 };
 
+const SEED: u32 = 9876;
+
 pub struct Ground {
 	basemap: InfiniteMap,
 	changes: HashMap<Pos, Tile>,
@@ -19,7 +21,7 @@ impl Ground {
 	
 	pub fn new(time: Timestamp) -> Self {
 		Self {
-			basemap: InfiniteMap::new(9876),
+			basemap: InfiniteMap::new(SEED),
 			changes: HashMap::new(),
 			time,
 			modifications: HashMap::new()
@@ -76,4 +78,20 @@ impl Ground {
 	pub fn modified(&self) -> HashMap<Pos, Tile> {
 		self.modifications.clone()
 	}
+	
+	pub fn save(&self) -> GroundSave {
+		self.changes.clone().into_iter().collect()
+	}
+	
+	pub fn load(changes: GroundSave, time: Timestamp) -> Self {
+		Self {
+			basemap: InfiniteMap::new(SEED),
+			changes: changes.into_iter().collect(),
+			time,
+			modifications: HashMap::new()
+		}
+	}
 }
+
+pub type GroundSave = Vec<(Pos, Tile)>;
+

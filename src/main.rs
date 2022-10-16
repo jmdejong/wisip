@@ -1,5 +1,5 @@
 // #![recursion_limit="512"]
-use std::thread::sleep;
+use std::thread;
 use std::time::{Instant, Duration};
 use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
 use chrono::Utc;
@@ -25,6 +25,7 @@ mod random;
 mod basemap;
 mod ground;
 mod randomtick;
+mod persistence;
 
 use self::{
 	pos::{Pos, Direction},
@@ -37,13 +38,15 @@ use self::{
 	controls::Action,
 	world::World,
 	worldmessages::MessageCache,
+	persistence::{PersistentStorage, FileStorage},
+	config::{Config, WorldAction},
 };
 
 
 
 fn main(){
 	
-	let config = config::Config::parse();
+	let config = Config::parse();
 	
 	println!("Server admin(s): {}", config.admins);
 	
@@ -67,7 +70,11 @@ fn main(){
 	
 	let mut gameserver = GameServer::new(servers);
 	
-	let mut world = World::new();
+	let persistence = FileStorage::new(FileStorage::default_save_dir(config.name.clone()).unwrap());
+	let mut world = match config.world_action {
+		WorldAction::New => World::new(config.name.clone()),
+		WorldAction::Load => World::load(persistence.load_world().expect("Can't load world")),
+	};
 	
 	let mut message_cache = MessageCache::default();
 	
@@ -81,7 +88,7 @@ fn main(){
 	}).expect("can't set close handler");
 	
 	
-	println!("dezl started on {}", Utc::now());
+	println!("dezl started world {} on {}", config.name, Utc::now());
 	
 	while running.load(Ordering::SeqCst) {
 		let actions = gameserver.update();
@@ -121,11 +128,15 @@ fn main(){
 				println!("Error: failed to send to {:?}: {:?}", player, err);
 			}
 		}
+		if world.time.0 % 100 == 1 {
+			persistence.save_world(world.save()).unwrap();
+			println!("saved world {} on step {}", world.name, world.time.0)
+		}
 		let elapsed_time = now.elapsed();
-		if elapsed_time > Duration::from_millis(3) {
+		if elapsed_time >= Duration::from_millis(1) {
 			println!("Running update() took {} milliseconds.", elapsed_time.as_millis());
 		}
-		sleep(Duration::from_millis(config.step_duration));
+		thread::sleep(Duration::from_millis(config.step_duration));
 	}
 	println!("shutting down on {}", Utc::now());
 }

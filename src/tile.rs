@@ -1,12 +1,13 @@
 
+use serde::{Serialize, Deserialize, Serializer, Deserializer};
+use enum_assoc::Assoc;
 use crate::{
 	sprite::Sprite,
 	inventory::Item
 };
-use enum_assoc::Assoc;
 
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Assoc)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Assoc, Serialize, Deserialize)]
 #[func(fn sprite(&self) -> Option<Sprite>)]
 #[func(fn accessible(&self) -> bool {true})]
 pub enum Ground {
@@ -39,7 +40,7 @@ impl Interaction {
 	}
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Assoc)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Assoc, Serialize, Deserialize)]
 #[func(fn sprite(&self) -> Option<Sprite>)]
 #[func(fn blocking(&self) -> bool {false})]
 #[func(fn interaction(&self) -> Option<Interaction>)]
@@ -109,6 +110,20 @@ impl Tile {
 impl Default for Tile {
 	fn default() -> Tile {
 		Tile::ground(Ground::Empty)
+	}
+}
+
+impl Serialize for Tile {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where S: Serializer {
+		(self.ground, self.structure).serialize(serializer)
+	}
+}
+impl<'de> Deserialize<'de> for Tile {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where D: Deserializer<'de> {
+		let (ground, structure) = <(Ground, Structure)>::deserialize(deserializer)?;
+		Ok(Self{ground, structure})
 	}
 }
 

@@ -1,5 +1,5 @@
 
-use clap::Parser;
+use clap::{Parser, Subcommand};
 
 use crate::{
 	server::Address,
@@ -22,5 +22,19 @@ pub struct Config {
 	#[arg(long, default_value_t=100)]
 	pub step_duration: u64,
 	
+	/// The name of the world
+	pub name: String,
 	
+	#[command(subcommand)]
+	pub world_action: WorldAction,
 }
+
+
+#[derive(Debug, Subcommand)]
+pub enum WorldAction {
+	/// Load existing world
+	Load,
+	/// Create new world
+	New 
+}
+

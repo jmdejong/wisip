@@ -5,7 +5,6 @@ use serde::{Serialize, Deserialize};
 use crate::{
 	pos::{Pos, Area},
 	controls::Control,
-	inventory::Inventory,
 	creature::CreatureId
 };
 
@@ -41,5 +40,9 @@ impl Player {
 	pub fn view_area(&self) -> Option<Area>{
 		Some(Area::centered(self.view_center?, Pos::new(128, 128)))
 	}
-	
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PlayerSave{
+
 }

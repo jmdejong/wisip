@@ -1,5 +1,6 @@
 
 use std::collections::{HashMap};
+use serde::{Serialize, Deserialize};
 
 use crate::{
 	PlayerId,
@@ -13,11 +14,12 @@ use crate::{
 	timestamp::{Timestamp},
 	creature::{Creature, Mind, CreatureId},
 	player::Player,
-	ground::Ground
+	ground::{Ground, GroundSave}
 };
 
 pub struct World {
-	time: Timestamp,
+	pub name: String,
+	pub time: Timestamp,
 	ground: Ground,
 	players: HashMap<PlayerId, Player>,
 	creatures: Holder<CreatureId, Creature>,
@@ -26,9 +28,10 @@ pub struct World {
 
 impl World {
 	
-	pub fn new() -> Self {
+	pub fn new(name: String) -> Self {
 		let time = Timestamp(0);
 		Self {
+			name,
 			ground: Ground::new(time),
 			players: HashMap::new(),
 			creatures: Holder::new(),
@@ -214,6 +217,25 @@ impl World {
 		self.ground.flush();
 		views
 	}
+	
+	pub fn save(&self) -> WorldSave {
+		WorldSave {
+			name: self.name.clone(),
+			time: self.time,
+			ground: self.ground.save()
+		}
+	}
+	
+	pub fn load(save: WorldSave) -> World {
+		World {
+			name: save.name,
+			ground: Ground::load(save.ground, save.time),
+			players: HashMap::new(),
+			creatures: Holder::new(),
+			time: save.time,
+			drawing: None
+		}
+	}
 }
 
 
@@ -247,5 +269,13 @@ fn draw_field(area: Area, tiles: &mut Ground, sprites: &HashMap<Pos, Vec<Sprite>
 		mapping,
 		offset: area.min()
 	}
+}
+
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WorldSave {
+	name: String,
+	time: Timestamp,
+	ground: GroundSave
 }
 
