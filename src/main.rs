@@ -129,8 +129,7 @@ fn main(){
 			}
 		}
 		if world.time.0 % 100 == 1 {
-			persistence.save_world(world.save()).unwrap();
-			println!("saved world {} on step {}", world.name, world.time.0)
+			save(&world, &persistence);
 		}
 		let elapsed_time = now.elapsed();
 		if elapsed_time >= Duration::from_millis(1) {
@@ -138,7 +137,13 @@ fn main(){
 		}
 		thread::sleep(Duration::from_millis(config.step_duration));
 	}
+	save(&world, &persistence);
 	println!("shutting down on {}", Utc::now());
+}
+
+fn save(world: &World, persistence: &impl PersistentStorage) {
+	persistence.save_world(world.save()).unwrap();
+	println!("saved world {} on step {}", world.name, world.time.0);
 }
 
 
