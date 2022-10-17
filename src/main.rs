@@ -95,12 +95,13 @@ fn main(){
 		for action in actions {
 			match action {
 				Action::Input(player, control) => {
-					if let Err(err) = world.control_player(player.clone(), control){
+					if let Err(err) = world.control_player(&player, control){
 						println!("error controlling player {:?}: {:?}", player, err);
 					}
 				}
 				Action::Join(player) => {
-					if let Err(err) = world.add_player(&player) {
+					let playersave = persistence.load_player(&player).unwrap_or(world.default_player());
+					if let Err(err) = world.add_player(&player, playersave) {
 						println!("Error: can not add player {:?}: {:?}", player, err);
 						if let Err(senderr) = gameserver.send_player_error(&player, "worlderror", "invalid room or savefile") {
 							println!("Error: can not send error message to {:?}: {:?}", player, senderr);
@@ -108,6 +109,7 @@ fn main(){
 					}
 				}
 				Action::Leave(player) => {
+					persistence.save_player(&player, world.save_player(&player).unwrap()).unwrap();
 					if let Err(err) = world.remove_player(&player) {
 						println!("Error: can not remove player {:?}: {:?}", player, err);
 					}
@@ -143,6 +145,9 @@ fn main(){
 
 fn save(world: &World, persistence: &impl PersistentStorage) {
 	persistence.save_world(world.save()).unwrap();
+	for player in world.list_players() {
+		persistence.save_player(&player, world.save_player(&player).unwrap()).unwrap();
+	}
 	println!("saved world {} on step {}", world.name, world.time.0);
 }
 

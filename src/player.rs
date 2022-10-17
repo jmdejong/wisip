@@ -20,7 +20,7 @@ impl fmt::Display for PlayerId {
 #[derive(Debug, Clone)]
 pub struct Player {
 	pub plan: Option<Control>,
-	pub body: Option<CreatureId>,
+	pub body: CreatureId,
 	pub is_new: bool,
 	pub view_center: Option<Pos>,
 }
@@ -28,10 +28,10 @@ pub struct Player {
 
 impl Player {
 
-	pub fn new() -> Self {
+	pub fn new(body: CreatureId) -> Self {
 		Self {
 			plan: None,
-			body: None,
+			body,
 			is_new: true,
 			view_center: None
 		}
@@ -42,7 +42,3 @@ impl Player {
 	}
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct PlayerSave{
-
-}

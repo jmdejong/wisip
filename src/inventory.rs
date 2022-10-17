@@ -12,12 +12,6 @@ pub struct Inventory {
 }
 
 impl Inventory {
-	pub fn new() -> Self {
-		Self { 
-			items: vec![],
-			selector: 0
-		}
-	}
 	
 	pub fn add(&mut self, item: Item) {
 		for entry in self.items.iter_mut() {
@@ -43,7 +37,20 @@ impl Inventory {
 		view.extend(&self.items);
 		(view, self.selector)
 	}
+	
+	pub fn save(&self) -> InventorySave {
+		self.items.clone()
+	}
+	
+	pub fn load(saved: InventorySave) -> Self {
+		Self {
+			items: saved,
+			selector: 0
+		}
+	}
 }
+
+pub type InventorySave = Vec<(Item, usize)>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[serde(rename_all="lowercase")]

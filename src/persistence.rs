@@ -7,7 +7,7 @@ use serde_json;
 use crate::{
 	PlayerId,
 	world::WorldSave,
-	player::PlayerSave,
+	creature::PlayerSave,
 	errors::AnyError,
 	util::write_file_safe
 };
@@ -26,10 +26,10 @@ macro_rules! inv {
 pub trait PersistentStorage {
 	
 	fn load_world(&self) -> Result<WorldSave, LoaderError>;
-	fn load_player(&self, id: PlayerId) -> Result<PlayerSave, LoaderError>;
+	fn load_player(&self, id: &PlayerId) -> Result<PlayerSave, LoaderError>;
 	
 	fn save_world(&self, state: WorldSave) -> Result<(), AnyError>;
-	fn save_player(&self, id: PlayerId, state: PlayerSave) -> Result<(), AnyError>;
+	fn save_player(&self, id: &PlayerId, state: PlayerSave) -> Result<(), AnyError>;
 }
 
 
@@ -79,7 +79,7 @@ impl PersistentStorage for FileStorage {
 		Ok(state)
 	}
 	
-	fn load_player(&self, id: PlayerId) -> Result<PlayerSave, LoaderError> {
+	fn load_player(&self, id: &PlayerId) -> Result<PlayerSave, LoaderError> {
 		let mut path = self.directory.clone();
 		path.push("players");
 		let fname = id.to_string() + ".save.json";
@@ -105,7 +105,7 @@ impl PersistentStorage for FileStorage {
 		Ok(())
 	}
 	
-	fn save_player(&self, id: PlayerId, state: PlayerSave) -> Result<(), AnyError> {
+	fn save_player(&self, id: &PlayerId, state: PlayerSave) -> Result<(), AnyError> {
 		let mut path = self.directory.clone();
 		path.push("players");
 		fs::create_dir_all(&path)?;

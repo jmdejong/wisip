@@ -12,7 +12,7 @@ use crate::{
 	sprite::Sprite,
 	worldmessages::{WorldMessage, FieldMessage, ChangeMessage},
 	timestamp::{Timestamp},
-	creature::{Creature, Mind, CreatureId},
+	creature::{Creature, Mind, CreatureId, PlayerSave},
 	player::Player,
 	ground::{Ground, GroundSave}
 };
@@ -40,29 +40,42 @@ impl World {
 		}
 	}
 	
-	pub fn add_player(&mut self, playerid: &PlayerId) -> Result<()> {
+	pub fn default_player(&mut self) -> PlayerSave {
+		PlayerSave::new(self.ground.player_spawn())
+	}
+	
+	pub fn add_player(&mut self, playerid: &PlayerId, saved: PlayerSave) -> Result<()> {
 		if self.players.contains_key(playerid){
 			return Err(aerr!("player {} already exists", playerid));
 		}
+		let body = self.creatures.insert(Creature::load_player(playerid.clone(), saved));
 		self.players.insert(
 			playerid.clone(),
-			Player::new()
+			Player::new(body)
 		);
 		Ok(())
 	}
 	
 	pub fn remove_player(&mut self, playerid: &PlayerId) -> Result<()> {
 		let player = self.players.remove(playerid).ok_or_else(|| aerr!("player {} not found", playerid))?;
-		if let Some(body) = &player.body {
-			self.creatures.remove(body);
-		}
+		self.creatures.remove(&player.body);
 		Ok(())
 	}
 	
-	pub fn control_player(&mut self, playerid: PlayerId, control: Control) -> Result<()>{
-		let player = self.players.get_mut(&playerid).ok_or_else(|| aerr!("player not found"))?;
+	pub fn save_player(&self, playerid: &PlayerId) -> Result<PlayerSave> {
+		let player = self.players.get(playerid).ok_or_else(|| aerr!("player {} not found", playerid))?;
+		let body = self.creatures.get(&player.body).ok_or_else(|| aerr!("player body for {} not found", playerid))?;
+		Ok(body.save())
+	}
+	
+	pub fn control_player(&mut self, playerid: &PlayerId, control: Control) -> Result<()> {
+		let player = self.players.get_mut(playerid).ok_or_else(|| aerr!("player not found"))?;
 		player.plan = Some(control);
 		Ok(())
+	}
+	
+	pub fn list_players(&self) -> Vec<PlayerId> {
+		self.players.keys().cloned().collect()
 	}
 	
 	fn creature_plan(&self, creature: &Creature) -> Option<Control> {
@@ -120,23 +133,10 @@ impl World {
 				None => { }
 			}
 		}
-		Some(())
-	}
-	
-	
-	fn spawn(&mut self){
-		
-		// spawn players
-		for (playerid, player) in self.players.iter_mut() {
-			if player.body.map_or(true, |id| !self.creatures.contains_key(&id)) {
-				let body = self.creatures.insert(Creature::new_player(
-					playerid.clone(),
-					self.ground.player_spawn()
-				));
-				player.body = Some(body)
-			}
+		for player in self.players.values_mut() {
 			player.plan = None;
 		}
+		Some(())
 	}
 	
 	fn loaded_areas(&self) -> Vec<Area> {
@@ -148,7 +148,6 @@ impl World {
 	pub fn update(&mut self) {
 		self.update_creatures();
 		
-		self.spawn();
 		
 		self.ground.tick(self.time, self.loaded_areas());
 		
@@ -190,7 +189,7 @@ impl World {
 		let mut views: HashMap<PlayerId, WorldMessage> = HashMap::new();
 		for (playerid, player) in self.players.iter_mut() {
 			let mut wm = WorldMessage::default();
-			if let Some(body) = player.body.as_ref().and_then(|id| self.creatures.get(id)){
+			if let Some(body) = self.creatures.get(&player.body) {
 				let in_view_range = player.view_center
 					.map_or(
 						false,
