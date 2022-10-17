@@ -192,7 +192,9 @@ dependencies = [
 
 [[package]]
 name = "enum-assoc"
-version = "0.3.5-troido"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6e0e46053d81318009b3e7e7715844eca65b93a60bf888dd27d87c244c81a0ed"
 dependencies = [
  "proc-macro2",
  "quote",
