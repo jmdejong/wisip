@@ -24,6 +24,8 @@ pub enum Ground {
 	#[assoc(sprite = Sprite::Water)]
 	#[assoc(accessible = false)]
 	Water,
+	#[assoc(sprite = Sprite::StoneFloor)]
+	Stone,
 	#[assoc(accessible = false)]
 	Empty
 }
@@ -52,9 +54,20 @@ pub enum Structure {
 	#[assoc(sprite = Sprite::Rock)]
 	#[assoc(blocking = true)]
 	Rock,
+	#[assoc(sprite = Sprite::RockMid)]
+	#[assoc(blocking = true)]
+	RockMid,
+	#[assoc(sprite = Sprite::Sapling)]
+	Sapling,
+	#[assoc(sprite = Sprite::YoungTree)]
+	#[assoc(blocking = true)]
+	YoungTree,
 	#[assoc(sprite = Sprite::Tree)]
 	#[assoc(blocking = true)]
 	Tree,
+	#[assoc(sprite = Sprite::OldTree)]
+	#[assoc(blocking = true)]
+	OldTree,
 	#[assoc(sprite = Sprite::DenseGrass)]
 	DenseGrass,
 	#[assoc(sprite = Sprite::Shrub)]
@@ -70,6 +83,15 @@ pub enum Structure {
 	#[assoc(sprite = Sprite::Flower)]
 	#[assoc(interaction = Interaction::take(&[Item::Flower]))]
 	Flower,
+	#[assoc(sprite = Sprite::Pebble)]
+	#[assoc(interaction = Interaction::take(&[Item::Pebble]))]
+	Pebble,
+	#[assoc(sprite = Sprite::Stone)]
+	#[assoc(interaction = Interaction::take(&[Item::Stone]))]
+	Stone,
+	#[assoc(sprite = Sprite::Gravel)]
+	Gravel,
+	
 }
 
 

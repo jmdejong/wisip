@@ -12,7 +12,7 @@ const SEED: u32 = 9876;
 
 pub struct Ground {
 	basemap: InfiniteMap,
-	changes: HashMap<Pos, Tile>,
+	changes: HashMap<Pos, (Tile, Timestamp)>,
 	time: Timestamp,
 	modifications: HashMap<Pos, Tile>
 }
@@ -33,14 +33,14 @@ impl Ground {
 	}
 	
 	pub fn cell(&mut self, pos: Pos) -> Tile {
-		self.changes.get(&pos).copied().unwrap_or_else(|| self.base_cell(pos))
+		self.changes.get(&pos).map(|change| change.0).unwrap_or_else(|| self.base_cell(pos))
 	}
 	
 	pub fn set(&mut self, pos: Pos, tile: Tile) {
 		if tile == self.base_cell(pos) {
 			self.changes.remove(&pos);
 		} else {
-			self.changes.insert(pos, tile);
+			self.changes.insert(pos, (tile, self.time));
 		}
 		self.modifications.insert(pos, tile);
 	}
@@ -93,5 +93,5 @@ impl Ground {
 	}
 }
 
-pub type GroundSave = Vec<(Pos, Tile)>;
+pub type GroundSave = Vec<(Pos, (Tile, Timestamp))>;
 

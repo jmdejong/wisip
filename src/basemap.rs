@@ -55,10 +55,11 @@ impl InfiniteMap {
 			*random::pick_weighted(
 				random::WhiteNoise::new(self.seed+333).gen(b_pos.0),
 				&[
-					(Biome::Forest, 10),
-					(Biome::Field, 10),
-					(Biome::Hamlet, 10),
-					(Biome::Lake, 5)
+					(Biome::Field, 11),
+					(Biome::Forest, 14),
+					// (Biome::Hamlet, 5),
+					(Biome::Rocks, 5),
+					(Biome::Lake, 5),
 				]
 			)
 		}
@@ -81,11 +82,31 @@ impl InfiniteMap {
 			.min_by_key(|b| pos.distance_to(self.biome_core(*b)))
 			.unwrap()
 	}
+	
+	fn edge_distance(&self, pos: Pos) -> i32 {
+		let bpos = BPos(pos / self.biome_size);
+		let mut distances: Vec<(i32, Biome)> = [(0, 0), (1, 0), (0, 1), (1, 1)].into_iter()
+			.map(|p| {
+				let b = BPos(bpos.0 + p);
+				(pos.distance_to(self.biome_core(b)), self.biome_at(b))
+			})
+			.collect();
+		distances.sort_by_key(|(d, _)| *d);
+		let (dist, my_biome) = distances[0];
+		distances[1..].iter()
+			.filter(|(_, biome)| *biome != my_biome)
+			.next()
+			.map(|(d, _)| d - dist)
+			.unwrap_or(self.biome_size / 2)
+	}
 
 	fn biome_pos(&self, pos: Pos) -> (BPos, Pos) {
 		let rind = random::WhiteNoise::new(self.seed+343).gen(pos);
-		let edge_size = self.biome_size / 3;
-		let offset = Pos::new((rind % edge_size as u32) as i32 - edge_size / 2, ((rind / edge_size as u32) % edge_size as u32) as i32 - edge_size / 2);
+		let edge_size = self.biome_size / 4;
+		let mut offset = Pos::new((rind % edge_size as u32) as i32 - edge_size / 2, ((rind / edge_size as u32) % edge_size as u32) as i32 - edge_size / 2);
+		if offset.size() > edge_size / 2 {
+			offset = offset % edge_size - Pos::new(edge_size/2, edge_size/2);
+		}
 		let fuzzy_pos = pos + offset;
 		let b_pos = self.closest_biome_pos(fuzzy_pos);
 		let dpos = pos - self.biome_core(b_pos);
@@ -97,6 +118,7 @@ impl InfiniteMap {
 		let (bpos, dpos) = self.biome_pos(pos);
 		let biome = self.biome_at(bpos);
 		let rind = random::WhiteNoise::new(self.seed + 7943).gen(pos);
+		let rtime = randomtick::tick_num(pos, time) as u32 + random::WhiteNoise::new(self.seed + 356).gen(pos);
 		match biome {
 			Biome::Start => {
 				let dspawn = dpos.abs();
@@ -124,7 +146,7 @@ impl InfiniteMap {
 					(Tile::structure(Ground::Grass1, Structure::DenseGrass), 10),
 					(Tile::structure(Ground::Grass1, Structure::Shrub), 1),
 					(
-						if randomtick::tick_num(pos, time).rem_euclid(2) as u32 == rind.rem_euclid(2) {
+						if rtime.rem_euclid(2) == 0 {
 							Tile::structure(Ground::Grass1, Structure::Flower)
 						} else {
 							Tile::ground(Ground::Grass1)
@@ -134,12 +156,19 @@ impl InfiniteMap {
 				])
 			}
 			Biome::Forest => {
-				*random::pick_weighted(rind, &[
-					(Tile::ground(Ground::Grass1), 10),
-					(Tile::ground(Ground::Grass2), 10),
-					(Tile::ground(Ground::Grass3), 10),
-					(Tile::ground(Ground::Dirt), 20),
-					(Tile::structure(Ground::Dirt, Structure::Tree), 7)
+				*random::pick_weighted(rtime, &[
+					(*random::pick(rind, &[
+						Tile::ground(Ground::Grass1),
+						Tile::ground(Ground::Grass2),
+						Tile::ground(Ground::Grass3),
+						Tile::ground(Ground::Dirt),
+						Tile::ground(Ground::Dirt),
+					]), 100),
+					(Tile::structure(Ground::Grass1, Structure::Sapling), 3),
+					(Tile::structure(Ground::Dirt, Structure::YoungTree), 4),
+					(Tile::structure(Ground::Dirt, Structure::Tree), 13),
+					(Tile::structure(Ground::Dirt, Structure::OldTree), 1),
+					(Tile::ground(Ground::Dirt), 1)
 				])
 			}
 			Biome::Lake => {
@@ -164,6 +193,45 @@ impl InfiniteMap {
 						(Tile::ground(Ground::Grass3), 10),
 						(Tile::structure(Ground::Grass1, Structure::DenseGrass), 10),
 						(Tile::structure(Ground::Grass1, Structure::Shrub), 2)
+					])
+				}
+			}
+			Biome::Rocks => {
+				let min_height = 0.6;
+				let height = self.rock_height(pos);
+				if height > min_height {
+					let ismid = [(0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]
+						.into_iter()
+						.all(|d| self.rock_height(pos + d) > min_height);
+					Tile::structure(
+						Ground::Stone,
+						if ismid {
+							Structure::RockMid
+						} else {
+							Structure::Rock
+						}
+					)
+				} else {
+					*random::pick_weighted((height * 100.0) as u32, &[
+						(*random::pick_weighted(rind, &[
+							(Tile::ground(Ground::Grass2), 10),
+							(Tile::ground(Ground::Grass3), 10),
+							(Tile::ground(Ground::Dirt), 1),
+							(Tile::ground(Ground::Stone), (height * 10.0) as u32),
+						]), 50),
+						(*random::pick_weighted(rind, &[
+							(Tile::ground(Ground::Grass2), 1),
+							(Tile::ground(Ground::Grass3), 1),
+							(*random::pick_weighted(rtime, &[
+								(Tile::structure(Ground::Stone, Structure::Gravel), 20),
+								(Tile::ground(Ground::Stone), 50),
+								(Tile::structure(Ground::Stone, Structure::Stone), 3),
+								(Tile::structure(Ground::Stone, Structure::Gravel), 20),
+								(Tile::ground(Ground::Stone), 50),
+								(Tile::structure(Ground::Stone, Structure::Pebble), 5),
+								(Tile::ground(Ground::Stone), 50),
+							]), 3),
+						]), 50),
 					])
 				}
 			}
@@ -206,6 +274,12 @@ impl InfiniteMap {
 			}
 		}
 	}
+	
+	fn rock_height(&self, pos: Pos) -> f32 {
+	
+		let c = ((self.edge_distance(pos) - self.biome_size / 4) as f32 / 4.0).clamp(0.0, 1.0);
+		self.height.gen_f(pos) * c
+	}
 }
 
 impl BaseMap for InfiniteMap {
@@ -225,7 +299,9 @@ enum Biome {
 	Forest,
 	Field,
 	Lake,
-	Hamlet
+	#[allow(dead_code)]
+	Hamlet,
+	Rocks
 }
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy, Default)]

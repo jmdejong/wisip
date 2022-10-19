@@ -58,5 +58,7 @@ pub enum Item {
 	#[serde(rename="<hands>")]
 	Hands,
 	Reed,
-	Flower
+	Flower,
+	Pebble,
+	Stone,
 }
