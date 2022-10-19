@@ -24,71 +24,36 @@ pub trait BaseMap {
 	fn player_spawn(&mut self) -> Pos;
 }
 
-
 pub struct InfiniteMap {
-	biomes: BiomeMap
-}
-
-impl InfiniteMap {
-	#[allow(dead_code)]
-	pub fn new(seed: u32) -> Self {
-		Self {
-			biomes: BiomeMap::new(seed, 48)
-		}
-	}
-}
-
-impl BaseMap for InfiniteMap {
-	fn cell(&mut self, pos: Pos, time: Timestamp) -> Tile {
-		self.biomes.tile(pos, time)
-	}
-	
-	
-	fn player_spawn(&mut self) -> Pos {
-		self.biomes.start_pos()
-	}
-}
-
-#[derive(Debug, Clone, PartialEq, Eq, Copy)]
-enum Biome {
-	Start,
-	Forest,
-	Field,
-	Lake,
-	Hamlet
-}
-
-
-struct BiomeMap {
 	seed: u32,
 	height: random::Fractal,
 	biome_size: i32
 }
 
-impl BiomeMap {
-
-	fn new(seed: u32, biome_size: i32) -> Self {
+impl InfiniteMap {
+	pub fn new(seed: u32) -> Self {
 		Self {
 			seed,
 			height: random::Fractal::new(seed + 344, vec![(3,0.12), (5,0.20), (7,0.26), (11,0.42)]),
-			biome_size
+			biome_size: 48
 		}
 	}
-
-	fn start_biome(&self) -> Pos {
-		Pos::new(0, 0)
+	
+	
+	fn start_biome(&self) -> BPos {
+		BPos(Pos::new(0, 0))
 	}
 
 	fn start_pos(&self) -> Pos {
-		self.start_biome() * self.biome_size + Pos::new(self.biome_size / 2, self.biome_size / 2)
+		self.biome_core(self.start_biome())
 	}
 
-	fn biome_at(&self, b_pos: Pos) -> Biome {
+	fn biome_at(&self, b_pos: BPos) -> Biome {
 		if b_pos == self.start_biome() {
 			Biome::Start
 		} else {
 			*random::pick_weighted(
-				random::WhiteNoise::new(self.seed+333).gen(b_pos),
+				random::WhiteNoise::new(self.seed+333).gen(b_pos.0),
 				&[
 					(Biome::Forest, 10),
 					(Biome::Field, 10),
@@ -98,14 +63,32 @@ impl BiomeMap {
 			)
 		}
 	}
+	
+	fn biome_core(&self, bpos: BPos) -> Pos {
+		let rind = random::WhiteNoise::new(self.seed+821).gen(bpos.0);
+		let core_size = self.biome_size / 2;
+		let core_offset = Pos::new(
+			(rind % core_size as u32) as i32 - core_size / 2,
+			((rind / core_size as u32) % core_size as u32) as i32 - core_size / 2
+		);
+		bpos.0 * self.biome_size + core_offset
+	}
+	
+	fn closest_biome_pos(&self, pos: Pos) -> BPos {
+		let bpos = BPos(pos / self.biome_size);
+		[(0, 0), (1, 0), (0, 1), (1, 1)].into_iter()
+			.map(|p| BPos(bpos.0 + p))
+			.min_by_key(|b| pos.distance_to(self.biome_core(*b)))
+			.unwrap()
+	}
 
-	fn biome_pos(&self, pos: Pos) -> (Pos, Pos) {
+	fn biome_pos(&self, pos: Pos) -> (BPos, Pos) {
 		let rind = random::WhiteNoise::new(self.seed+343).gen(pos);
 		let edge_size = self.biome_size / 3;
 		let offset = Pos::new((rind % edge_size as u32) as i32 - edge_size / 2, ((rind / edge_size as u32) % edge_size as u32) as i32 - edge_size / 2);
 		let fuzzy_pos = pos + offset;
-		let b_pos = (fuzzy_pos) / self.biome_size;
-		let dpos = pos - b_pos * self.biome_size - Pos::new(self.biome_size / 2, self.biome_size / 2);
+		let b_pos = self.closest_biome_pos(fuzzy_pos);
+		let dpos = pos - self.biome_core(b_pos);
 		(b_pos, dpos)
 	}
 
@@ -133,7 +116,7 @@ impl BiomeMap {
 					])
 				}
 			}
-			Biome::Field =>
+			Biome::Field => {
 				*random::pick_weighted(rind, &[
 					(Tile::ground(Ground::Grass1), 10),
 					(Tile::ground(Ground::Grass2), 10),
@@ -148,15 +131,17 @@ impl BiomeMap {
 						},
 						2
 					)
-				]),
-			Biome::Forest =>
+				])
+			}
+			Biome::Forest => {
 				*random::pick_weighted(rind, &[
 					(Tile::ground(Ground::Grass1), 10),
 					(Tile::ground(Ground::Grass2), 10),
 					(Tile::ground(Ground::Grass3), 10),
 					(Tile::ground(Ground::Dirt), 20),
 					(Tile::structure(Ground::Dirt, Structure::Tree), 7)
-				]),
+				])
+			}
 			Biome::Lake => {
 				let d_center = ((dpos.x * dpos.x + dpos.y * dpos.y) as f32).sqrt() / (self.biome_size as f32 * 0.5);
 				let reed_density = random::Fractal::new(self.seed+276, vec![(7, 0.5), (11, 0.5)]).gen_f(pos) * 0.4 - 0.2;
@@ -183,7 +168,7 @@ impl BiomeMap {
 				}
 			}
 			Biome::Hamlet => {
-				let brind = random::WhiteNoise::new(self.seed+863).gen(bpos);
+				let brind = random::WhiteNoise::new(self.seed+863).gen(bpos.0);
 				let village_width = self.biome_size * 2 / 3;
 				let twidth = village_width / 3;
 				let vpos = (dpos + Pos::new(village_width, village_width) / 2) * 3 / village_width;
@@ -222,3 +207,64 @@ impl BiomeMap {
 		}
 	}
 }
+
+impl BaseMap for InfiniteMap {
+	fn cell(&mut self, pos: Pos, time: Timestamp) -> Tile {
+		self.tile(pos, time)
+	}
+	
+	
+	fn player_spawn(&mut self) -> Pos {
+		self.start_pos()
+	}
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Copy)]
+enum Biome {
+	Start,
+	Forest,
+	Field,
+	Lake,
+	Hamlet
+}
+
+#[derive(Debug, Hash, PartialEq, Eq, Clone, Copy, Default)]
+struct BPos(Pos);
+
+
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	#[test]
+	fn core_is_in_own_biome() {
+		let map = InfiniteMap::new(678);
+		let p: Vec<BPos> = [
+			(3, 4),
+			(0, 0),
+			(-4, 2),
+			(-5, -3),
+			(1, 0),
+			(0, -9)
+		].into_iter()
+			.map(|(x, y)| BPos(Pos::new(x, y)))
+			.collect();
+		for bpos in p {
+			assert_eq!(bpos, map.closest_biome_pos(map.biome_core(bpos)));
+			assert_eq!((bpos, Pos::new(0, 0)), map.biome_pos(map.biome_core(bpos)));
+		}
+	}
+	
+	#[test]
+	fn start_is_start_biome() {
+		let map = InfiniteMap::new(9876);
+		assert_eq!(map.biome_at(map.biome_pos(map.start_pos()).0), Biome::Start);
+	}
+	
+	#[test]
+	fn start_pos_has_sanctuary() {
+		let map = InfiniteMap::new(9876);
+		assert_eq!(map.tile(map.start_pos(), Timestamp(1)), Tile::ground(Ground::Sanctuary));
+	}
+}
+

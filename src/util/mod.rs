@@ -16,7 +16,6 @@ use crate::{
 	aerr
 };
 
-#[allow(dead_code)]
 pub fn write_file_safe<P: AsRef<Path>, C: AsRef<[u8]>>(path: P, contents: C) -> Result<(), AnyError> {
 	let temppath = path
 		.as_ref()

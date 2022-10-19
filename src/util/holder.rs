@@ -31,6 +31,7 @@ impl <K: HolderId, V> Holder<K, V> {
 		key
 	}
 	
+	#[allow(dead_code)]
 	#[inline]
 	pub fn contains_key(&self, key: &K) -> bool {
 		self.storage.contains_key(key)

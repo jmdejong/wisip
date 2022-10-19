@@ -1,6 +1,6 @@
 
 
-use std::ops::{Add, Sub, Neg, Mul, Div, AddAssign};
+use std::ops::{Add, Sub, Neg, Mul, Div, Rem, AddAssign};
 use serde::{Serialize, Serializer, Deserialize, Deserializer};
 use crate::util::clamp;
 
@@ -84,7 +84,6 @@ impl Pos {
 		}
 	}
 	
-	#[allow(dead_code)]
 	pub fn size(&self) -> Distance {
 		Distance(self.x.abs() + self.y.abs())
 	}
@@ -94,7 +93,6 @@ impl Pos {
 		self.x == 0 && self.y == 0
 	}
 	
-	#[allow(dead_code)]
 	pub fn distance_to(&self, other: Pos) -> Distance {
 		(other - *self).size()
 	}
@@ -141,6 +139,16 @@ impl Add<Pos> for Pos {
 		Pos {
 			x: self.x + other.x,
 			y: self.y + other.y
+		}
+	}
+}
+
+impl Add<(i32, i32)> for Pos {
+	type Output = Pos;
+	fn add(self, other: (i32, i32)) -> Pos {
+		Pos {
+			x: self.x + other.0,
+			y: self.y + other.1
 		}
 	}
 }
@@ -199,6 +207,17 @@ impl Div<i32> for Pos {
 		Pos {
 			x: self.x.div_euclid(n),
 			y: self.y.div_euclid(n)
+		}
+	}
+}
+
+
+impl Rem<i32> for Pos {
+	type Output = Pos;
+	fn rem(self, n: i32) -> Pos {
+		Pos {
+			x: self.x.rem_euclid(n),
+			y: self.y.rem_euclid(n)
 		}
 	}
 }
