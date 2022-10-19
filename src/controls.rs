@@ -12,8 +12,8 @@ use crate::{
 pub enum Control {
 	Move(Direction),
 	Suicide,
-	Use(Direction),
-	Interact(Option<Direction>)
+	Interact(Option<Direction>),
+	Select(Selection)
 }
 
 #[derive(Debug, Clone)]
@@ -23,3 +23,10 @@ pub enum Action {
 	Input(PlayerId, Control)
 }
 
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all="lowercase")]
+pub enum Selection {
+	Next,
+	Previous
+}

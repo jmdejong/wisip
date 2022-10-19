@@ -42,8 +42,8 @@ class CommandHandler:
 			"interact": self.interact,
 			"q": self.interact,
 			"buy": lambda option: self.interact("buy "+option),
-			"nextweapon": lambda: self.input("nextweapon"),
-			"previousweapon": lambda: self.input("previousweapon"),
+			"selectnext": lambda: self.input({"select": "next"}),
+			"selectprevious": lambda: self.input({"select": "previous"}),
 			"help": self.toggleHelp
 		}
 		

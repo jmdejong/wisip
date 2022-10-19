@@ -1,5 +1,6 @@
 
 use serde::{Serialize, Deserialize};
+use enum_assoc::Assoc;
 use crate::{
 	worldmessages::InventoryMessage
 };
@@ -48,17 +49,33 @@ impl Inventory {
 			selector: 0
 		}
 	}
+	
+	pub fn select_next(&mut self) {
+		self.selector = (self.selector + 1 ).rem_euclid(self.items.len() + 1);
+	}
+	pub fn select_previous(&mut self) {
+		self.selector = (self.selector + self.items.len()).rem_euclid(self.items.len() + 1);
+	}
 }
 
 pub type InventorySave = Vec<(Item, usize)>;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Assoc)]
 #[serde(rename_all="lowercase")]
+#[func(pub fn tool(&self) -> Option<(Tool, u32)>)]
 pub enum Item {
 	#[serde(rename="<hands>")]
+	#[assoc(tool=(Tool::Hands, 1))]
 	Hands,
 	Reed,
 	Flower,
 	Pebble,
+	#[assoc(tool=(Tool::Hammer, 1))]
 	Stone,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum Tool {
+	Hands,
+	Hammer
 }

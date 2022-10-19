@@ -3,7 +3,7 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use enum_assoc::Assoc;
 use crate::{
 	sprite::Sprite,
-	inventory::Item
+	inventory::{Item, Tool}
 };
 
 
@@ -33,12 +33,17 @@ pub enum Ground {
 #[derive(Debug, Clone)]
 pub struct Interaction {
 	remains: Structure,
-	items: Vec<Item>
+	items: Vec<Item>,
+	tool: (Tool, u32)
 }
 
 impl Interaction {
 	pub fn take(items: &[Item]) -> Self {
-		Self { remains: Structure::Air, items: items.to_vec()}
+		Self {
+			remains: Structure::Air,
+			items: items.to_vec(),
+			tool: (Tool::Hands, 0)
+		}
 	}
 }
 
