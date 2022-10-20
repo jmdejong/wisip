@@ -3,7 +3,7 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use enum_assoc::Assoc;
 use crate::{
 	sprite::Sprite,
-	inventory::{Item, Tool}
+	inventory::{Item, Action}
 };
 
 
@@ -34,7 +34,7 @@ pub enum Ground {
 pub struct Interaction {
 	remains: Structure,
 	items: Vec<Item>,
-	tool: (Tool, u32)
+	action: Action
 }
 
 impl Interaction {
@@ -42,7 +42,7 @@ impl Interaction {
 		Self {
 			remains: Structure::Air,
 			items: items.to_vec(),
-			tool: (Tool::Hands, 0)
+			action: Action::take(0)
 		}
 	}
 }
@@ -125,12 +125,13 @@ impl Tile {
 		!self.ground.accessible() || self.structure.blocking()
 	}
 	
-	pub fn interact(&self) -> (Tile, Vec<Item>) {
+	pub fn interact(&self, action: Action) -> (Tile, Vec<Item>) {
 		if let Some(interaction) = self.structure.interaction() {
-			(Self {ground: self.ground, structure: interaction.remains}, interaction.items)
-		} else {
-			(*self, Vec::new())
+			if interaction.action.fulfilled_by(action) {
+				return (Self {ground: self.ground, structure: interaction.remains}, interaction.items)
+			}
 		}
+		(*self, Vec::new())
 	}
 }
 

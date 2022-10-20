@@ -24,8 +24,7 @@ impl Inventory {
 		self.items.push((item, 1));
 	}
 	
-	#[allow(dead_code)]
-	pub fn selected(&self) -> Item {
+	fn selected(&self) -> Item {
 		if self.selector == 0 {
 			Item::Hands
 		} else {
@@ -56,26 +55,66 @@ impl Inventory {
 	pub fn select_previous(&mut self) {
 		self.selector = (self.selector + self.items.len()).rem_euclid(self.items.len() + 1);
 	}
+	
+	pub fn selected_action(&self) -> Option<Action> {
+		self.selected().action()
+	}
 }
 
 pub type InventorySave = Vec<(Item, usize)>;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Assoc)]
 #[serde(rename_all="lowercase")]
-#[func(pub fn tool(&self) -> Option<(Tool, u32)>)]
+#[func(pub fn action(&self) -> Option<Action>)]
 pub enum Item {
-	#[serde(rename="<hands>")]
-	#[assoc(tool=(Tool::Hands, 1))]
+	#[serde(rename="<take>")]
+	#[assoc(action=Action::take(1))]
 	Hands,
 	Reed,
 	Flower,
 	Pebble,
-	#[assoc(tool=(Tool::Hammer, 1))]
+	#[assoc(action=Action::smash(1))]
 	Stone,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum Tool {
-	Hands,
-	Hammer
+pub enum ActionType {
+	Take,
+	Smash
 }
+
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct Action {
+	typ: ActionType,
+	level: u32
+}
+
+impl Action{
+	pub fn take(level: u32) -> Self {
+		Self { typ: ActionType::Take, level }
+	}
+	pub fn smash(level: u32) -> Self {
+		Self { typ: ActionType::Smash, level }
+	}
+	
+	pub fn fulfilled_by(&self, other: Action) -> bool {
+		other.typ == self.typ && other.level >= self.level
+	}
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+	#[test]
+	fn selects_take_action() {
+		let inv = Inventory::load(vec![]);
+		assert_eq!(inv.selected(), Item::Hands);
+		assert_eq!(inv.selected_action(), Some(Action::take(1)));
+	}
+	#[test]
+	fn hands_has_take_action() {
+		assert_eq!(Item::Hands.action(), Some(Action::take(1)));
+	}
+}
+

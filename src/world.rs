@@ -126,12 +126,14 @@ impl World {
 				}
 				Some(Control::Interact(direction)) => {
 					let pos = creature.pos + direction.map(|dir| dir.to_position()).unwrap_or_else(Pos::zero);
-					let tile = self.ground.cell(pos);
-					let (newtile, items) = tile.interact();
-					for item in items {
-						creature.inventory.add(item);
+					if let Some(action) = creature.inventory.selected_action() {
+						let tile = self.ground.cell(pos);
+						let (newtile, items) = tile.interact(action);
+						for item in items {
+							creature.inventory.add(item);
+						}
+						self.ground.set(pos, newtile);
 					}
-					self.ground.set(pos, newtile);
 				}
 				None => { }
 			}
