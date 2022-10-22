@@ -3,7 +3,8 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use enum_assoc::Assoc;
 use crate::{
 	sprite::Sprite,
-	inventory::{Item, Action}
+	inventory::Item,
+	action::Action
 };
 
 
