@@ -92,6 +92,10 @@ pub enum Item {
 	Stone,
 	#[assoc(action=Action::new(Cut, 1, false))]
 	SharpStone,
+	#[assoc(action=Action::new(Fill, 1, true))]
+	Pitcher,
+	#[assoc(action=Action::new(Water, 1, false))]
+	FilledPitcher,
 }
 
 

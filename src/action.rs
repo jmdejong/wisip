@@ -10,7 +10,9 @@ use crate::{
 pub enum ActionType {
 	Take,
 	Smash,
-	Cut
+	Cut,
+	Water,
+	Fill,
 }
 
 
@@ -34,7 +36,7 @@ impl Action{
 
 #[derive(Debug, Clone)]
 pub struct Interactable {
-	remains: Structure,
+	remains: Option<Structure>,
 	items: Vec<Item>,
 	action_type: ActionType,
 	min_level: u32,
@@ -42,18 +44,18 @@ pub struct Interactable {
 }
 
 impl Interactable {
-	pub fn new(action_type: ActionType, min_level: u32, level_odds: &[f32], remains: Structure, items: &[Item]) -> Self {
+	pub fn new(action_type: ActionType, min_level: u32, level_odds: &[f32], remains: Option<Structure>, items: &[Item]) -> Self {
 		Self {
 			action_type,
 			min_level,
 			level_odds: level_odds.to_vec(),
-			remains,
+			remains: remains,
 			items: items.to_vec()
 		}
 	}
 	
 	pub fn take(items: &[Item]) -> Self {
-		Self::new(ActionType::Take, 0, &[], Structure::Air, items)
+		Self::new(ActionType::Take, 0, &[], Some(Structure::Air), items)
 	}
 	
 	pub fn apply(&self, action: Action, time: Timestamp) -> Option<InteractionResult> {
@@ -65,7 +67,7 @@ impl Interactable {
 				self.level_odds[relative_level]
 			};
 			Some(InteractionResult {
-				remains: Some(self.remains),
+				remains: self.remains,
 				items: if odds >= random::random_float(time.random_seed() ^ 84217) {
 					self.items.clone()
 				} else {

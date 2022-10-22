@@ -12,6 +12,7 @@ use crate::{
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Assoc, Serialize, Deserialize)]
 #[func(fn sprite(&self) -> Option<Sprite>)]
 #[func(fn accessible(&self) -> bool {true})]
+#[func(fn interactions(&self) -> Vec<Interactable> {Vec::new()})]
 pub enum Ground {
 	#[assoc(sprite = Sprite::Dirt)]
 	Dirt,
@@ -24,6 +25,7 @@ pub enum Ground {
 	#[assoc(sprite = Sprite::Sanctuary)]
 	Sanctuary,
 	#[assoc(sprite = Sprite::Water)]
+	#[assoc(interactions = vec![Interactable::new(ActionType::Fill, 0, &[], None, &[Item::FilledPitcher])])]
 	#[assoc(accessible = false)]
 	Water,
 	#[assoc(sprite = Sprite::StoneFloor)]
@@ -66,10 +68,10 @@ pub enum Structure {
 	#[assoc(sprite = Sprite::Bush)]
 	Bush,
 	#[assoc(sprite = Sprite::Reed)]
-	#[assoc(interactions = vec![Interactable::new(ActionType::Cut, 1, &[0.5, 1.0], Structure::Air, &[Item::Reed])])]
+	#[assoc(interactions = vec![Interactable::new(ActionType::Cut, 1, &[0.5, 1.0], Some(Structure::Air), &[Item::Reed])])]
 	Reed,
 	#[assoc(sprite = Sprite::PitcherPlant)]
-	#[assoc(interactions = vec![Interactable::new(ActionType::Cut, 1, &[0.5, 1.0], Structure::Air, &[Item::Reed])])]
+	#[assoc(interactions = vec![Interactable::new(ActionType::Cut, 1, &[0.5, 1.0], Some(Structure::Air), &[Item::Pitcher])])]
 	PitcherPlant,
 	#[assoc(sprite = Sprite::Crop)]
 	#[assoc(interactions = vec![Interactable::take(&[])])]
@@ -87,7 +89,7 @@ pub enum Structure {
 			ActionType::Smash,
 			1,
 			&[0.4, 1.0],
-			Structure::Gravel,
+			Some(Structure::Gravel),
 			&[Item::SharpStone],
 		)
 	])]
@@ -126,6 +128,7 @@ impl Tile {
 	pub fn interact(&self, action: Action, time: Timestamp) -> Option<InteractionResult> {
 		self.structure.interactions()
 			.into_iter()
+			.chain(self.ground.interactions().into_iter())
 			.filter_map(|interactable| interactable.apply(action, time))
 			.next()
 	}
