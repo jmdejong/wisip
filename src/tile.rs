@@ -4,7 +4,7 @@ use enum_assoc::Assoc;
 use crate::{
 	sprite::Sprite,
 	inventory::Item,
-	action::Action
+	action::{Action, ActionType, Interactable, InteractionResult}
 };
 
 
@@ -31,27 +31,11 @@ pub enum Ground {
 	Empty
 }
 
-#[derive(Debug, Clone)]
-pub struct Interaction {
-	remains: Structure,
-	items: Vec<Item>,
-	action: Action
-}
-
-impl Interaction {
-	pub fn take(items: &[Item]) -> Self {
-		Self {
-			remains: Structure::Air,
-			items: items.to_vec(),
-			action: Action::take(0)
-		}
-	}
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Assoc, Serialize, Deserialize)]
 #[func(fn sprite(&self) -> Option<Sprite>)]
 #[func(fn blocking(&self) -> bool {false})]
-#[func(fn interaction(&self) -> Option<Interaction>)]
+#[func(fn interactions(&self) -> Vec<Interactable> {Vec::new()})]
 pub enum Structure {
 	Air,
 	#[assoc(sprite = Sprite::Wall)]
@@ -81,19 +65,19 @@ pub enum Structure {
 	#[assoc(sprite = Sprite::Bush)]
 	Bush,
 	#[assoc(sprite = Sprite::Reed)]
-	#[assoc(interaction = Interaction::take(&[Item::Reed]))]
+	#[assoc(interactions = vec![Interactable::new(ActionType::Cut, 1, Structure::Air, &[Item::Reed])])]
 	Reed,
 	#[assoc(sprite = Sprite::Crop)]
-	#[assoc(interaction = Interaction::take(&[]))]
+	#[assoc(interactions = vec![Interactable::take(&[])])]
 	Crop,
 	#[assoc(sprite = Sprite::Flower)]
-	#[assoc(interaction = Interaction::take(&[Item::Flower]))]
+	#[assoc(interactions = vec![Interactable::take(&[Item::Flower])])]
 	Flower,
 	#[assoc(sprite = Sprite::Pebble)]
-	#[assoc(interaction = Interaction::take(&[Item::Pebble]))]
+	#[assoc(interactions = vec![Interactable::take(&[Item::Pebble])])]
 	Pebble,
 	#[assoc(sprite = Sprite::Stone)]
-	#[assoc(interaction = Interaction::take(&[Item::Stone]))]
+	#[assoc(interactions = vec![Interactable::take(&[Item::Stone]), Interactable::new(ActionType::Smash, 1, Structure::Gravel, &[Item::SharpStone])])]
 	Stone,
 	#[assoc(sprite = Sprite::Gravel)]
 	Gravel,
@@ -103,8 +87,8 @@ pub enum Structure {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Tile {
-	ground: Ground,
-	structure: Structure
+	pub ground: Ground,
+	pub structure: Structure
 }
 
 impl Tile {
@@ -126,13 +110,11 @@ impl Tile {
 		!self.ground.accessible() || self.structure.blocking()
 	}
 	
-	pub fn interact(&self, action: Action) -> (Tile, Vec<Item>) {
-		if let Some(interaction) = self.structure.interaction() {
-			if interaction.action.fulfilled_by(action) {
-				return (Self {ground: self.ground, structure: interaction.remains}, interaction.items)
-			}
-		}
-		(*self, Vec::new())
+	pub fn interact(&self, action: Action) -> Option<InteractionResult> {
+		self.structure.interactions()
+			.into_iter()
+			.filter_map(|interactable| interactable.apply(action))
+			.next()
 	}
 }
 

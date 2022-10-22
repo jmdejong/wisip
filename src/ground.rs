@@ -2,7 +2,7 @@
 use std::collections::{HashMap, HashSet};
 use crate::{
 	pos::{Pos, Area},
-	tile::{Tile},
+	tile::{Tile, Structure},
 	basemap::{BaseMap, InfiniteMap},
 	timestamp::{Timestamp, Duration},
 	randomtick
@@ -43,6 +43,11 @@ impl Ground {
 			self.changes.insert(pos, (tile, self.time));
 		}
 		self.modifications.insert(pos, tile);
+	}
+	
+	pub fn set_structure(&mut self, pos: Pos, structure: Structure) {
+		let new_tile = Tile::structure(self.cell(pos).ground, structure) ;
+		self.set(pos, new_tile )
 	}
 	
 	pub fn player_spawn(&mut self) -> Pos {

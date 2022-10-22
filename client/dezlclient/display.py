@@ -60,14 +60,14 @@ class Display:
 	def setFieldCenter(self, pos):
 		self.getWidget("field").set_center(*pos)
 	
-	def setHealth(self, health, maxHealth):
-		if health is None:
-			health = 0
-		if maxHealth is None:
-			maxHealth = 0
-		self.getWidget("health").set_total(maxHealth)
-		self.getWidget("health").set_filled(health)
-		self.getWidget("healthtitle").format({"filled": health, "total":maxHealth})
+	# def setHealth(self, health, maxHealth):
+	# 	if health is None:
+	# 		health = 0
+	# 	if maxHealth is None:
+	# 		maxHealth = 0
+	# 	self.getWidget("health").set_total(maxHealth)
+	# 	self.getWidget("health").set_filled(health)
+	# 	self.getWidget("healthtitle").format({"filled": health, "total":maxHealth})
 		
 	
 	def showInfo(self, infostring):

@@ -129,11 +129,11 @@ class Client:
 		if msgType == "playerpos":
 			self.display.setFieldCenter(msg[1])
 		
-		if msgType == "health":
-			health, maxHealth = msg[1]
-			self.display.setHealth(health, maxHealth)
-			if maxHealth is None:
-				self.log("You have died. Restart the client to respawn")
+		# if msgType == "health":
+		# 	health, maxHealth = msg[1]
+		# 	self.display.setHealth(health, maxHealth)
+		# 	if maxHealth is None:
+		# 		self.log("You have died. Restart the client to respawn")
 		if msgType == "inventory":
 			items, selected = msg[1]
 			self.display.setInventory(items, selected)
