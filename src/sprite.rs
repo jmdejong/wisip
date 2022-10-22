@@ -29,5 +29,6 @@ pub enum Sprite {
 	Pebble,
 	Crop,
 	Flower,
-	Reed
+	Reed,
+	PitcherPlant,
 }

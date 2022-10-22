@@ -44,6 +44,7 @@
 		"shrub": ["%", 10],
 		"bush": ["%", 10, 2],
 		"reed": ["l", 2],
+		"pitcherplant": ["6", 2],
 		"crop": ["v", 10],
 		"flower": ["*", 13],
 		"pebble": ["*", 7],

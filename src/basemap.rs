@@ -24,6 +24,19 @@ pub trait BaseMap {
 	fn player_spawn(&mut self) -> Pos;
 }
 
+
+#[derive(Debug, Clone, PartialEq, Eq, Copy)]
+enum Biome {
+	Start,
+	Forest,
+	Field,
+	Lake,
+	#[allow(dead_code)]
+	Hamlet,
+	Rocks,
+	Bog
+}
+
 pub struct InfiniteMap {
 	seed: u32,
 	height: random::Fractal,
@@ -55,9 +68,9 @@ impl InfiniteMap {
 			*random::pick_weighted(
 				random::WhiteNoise::new(self.seed+333).gen(b_pos.0),
 				&[
-					(Biome::Field, 11),
-					(Biome::Forest, 14),
-					// (Biome::Hamlet, 5),
+					(Biome::Field, 10),
+					(Biome::Forest, 10),
+					(Biome::Bog, 5),
 					(Biome::Rocks, 5),
 					(Biome::Lake, 5),
 				]
@@ -235,6 +248,26 @@ impl InfiniteMap {
 					])
 				}
 			}
+			Biome::Bog => {
+				let height = self.height.gen_f(pos*2) + random::WhiteNoise::new(self.seed+3294).gen_f(pos) * 0.1;
+				if height < 0.45 {
+					Tile::ground(Ground::Water)
+				} else {
+					*random::pick_weighted(rind, &[
+						(Tile::ground(Ground::Grass1), 40),
+						(Tile::ground(Ground::Grass2), 40),
+						(Tile::ground(Ground::Grass3), 40),
+						(Tile::structure(Ground::Dirt, Structure::Bush), 1),
+						(*random::pick(
+							rtime / 2,
+							&[
+								Tile::structure(Ground::Grass1, Structure::PitcherPlant),
+								Tile::ground(Ground::Grass1)
+							]
+						), 1)
+					])
+				}
+			}
 			Biome::Hamlet => {
 				let brind = random::WhiteNoise::new(self.seed+863).gen(bpos.0);
 				let village_width = self.biome_size * 2 / 3;
@@ -293,16 +326,6 @@ impl BaseMap for InfiniteMap {
 	}
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Copy)]
-enum Biome {
-	Start,
-	Forest,
-	Field,
-	Lake,
-	#[allow(dead_code)]
-	Hamlet,
-	Rocks
-}
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy, Default)]
 struct BPos(Pos);

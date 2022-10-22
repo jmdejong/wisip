@@ -68,6 +68,9 @@ pub enum Structure {
 	#[assoc(sprite = Sprite::Reed)]
 	#[assoc(interactions = vec![Interactable::new(ActionType::Cut, 1, &[0.5, 1.0], Structure::Air, &[Item::Reed])])]
 	Reed,
+	#[assoc(sprite = Sprite::PitcherPlant)]
+	#[assoc(interactions = vec![Interactable::new(ActionType::Cut, 1, &[0.5, 1.0], Structure::Air, &[Item::Reed])])]
+	PitcherPlant,
 	#[assoc(sprite = Sprite::Crop)]
 	#[assoc(interactions = vec![Interactable::take(&[])])]
 	Crop,
