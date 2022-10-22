@@ -9,12 +9,20 @@ use crate::{
 	randomtick
 };
 
+macro_rules! t {
+	($g:ident) => {Tile::ground(Ground::$g)};
+	($g:ident, $s:ident) => {Tile::structure(Ground::$g, Structure::$s)};
+	($g:expr) => {Tile::ground($g)};
+	($g:expr, $s:expr) => {Tile::structure($g, $s)};
+}
+
+
 pub trait BaseMap {
 	fn cell(&mut self, pos: Pos, time: Timestamp) -> Tile;
 	
 	#[allow(dead_code)]
 	fn region(&mut self, area: Area, time: Timestamp) -> Grid<Tile> {
-		let mut grid = Grid::with_offset(area.size(), area.min(), Tile::ground(Ground::Dirt));
+		let mut grid = Grid::with_offset(area.size(), area.min(), t!(Dirt));
 		for pos in area.iter() {
 			grid.set(pos, self.cell(pos, time));
 		}
@@ -23,7 +31,6 @@ pub trait BaseMap {
 	
 	fn player_spawn(&mut self) -> Pos;
 }
-
 
 #[derive(Debug, Clone, PartialEq, Eq, Copy)]
 enum Biome {
@@ -137,32 +144,32 @@ impl InfiniteMap {
 				let dspawn = dpos.abs();
 				if dspawn.x <= 4 && dspawn.y <= 4 {
 					if dspawn.x + dspawn.y <= 5 {
-						Tile::ground(Ground::Sanctuary)
+						t!(Sanctuary)
 					} else {
-						Tile::structure(Ground::Dirt, Structure::Wall)
+						t!(Dirt, Wall)
 					}
 				} else if dspawn.x <= 1 || dspawn.y <= 1 {
-					Tile::ground(Ground::Dirt)
+					t!(Dirt)
 				} else {
 					*random::pick(rind, &[
-						Tile::ground(Ground::Grass1),
-						Tile::ground(Ground::Grass2),
-						Tile::ground(Ground::Grass3)
+						t!(Grass1),
+						t!(Grass2),
+						t!(Grass3)
 					])
 				}
 			}
 			Biome::Field => {
 				*random::pick_weighted(rind, &[
-					(Tile::ground(Ground::Grass1), 10),
-					(Tile::ground(Ground::Grass2), 10),
-					(Tile::ground(Ground::Grass3), 10),
-					(Tile::structure(Ground::Grass1, Structure::DenseGrass), 10),
-					(Tile::structure(Ground::Grass1, Structure::Shrub), 1),
+					(t!(Grass1), 10),
+					(t!(Grass2), 10),
+					(t!(Grass3), 10),
+					(t!(Grass1, DenseGrass), 10),
+					(t!(Grass1, Shrub), 1),
 					(
 						if rtime.rem_euclid(2) == 0 {
-							Tile::structure(Ground::Grass1, Structure::Flower)
+							t!(Grass1, Flower)
 						} else {
-							Tile::ground(Ground::Grass1)
+							t!(Grass1)
 						},
 						2
 					)
@@ -171,17 +178,17 @@ impl InfiniteMap {
 			Biome::Forest => {
 				*random::pick_weighted(rtime, &[
 					(*random::pick(rind, &[
-						Tile::ground(Ground::Grass1),
-						Tile::ground(Ground::Grass2),
-						Tile::ground(Ground::Grass3),
-						Tile::ground(Ground::Dirt),
-						Tile::ground(Ground::Dirt),
+						t!(Grass1),
+						t!(Grass2),
+						t!(Grass3),
+						t!(Dirt),
+						t!(Dirt),
 					]), 100),
-					(Tile::structure(Ground::Grass1, Structure::Sapling), 3),
-					(Tile::structure(Ground::Dirt, Structure::YoungTree), 4),
-					(Tile::structure(Ground::Dirt, Structure::Tree), 13),
-					(Tile::structure(Ground::Dirt, Structure::OldTree), 1),
-					(Tile::ground(Ground::Dirt), 1)
+					(t!(Grass1, Sapling), 3),
+					(t!(Dirt, YoungTree), 4),
+					(t!(Dirt, Tree), 13),
+					(t!(Dirt, OldTree), 1),
+					(t!(Dirt), 1)
 				])
 			}
 			Biome::Lake => {
@@ -189,7 +196,7 @@ impl InfiniteMap {
 				let reed_density = random::Fractal::new(self.seed+276, vec![(7, 0.5), (11, 0.5)]).gen_f(pos) * 0.4 - 0.2;
 				let height = d_center - self.height.gen_f(pos);
 				if height.abs() < reed_density {
-					Tile::structure(
+					t!(
 						if height > 0.0 { Ground::Dirt } else { Ground::Water },
 						if randomtick::tick_num(pos, time).rem_euclid(4) as u32 != rind.rem_euclid(4) {
 							Structure::Reed
@@ -198,14 +205,14 @@ impl InfiniteMap {
 						}
 					)
 				} else if height < 0.0 {
-					Tile::ground(Ground::Water)
+					t!(Water)
 				} else {
 					*random::pick_weighted(rind, &[
-						(Tile::ground(Ground::Grass1), 10),
-						(Tile::ground(Ground::Grass2), 10),
-						(Tile::ground(Ground::Grass3), 10),
-						(Tile::structure(Ground::Grass1, Structure::DenseGrass), 10),
-						(Tile::structure(Ground::Grass1, Structure::Shrub), 2)
+						(t!(Grass1), 10),
+						(t!(Grass2), 10),
+						(t!(Grass3), 10),
+						(t!(Grass1, DenseGrass), 10),
+						(t!(Grass1, Shrub), 2)
 					])
 				}
 			}
@@ -216,7 +223,7 @@ impl InfiniteMap {
 					let ismid = [(0, -1), (0, 1), (-1, 0), (1, 0), (-1, -1), (-1, 1), (1, -1), (1, 1)]
 						.into_iter()
 						.all(|d| self.rock_height(pos + d) > min_height);
-					Tile::structure(
+					t!(
 						Ground::Stone,
 						if ismid {
 							Structure::RockMid
@@ -227,22 +234,22 @@ impl InfiniteMap {
 				} else {
 					*random::pick_weighted((height * 100.0) as u32, &[
 						(*random::pick_weighted(rind, &[
-							(Tile::ground(Ground::Grass2), 10),
-							(Tile::ground(Ground::Grass3), 10),
-							(Tile::ground(Ground::Dirt), 1),
-							(Tile::ground(Ground::Stone), (height * 10.0) as u32),
+							(t!(Grass2), 10),
+							(t!(Grass3), 10),
+							(t!(Dirt), 1),
+							(t!(Stone), (height * 10.0) as u32),
 						]), 50),
 						(*random::pick_weighted(rind, &[
-							(Tile::ground(Ground::Grass2), 1),
-							(Tile::ground(Ground::Grass3), 1),
+							(t!(Grass2), 1),
+							(t!(Grass3), 1),
 							(*random::pick_weighted(rtime, &[
-								(Tile::structure(Ground::Stone, Structure::Gravel), 20),
-								(Tile::ground(Ground::Stone), 50),
-								(Tile::structure(Ground::Stone, Structure::Stone), 5),
-								(Tile::structure(Ground::Stone, Structure::Gravel), 20),
-								(Tile::ground(Ground::Stone), 50),
-								(Tile::structure(Ground::Stone, Structure::Pebble), 3),
-								(Tile::ground(Ground::Stone), 50),
+								(t!(Stone, Gravel), 20),
+								(t!(Stone), 50),
+								(t!(Stone, Stone), 5),
+								(t!(Stone, Gravel), 20),
+								(t!(Stone), 50),
+								(t!(Stone, Pebble), 3),
+								(t!(Stone), 50),
 							]), 3),
 						]), 50),
 					])
@@ -251,18 +258,18 @@ impl InfiniteMap {
 			Biome::Bog => {
 				let height = self.height.gen_f(pos*2) + random::WhiteNoise::new(self.seed+3294).gen_f(pos) * 0.1;
 				if height < 0.45 {
-					Tile::ground(Ground::Water)
+					t!(Water)
 				} else {
 					*random::pick_weighted(rind, &[
-						(Tile::ground(Ground::Grass1), 40),
-						(Tile::ground(Ground::Grass2), 40),
-						(Tile::ground(Ground::Grass3), 40),
-						(Tile::structure(Ground::Dirt, Structure::Bush), 1),
+						(t!(Grass1), 40),
+						(t!(Grass2), 40),
+						(t!(Grass3), 40),
+						(t!(Dirt, Bush), 1),
 						(*random::pick(
 							rtime / 2,
 							&[
-								Tile::structure(Ground::Grass1, Structure::PitcherPlant),
-								Tile::ground(Ground::Grass1)
+								t!(Grass1, PitcherPlant),
+								t!(Grass1)
 							]
 						), 1)
 					])
@@ -282,26 +289,26 @@ impl InfiniteMap {
 					let wd = twidth / 2 - 1 - ((trind as i32) >> (4 + di) & 1 );
 					if tmax == wd && trind & 3 == 1 {
 						if di == trind >> 2 & 3 && tpos.abs().min() == 0 {
-							Tile::ground(Ground::Dirt)
+							t!(Dirt)
 						} else {
-							Tile::structure(Ground::Dirt, Structure::Wall)
+							t!(Dirt, Wall)
 						}
 					} else if tmax < wd && trind & 3 == 1 {
-						Tile::ground(Ground::Dirt)
+						t!(Dirt)
 					} else if tmax < wd && trind & 3 == 2 {
-						Tile::structure(Ground::Dirt, Structure::Crop)
+						t!(Dirt, Crop)
 					} else {
 						*random::pick_weighted(rind, &[
-							(Tile::ground(Ground::Grass1), 10),
-							(Tile::ground(Ground::Grass2), 10),
-							(Tile::ground(Ground::Dirt), 20)
+							(t!(Grass1), 10),
+							(t!(Grass2), 10),
+							(t!(Dirt), 20)
 						])
 					}
 				} else {
 					*random::pick_weighted(rind, &[
-						(Tile::ground(Ground::Grass1), 10),
-						(Tile::ground(Ground::Grass2), 10),
-						(Tile::ground(Ground::Grass3), 10)
+						(t!(Grass1), 10),
+						(t!(Grass2), 10),
+						(t!(Grass3), 10)
 					])
 				}
 			}
@@ -325,7 +332,6 @@ impl BaseMap for InfiniteMap {
 		self.start_pos()
 	}
 }
-
 
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy, Default)]
 struct BPos(Pos);
@@ -363,7 +369,7 @@ mod tests {
 	#[test]
 	fn start_pos_has_sanctuary() {
 		let map = InfiniteMap::new(9876);
-		assert_eq!(map.tile(map.start_pos(), Timestamp(1)), Tile::ground(Ground::Sanctuary));
+		assert_eq!(map.tile(map.start_pos(), Timestamp(1)), t!(Sanctuary));
 	}
 }
 
