@@ -37,33 +37,50 @@ pub struct Interactable {
 	remains: Structure,
 	loot: Vec<(Vec<Item>, u32)>,
 	action_type: ActionType,
-	action_level: u32
+	min_level: u32,
+	level_odds: Vec<f32>
 }
 
 impl Interactable {
-	pub fn new(action_type: ActionType, action_level: u32, remains: Structure, items: &[Item]) -> Self {
-		Self {action_type, action_level, remains, loot: vec![(items.to_vec(), 1)] }
-	}
-	pub fn loot(action_type: ActionType, action_level: u32, remains: Structure, loot: &[(&[Item], u32)]) -> Self {
+	pub fn new(action_type: ActionType, min_level: u32, level_odds: &[f32], remains: Structure, items: &[Item]) -> Self {
 		Self {
 			action_type,
-			action_level,
+			min_level,
+			level_odds: level_odds.to_vec(),
+			remains, loot: vec![(items.to_vec(), 1)]
+		}
+	}
+	pub fn loot(action_type: ActionType, min_level: u32, level_odds: &[f32], remains: Structure, loot: &[(&[Item], u32)]) -> Self {
+		Self {
+			action_type,
+			min_level,
+			level_odds: level_odds.to_vec(), 
 			remains,
 			loot: loot.iter().map(|(item, chance)| (item.to_vec(), *chance)).collect()
 		}
 	}
 	pub fn take(items: &[Item]) -> Self {
-		Self::new(ActionType::Take, 0, Structure::Air, items)
+		Self::new(ActionType::Take, 0, &[], Structure::Air, items)
 	}
 	
 	pub fn apply(&self, action: Action, time: Timestamp) -> Option<InteractionResult> {
-		if self.action_type == action.typ && action.level >= self.action_level {
+		if self.action_type == action.typ && action.level >= self.min_level {
+			let relative_level = (action.level - self.min_level) as usize;
+			let odds = if relative_level >= self.level_odds.len() {
+				1.0
+			} else {
+				self.level_odds[relative_level]
+			};
 			Some(InteractionResult {
 				remains: Some(self.remains),
-				items: random::pick_weighted(
-					time.random_seed(),
-					&self.loot
-				).to_vec(),
+				items: if odds >= random::random_float(time.random_seed() ^ 84217) {
+					random::pick_weighted(
+						time.random_seed(),
+						&self.loot
+					).to_vec()
+				} else {
+					Vec::new()
+				},
 				use_item: action.use_item
 			})
 		} else {

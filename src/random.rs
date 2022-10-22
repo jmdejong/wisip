@@ -11,6 +11,9 @@ pub fn randomize_u32(seed: u32) -> u32 {
 	(((num.wrapping_mul(MULTIPLIER).wrapping_add(ADDEND)) & MASK) >> 16) as u32
 }
 
+pub fn random_float(seed: u32) -> f32 {
+	(randomize_u32(seed) & 0xffff) as f32 / (0x10000 as f32)
+}
 
 pub fn randomize_pos(pos: Pos) -> u32 {
 	randomize_u32(pos.x as u32 ^ randomize_u32(pos.y as u32))
@@ -51,7 +54,7 @@ impl WhiteNoise {
 	}
 	
 	pub fn gen_f(&self, pos: Pos) -> f32 {
-		(self.gen(pos) & 0xffff) as f32 / (0x10000 as f32)
+		random_float(self.gen(pos))
 	}
 }
 

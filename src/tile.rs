@@ -66,7 +66,7 @@ pub enum Structure {
 	#[assoc(sprite = Sprite::Bush)]
 	Bush,
 	#[assoc(sprite = Sprite::Reed)]
-	#[assoc(interactions = vec![Interactable::new(ActionType::Cut, 1, Structure::Air, &[Item::Reed])])]
+	#[assoc(interactions = vec![Interactable::new(ActionType::Cut, 1, &[0.5, 1.0], Structure::Air, &[Item::Reed])])]
 	Reed,
 	#[assoc(sprite = Sprite::Crop)]
 	#[assoc(interactions = vec![Interactable::take(&[])])]
@@ -83,11 +83,11 @@ pub enum Structure {
 		Interactable::loot(
 			ActionType::Smash,
 			1,
+			&[0.4, 1.0],
 			Structure::Gravel,
 			&[
 				(&[Item::SharpStone], 1),
-				(&[Item::Pebble], 1),
-				(&[], 2)
+				(&[Item::Pebble], 1)
 			]
 		)
 	])]
