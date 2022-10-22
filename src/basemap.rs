@@ -225,10 +225,10 @@ impl InfiniteMap {
 							(*random::pick_weighted(rtime, &[
 								(Tile::structure(Ground::Stone, Structure::Gravel), 20),
 								(Tile::ground(Ground::Stone), 50),
-								(Tile::structure(Ground::Stone, Structure::Stone), 3),
+								(Tile::structure(Ground::Stone, Structure::Stone), 5),
 								(Tile::structure(Ground::Stone, Structure::Gravel), 20),
 								(Tile::ground(Ground::Stone), 50),
-								(Tile::structure(Ground::Stone, Structure::Pebble), 5),
+								(Tile::structure(Ground::Stone, Structure::Pebble), 3),
 								(Tile::ground(Ground::Stone), 50),
 							]), 3),
 						]), 50),

@@ -4,7 +4,8 @@ use enum_assoc::Assoc;
 use crate::{
 	sprite::Sprite,
 	inventory::Item,
-	action::{Action, ActionType, Interactable, InteractionResult}
+	action::{Action, ActionType, Interactable, InteractionResult},
+	timestamp::Timestamp
 };
 
 
@@ -77,7 +78,19 @@ pub enum Structure {
 	#[assoc(interactions = vec![Interactable::take(&[Item::Pebble])])]
 	Pebble,
 	#[assoc(sprite = Sprite::Stone)]
-	#[assoc(interactions = vec![Interactable::take(&[Item::Stone]), Interactable::new(ActionType::Smash, 1, Structure::Gravel, &[Item::SharpStone])])]
+	#[assoc(interactions = vec![
+		Interactable::take(&[Item::Stone]),
+		Interactable::loot(
+			ActionType::Smash,
+			1,
+			Structure::Gravel,
+			&[
+				(&[Item::SharpStone], 1),
+				(&[Item::Pebble], 1),
+				(&[], 2)
+			]
+		)
+	])]
 	Stone,
 	#[assoc(sprite = Sprite::Gravel)]
 	Gravel,
@@ -110,10 +123,10 @@ impl Tile {
 		!self.ground.accessible() || self.structure.blocking()
 	}
 	
-	pub fn interact(&self, action: Action) -> Option<InteractionResult> {
+	pub fn interact(&self, action: Action, time: Timestamp) -> Option<InteractionResult> {
 		self.structure.interactions()
 			.into_iter()
-			.filter_map(|interactable| interactable.apply(action))
+			.filter_map(|interactable| interactable.apply(action, time))
 			.next()
 	}
 }

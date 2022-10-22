@@ -88,9 +88,9 @@ pub enum Item {
 	Reed,
 	Flower,
 	Pebble,
-	#[assoc(action=Action::new(Smash, 1))]
+	#[assoc(action=Action::new(Smash, 1, true))]
 	Stone,
-	#[assoc(action=Action::new(Cut, 1))]
+	#[assoc(action=Action::new(Cut, 1, false))]
 	SharpStone,
 }
 

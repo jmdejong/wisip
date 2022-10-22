@@ -128,7 +128,7 @@ impl World {
 					let pos = creature.pos + direction.map(|dir| dir.to_position()).unwrap_or_else(Pos::zero);
 					if let Some(action) = creature.inventory.selected_action() {
 						let tile = self.ground.cell(pos);
-						if let Some(interaction) = tile.interact(action) {
+						if let Some(interaction) = tile.interact(action, self.time) {
 							if interaction.use_item {
 								creature.inventory.remove_selected();
 							}
