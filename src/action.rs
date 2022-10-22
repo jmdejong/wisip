@@ -35,7 +35,7 @@ impl Action{
 #[derive(Debug, Clone)]
 pub struct Interactable {
 	remains: Structure,
-	loot: Vec<(Vec<Item>, u32)>,
+	items: Vec<Item>,
 	action_type: ActionType,
 	min_level: u32,
 	level_odds: Vec<f32>
@@ -47,18 +47,11 @@ impl Interactable {
 			action_type,
 			min_level,
 			level_odds: level_odds.to_vec(),
-			remains, loot: vec![(items.to_vec(), 1)]
-		}
-	}
-	pub fn loot(action_type: ActionType, min_level: u32, level_odds: &[f32], remains: Structure, loot: &[(&[Item], u32)]) -> Self {
-		Self {
-			action_type,
-			min_level,
-			level_odds: level_odds.to_vec(), 
 			remains,
-			loot: loot.iter().map(|(item, chance)| (item.to_vec(), *chance)).collect()
+			items: items.to_vec()
 		}
 	}
+	
 	pub fn take(items: &[Item]) -> Self {
 		Self::new(ActionType::Take, 0, &[], Structure::Air, items)
 	}
@@ -74,10 +67,7 @@ impl Interactable {
 			Some(InteractionResult {
 				remains: Some(self.remains),
 				items: if odds >= random::random_float(time.random_seed() ^ 84217) {
-					random::pick_weighted(
-						time.random_seed(),
-						&self.loot
-					).to_vec()
+					self.items.clone()
 				} else {
 					Vec::new()
 				},

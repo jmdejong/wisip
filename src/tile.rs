@@ -80,15 +80,12 @@ pub enum Structure {
 	#[assoc(sprite = Sprite::Stone)]
 	#[assoc(interactions = vec![
 		Interactable::take(&[Item::Stone]),
-		Interactable::loot(
+		Interactable::new(
 			ActionType::Smash,
 			1,
 			&[0.4, 1.0],
 			Structure::Gravel,
-			&[
-				(&[Item::SharpStone], 1),
-				(&[Item::Pebble], 1)
-			]
+			&[Item::SharpStone],
 		)
 	])]
 	Stone,
