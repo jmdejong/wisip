@@ -63,6 +63,8 @@ pub enum Structure {
 	OldTree,
 	#[assoc(sprite = Sprite::DenseGrass)]
 	DenseGrass,
+	#[assoc(sprite = Sprite::Heather)]
+	Heather,
 	#[assoc(sprite = Sprite::Shrub)]
 	Shrub,
 	#[assoc(sprite = Sprite::Bush)]

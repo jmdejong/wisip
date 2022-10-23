@@ -35,12 +35,12 @@
 		
 		"ground": [".", 3],
 		"stonefloor": [".", 8],
-		"gravel": [";", 8],
 		"dirt": [".", 3],
 		"grass1": [",", 2],
 		"grass2": ["'", 2],
 		"grass3": ["`", 10],
 		"densegrass": [";", 2],
+		"heather": [";", 5],
 		"shrub": ["%", 10],
 		"bush": ["%", 10, 2],
 		"reed": ["l", 2],

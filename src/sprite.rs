@@ -14,6 +14,7 @@ pub enum Sprite {
 	StoneFloor,
 	Gravel,
 	DenseGrass,
+	Heather,
 	Shrub,
 	Bush,
 	Sanctuary,

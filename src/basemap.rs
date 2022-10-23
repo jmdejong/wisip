@@ -6,7 +6,8 @@ use crate::{
 	tile::{Tile, Ground, Structure},
 	grid::Grid,
 	random,
-	randomtick
+	randomtick,
+	util
 };
 
 macro_rules! t {
@@ -42,6 +43,20 @@ enum Biome {
 	Hamlet,
 	Rocks,
 	Bog
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Copy)]
+struct BaseTile {
+	pos: Pos,
+	time: Timestamp,
+	bpos: BPos,
+	dpos: Pos
+}
+
+impl BaseTile {
+	fn rind(&self, seed: u32) {
+		
+	}
 }
 
 pub struct InfiniteMap {
@@ -261,10 +276,11 @@ impl InfiniteMap {
 					t!(Water)
 				} else {
 					*random::pick_weighted(rind, &[
-						(t!(Grass1), 40),
-						(t!(Grass2), 40),
-						(t!(Grass3), 40),
+						(t!(Grass1), 50),
+						(t!(Grass2), 50),
+						(t!(Grass3), 50),
 						(t!(Dirt, Bush), 1),
+						(t!(Dirt, Heather), 10),
 						(*random::pick(
 							rtime / 2,
 							&[
@@ -316,9 +332,8 @@ impl InfiniteMap {
 	}
 	
 	fn rock_height(&self, pos: Pos) -> f32 {
-	
 		let c = ((self.edge_distance(pos) - self.biome_size / 4) as f32 / 4.0).clamp(0.0, 1.0);
-		self.height.gen_f(pos) * c
+		util::ease_in_out_cubic(self.height.gen_f(pos)) * c
 	}
 }
 

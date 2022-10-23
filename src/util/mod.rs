@@ -5,9 +5,6 @@ pub use holder::{Holder, HolderId};
 
 use std::cmp::{min, max};
 
-pub fn clamp<T: Ord>(val: T, lower: T, upper: T) -> T{
-	max(min(val, upper), lower)
-}
 
 use std::fs;
 use std::path::Path;
@@ -29,6 +26,18 @@ pub fn write_file_safe<P: AsRef<Path>, C: AsRef<[u8]>>(path: P, contents: C) -> 
 	fs::write(&temppath, contents)?;
 	fs::rename(&temppath, path)?;
 	Ok(())
+}
+
+pub fn clamp<T: Ord>(val: T, lower: T, upper: T) -> T{
+	max(min(val, upper), lower)
+}
+
+pub fn ease_in_out_cubic(x: f32) -> f32 {
+	if x < 0.5 {
+		4.0 * x * x * x 
+	} else {
+		1.0 - (-2.0 * x + 2.0).powi(3) / 2.0
+	}
 }
 
 
