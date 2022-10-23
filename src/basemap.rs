@@ -96,11 +96,11 @@ impl InfiniteMap {
 			(rind % core_size as u32) as i32 - core_size / 2,
 			((rind / core_size as u32) % core_size as u32) as i32 - core_size / 2
 		);
-		bpos.0 * self.biome_size + core_offset
+		bpos.0 * self.biome_size + core_offset + Pos::new(bpos.0.y * self.biome_size / 2, 0)
 	}
 	
 	fn closest_biome_pos(&self, pos: Pos) -> BPos {
-		let bpos = BPos(pos / self.biome_size);
+		let bpos = BPos(Pos::new(pos.x - (pos.y / 2), pos.y)  / self.biome_size);
 		[(0, 0), (1, 0), (0, 1), (1, 1)].into_iter()
 			.map(|p| BPos(bpos.0 + p))
 			.min_by_key(|b| pos.distance_to(self.biome_core(*b)))
@@ -108,7 +108,7 @@ impl InfiniteMap {
 	}
 	
 	fn edge_distance(&self, pos: Pos) -> i32 {
-		let bpos = BPos(pos / self.biome_size);
+		let bpos = BPos(Pos::new(pos.x - (pos.y / 2), pos.y)  / self.biome_size);
 		let mut distances: Vec<(i32, Biome)> = [(0, 0), (1, 0), (0, 1), (1, 1)].into_iter()
 			.map(|p| {
 				let b = BPos(bpos.0 + p);
@@ -348,19 +348,12 @@ mod tests {
 	#[test]
 	fn core_is_in_own_biome() {
 		let map = InfiniteMap::new(678);
-		let p: Vec<BPos> = [
-			(3, 4),
-			(0, 0),
-			(-4, 2),
-			(-5, -3),
-			(1, 0),
-			(0, -9)
-		].into_iter()
-			.map(|(x, y)| BPos(Pos::new(x, y)))
-			.collect();
-		for bpos in p {
-			assert_eq!(bpos, map.closest_biome_pos(map.biome_core(bpos)));
-			assert_eq!((bpos, Pos::new(0, 0)), map.biome_pos(map.biome_core(bpos)));
+		for x in -15..15 {
+			for y in -15..15 {
+				let bpos = BPos(Pos::new(x, y));
+				assert_eq!(bpos, map.closest_biome_pos(map.biome_core(bpos)));
+				assert_eq!((bpos, Pos::new(0, 0)), map.biome_pos(map.biome_core(bpos)));
+			}
 		}
 	}
 	
