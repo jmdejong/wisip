@@ -7,7 +7,7 @@ use crate::{
 	grid::Grid,
 	random,
 	randomtick,
-	util
+	util::math
 };
 
 macro_rules! t {
@@ -45,32 +45,21 @@ enum Biome {
 	Bog
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Copy)]
-struct BaseTile {
-	pos: Pos,
-	time: Timestamp,
-	bpos: BPos,
-	dpos: Pos
-}
-
-impl BaseTile {
-	fn rind(&self, seed: u32) {
-		
-	}
-}
-
 pub struct InfiniteMap {
 	seed: u32,
 	height: random::Fractal,
-	biome_size: i32
+	biome_size: i32,
+	edge_size: i32,
 }
 
 impl InfiniteMap {
 	pub fn new(seed: u32) -> Self {
+		let biome_size = 48;
 		Self {
 			seed,
 			height: random::Fractal::new(seed + 344, vec![(3,0.12), (5,0.20), (7,0.26), (11,0.42)]),
-			biome_size: 48
+			biome_size: biome_size,
+			edge_size: biome_size / 4
 		}
 	}
 	
@@ -92,9 +81,9 @@ impl InfiniteMap {
 				&[
 					(Biome::Field, 10),
 					(Biome::Forest, 10),
-					(Biome::Bog, 5),
-					(Biome::Rocks, 5),
 					(Biome::Lake, 5),
+					(Biome::Rocks, 5),
+					(Biome::Bog, 5),
 				]
 			)
 		}
@@ -137,7 +126,7 @@ impl InfiniteMap {
 
 	fn biome_pos(&self, pos: Pos) -> (BPos, Pos) {
 		let rind = random::WhiteNoise::new(self.seed+343).gen(pos);
-		let edge_size = self.biome_size / 4;
+		let edge_size = self.edge_size;
 		let mut offset = Pos::new((rind % edge_size as u32) as i32 - edge_size / 2, ((rind / edge_size as u32) % edge_size as u32) as i32 - edge_size / 2);
 		if offset.size() > edge_size / 2 {
 			offset = offset % edge_size - Pos::new(edge_size/2, edge_size/2);
@@ -207,9 +196,9 @@ impl InfiniteMap {
 				])
 			}
 			Biome::Lake => {
-				let d_center = ((dpos.x * dpos.x + dpos.y * dpos.y) as f32).sqrt() / (self.biome_size as f32 * 0.5);
+				let c = math::ease_out_quad(((self.edge_distance(pos) - self.edge_size) as f32 / 6.0).clamp(0.0, 1.0));
 				let reed_density = random::Fractal::new(self.seed+276, vec![(7, 0.5), (11, 0.5)]).gen_f(pos) * 0.4 - 0.2;
-				let height = d_center - self.height.gen_f(pos);
+				let height = 0.4 - self.height.gen_f(pos) * c;
 				if height.abs() < reed_density {
 					t!(
 						if height > 0.0 { Ground::Dirt } else { Ground::Water },
@@ -332,8 +321,8 @@ impl InfiniteMap {
 	}
 	
 	fn rock_height(&self, pos: Pos) -> f32 {
-		let c = ((self.edge_distance(pos) - self.biome_size / 4) as f32 / 4.0).clamp(0.0, 1.0);
-		util::ease_in_out_cubic(self.height.gen_f(pos)) * c
+		let c = ((self.edge_distance(pos) - self.edge_size) as f32 / 4.0).clamp(0.0, 1.0);
+		math::ease_in_out_cubic(self.height.gen_f(pos)) * c
 	}
 }
 

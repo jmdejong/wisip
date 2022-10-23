@@ -2,8 +2,6 @@
 
 use std::ops::{Add, Sub, Neg, Mul, Div, Rem, AddAssign};
 use serde::{Serialize, Serializer, Deserialize, Deserializer};
-use crate::util::clamp;
-
 
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -52,14 +50,6 @@ impl Pos {
 	pub fn from_tuple(p: (i32, i32)) -> Pos {
 		let (x, y) = p;
 		Pos {x, y}
-	}
-	
-	#[allow(dead_code)]
-	pub fn clamp(self, smaller: Pos, larger: Pos) -> Pos {
-		Pos {
-			x: clamp(self.x, smaller.x, larger.x),
-			y: clamp(self.y, smaller.y, larger.y)
-		}
 	}
 	
 	pub fn abs(&self) -> Pos {
