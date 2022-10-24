@@ -9,6 +9,7 @@ pub fn ease_in_out_cubic(x: f32) -> f32 {
 	}
 }
 
+#[allow(dead_code)]
 pub fn ease_out_quad(x: f32) -> f32 {
 	1.0 - (1.0 - x).powi(2)
 }

@@ -56,6 +56,7 @@ impl Pos {
 		Pos{x: self.x.abs(), y: self.y.abs()}
 	}
 
+	#[allow(dead_code)]
 	pub fn max(&self) -> i32 {
 		if self.x > self.y {
 			self.x
@@ -63,6 +64,7 @@ impl Pos {
 			self.y
 		}
 	}
+	#[allow(dead_code)]
 	pub fn min(&self) -> i32 {
 		if self.x < self.y {
 			self.x

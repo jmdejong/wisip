@@ -99,26 +99,30 @@ impl InfiniteMap {
 		bpos.0 * self.biome_size + core_offset + Pos::new(bpos.0.y * self.biome_size / 2, 0)
 	}
 	
-	fn closest_biome_pos(&self, pos: Pos) -> BPos {
+	fn neighbour_biomes(&self, pos: Pos) -> impl Iterator<Item=(i32, BPos)> + '_ {
 		let bpos = BPos(Pos::new(pos.x - (pos.y / 2), pos.y)  / self.biome_size);
 		[(0, 0), (1, 0), (0, 1), (1, 1)].into_iter()
-			.map(|p| BPos(bpos.0 + p))
-			.min_by_key(|b| pos.distance_to(self.biome_core(*b)))
+			.map(move |p| {
+				let b = BPos(bpos.0 + p);
+				(pos.distance_to(self.biome_core(b)), b)
+			})
+	}
+	
+	fn closest_biome_pos(&self, pos: Pos) -> BPos {
+		self.neighbour_biomes(pos)
+			.min_by_key(|(distance, _)| *distance)
 			.unwrap()
+			.1
 	}
 	
 	fn edge_distance(&self, pos: Pos) -> i32 {
-		let bpos = BPos(Pos::new(pos.x - (pos.y / 2), pos.y)  / self.biome_size);
-		let mut distances: Vec<(i32, Biome)> = [(0, 0), (1, 0), (0, 1), (1, 1)].into_iter()
-			.map(|p| {
-				let b = BPos(bpos.0 + p);
-				(pos.distance_to(self.biome_core(b)), self.biome_at(b))
-			})
+		let mut distances: Vec<(i32, BPos)> = self.neighbour_biomes(pos)
 			.collect();
 		distances.sort_by_key(|(d, _)| *d);
-		let (dist, my_biome) = distances[0];
+		let (dist, bpos) = distances[0];
+		let my_biome= self.biome_at(bpos);
 		distances[1..].iter()
-			.filter(|(_, biome)| *biome != my_biome)
+			.filter(|(_, b)| self.biome_at(*b) != my_biome)
 			.next()
 			.map(|(d, _)| d - dist)
 			.unwrap_or(self.biome_size / 2)
@@ -196,9 +200,9 @@ impl InfiniteMap {
 				])
 			}
 			Biome::Lake => {
-				let c = math::ease_out_quad(((self.edge_distance(pos) - self.edge_size) as f32 / 6.0).clamp(0.0, 1.0));
+				let c = ((self.edge_distance(pos) - self.edge_size) as f32 / 12.0).clamp(0.0, 1.0);
 				let reed_density = random::Fractal::new(self.seed+276, vec![(7, 0.5), (11, 0.5)]).gen_f(pos) * 0.4 - 0.2;
-				let height = 0.4 - self.height.gen_f(pos) * c;
+				let height = 0.4 - self.height.gen_f(pos) + (1.0 - c) * 0.6;
 				if height.abs() < reed_density {
 					t!(
 						if height > 0.0 { Ground::Dirt } else { Ground::Water },
