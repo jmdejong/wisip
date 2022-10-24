@@ -17,6 +17,14 @@ macro_rules! t {
 	($g:expr, $s:expr) => {Tile::structure($g, $s)};
 }
 
+const BIOME_SIZE: i32 = 48;
+const EDGE_SIZE: i32 = BIOME_SIZE / 4;
+const SUPER_BIOME_BOX: i32 = 5;
+// const SUPER_BIOME_BOX_SIZE: i32 = 256;
+// const SUPER_BIOME_RADIUS: i32 = 32;
+// const SUPER_BIOME_EDGE_SIZE: i32 = 6;
+// const SUPER_BIOME_OFFSET: i32 = SUPER_BIOME_RADIUS + SUPER_BIOME_EDGE_SIZE;
+
 
 pub trait BaseMap {
 	fn cell(&mut self, pos: Pos, time: Timestamp) -> Tile;
@@ -39,33 +47,26 @@ enum Biome {
 	Forest,
 	Field,
 	Lake,
-	#[allow(dead_code)]
-	Hamlet,
 	Rocks,
 	Bog
 }
 
 pub struct InfiniteMap {
 	seed: u32,
-	height: random::Fractal,
-	biome_size: i32,
-	edge_size: i32,
+	height: random::Fractal
 }
 
 impl InfiniteMap {
 	pub fn new(seed: u32) -> Self {
-		let biome_size = 48;
 		Self {
 			seed,
 			height: random::Fractal::new(seed + 344, vec![(3,0.12), (5,0.20), (7,0.26), (11,0.42)]),
-			biome_size: biome_size,
-			edge_size: biome_size / 4
 		}
 	}
 	
 	
 	fn start_biome(&self) -> BPos {
-		BPos(Pos::new(0, 0))
+		self.nearest_super_biome(BPos(Pos::new(0, 0)))
 	}
 
 	fn start_pos(&self) -> Pos {
@@ -91,26 +92,58 @@ impl InfiniteMap {
 	
 	fn biome_core(&self, bpos: BPos) -> Pos {
 		let rind = random::WhiteNoise::new(self.seed+821).gen(bpos.0);
-		let core_size = self.biome_size / 2;
+		let core_size = BIOME_SIZE / 2;
 		let core_offset = Pos::new(
 			(rind % core_size as u32) as i32 - core_size / 2,
 			((rind / core_size as u32) % core_size as u32) as i32 - core_size / 2
 		);
-		bpos.0 * self.biome_size + core_offset + Pos::new(bpos.0.y * self.biome_size / 2, 0)
+		bpos.0 * BIOME_SIZE + core_offset + Pos::new(bpos.0.y * BIOME_SIZE / 2, 0)
 	}
 	
 	fn neighbour_biomes(&self, pos: Pos) -> impl Iterator<Item=(i32, BPos)> + '_ {
-		let bpos = BPos(Pos::new(pos.x - (pos.y / 2), pos.y)  / self.biome_size);
+		let bpos = BPos(Pos::new(pos.x - (pos.y / 2), pos.y)  / BIOME_SIZE);
 		[(0, 0), (1, 0), (0, 1), (1, 1)].into_iter()
 			.map(move |p| {
 				let b = BPos(bpos.0 + p);
-				(pos.distance_to(self.biome_core(b)), b)
+				let mut dist = pos.distance_to(self.biome_core(b));
+				if self.is_super_biome(b) {
+					dist = (dist - BIOME_SIZE / 2) * 2;
+				}
+				(dist, b)
 			})
+	}
+	
+	// fn super_biome_distance_sqr(&self, pos: Pos) -> i32 {
+	// 	let spos = pos / SUPER_BIOME_BOX_SIZE;
+	// 	let r = random::WhiteNoise::new(self.seed + 4294).gen(spos);
+	// 	let score = Area::square(
+	// 			spos * SUPER_BIOME_BOX_SIZE,
+	// 			SUPER_BIOME_BOX_SIZE
+	// 		).shrink_by(SUPER_BIOME_OFFSET)
+	// 		.random_pos(r);
+	// 	let dd = score - spos;
+	// 	dd.x * dd.x + dd.y * dd.y
+	// }
+	
+	fn nearest_super_biome(&self, bpos: BPos) -> BPos {
+		let sbox = bpos.0 / SUPER_BIOME_BOX;
+		let r = random::WhiteNoise::new(self.seed + 4299).gen(sbox);
+		BPos(
+			Area::square(sbox * SUPER_BIOME_BOX, SUPER_BIOME_BOX)
+				.shrink_by(1)
+				.random_pos(r)
+		)
+	}
+	
+	fn is_super_biome(&self, bpos: BPos) -> bool {
+		bpos == self.nearest_super_biome(bpos)
 	}
 	
 	fn closest_biome_pos(&self, pos: Pos) -> BPos {
 		self.neighbour_biomes(pos)
-			.min_by_key(|(distance, _)| *distance)
+			.min_by_key(|(d, _)| *d
+				// if is_super_biome(b) && d < BIOME_SIZE {0} else {*d}
+			)
 			.unwrap()
 			.1
 	}
@@ -125,12 +158,12 @@ impl InfiniteMap {
 			.filter(|(_, b)| self.biome_at(*b) != my_biome)
 			.next()
 			.map(|(d, _)| d - dist)
-			.unwrap_or(self.biome_size / 2)
+			.unwrap_or(BIOME_SIZE / 2)
 	}
 
 	fn biome_pos(&self, pos: Pos) -> (BPos, Pos) {
 		let rind = random::WhiteNoise::new(self.seed+343).gen(pos);
-		let edge_size = self.edge_size;
+		let edge_size = EDGE_SIZE;
 		let mut offset = Pos::new((rind % edge_size as u32) as i32 - edge_size / 2, ((rind / edge_size as u32) % edge_size as u32) as i32 - edge_size / 2);
 		if offset.size() > edge_size / 2 {
 			offset = offset % edge_size - Pos::new(edge_size/2, edge_size/2);
@@ -200,7 +233,7 @@ impl InfiniteMap {
 				])
 			}
 			Biome::Lake => {
-				let c = ((self.edge_distance(pos) - self.edge_size) as f32 / 12.0).clamp(0.0, 1.0);
+				let c = ((self.edge_distance(pos) - EDGE_SIZE) as f32 / 12.0).clamp(0.0, 1.0);
 				let reed_density = random::Fractal::new(self.seed+276, vec![(7, 0.5), (11, 0.5)]).gen_f(pos) * 0.4 - 0.2;
 				let height = 0.4 - self.height.gen_f(pos) + (1.0 - c) * 0.6;
 				if height.abs() < reed_density {
@@ -284,48 +317,11 @@ impl InfiniteMap {
 					])
 				}
 			}
-			Biome::Hamlet => {
-				let brind = random::WhiteNoise::new(self.seed+863).gen(bpos.0);
-				let village_width = self.biome_size * 2 / 3;
-				let twidth = village_width / 3;
-				let vpos = (dpos + Pos::new(village_width, village_width) / 2) * 3 / village_width;
-				if  dpos.x.abs() < village_width / 2 && dpos.y.abs() < village_width / 2 {
-					let ind: i32 = vpos.x + 3 * vpos.y;
-					let trind = random::randomize_u32(brind + ind as u32);
-					let tpos = dpos - (vpos - Pos::new(1,1)) * twidth;
-					let tmax = tpos.abs().max();
-					let di = (tpos.x > tpos.y) as u32 + 2 * (tpos.x.abs() < tpos.y.abs()) as u32;
-					let wd = twidth / 2 - 1 - ((trind as i32) >> (4 + di) & 1 );
-					if tmax == wd && trind & 3 == 1 {
-						if di == trind >> 2 & 3 && tpos.abs().min() == 0 {
-							t!(Dirt)
-						} else {
-							t!(Dirt, Wall)
-						}
-					} else if tmax < wd && trind & 3 == 1 {
-						t!(Dirt)
-					} else if tmax < wd && trind & 3 == 2 {
-						t!(Dirt, Crop)
-					} else {
-						*random::pick_weighted(rind, &[
-							(t!(Grass1), 10),
-							(t!(Grass2), 10),
-							(t!(Dirt), 20)
-						])
-					}
-				} else {
-					*random::pick_weighted(rind, &[
-						(t!(Grass1), 10),
-						(t!(Grass2), 10),
-						(t!(Grass3), 10)
-					])
-				}
-			}
 		}
 	}
 	
 	fn rock_height(&self, pos: Pos) -> f32 {
-		let c = ((self.edge_distance(pos) - self.edge_size) as f32 / 4.0).clamp(0.0, 1.0);
+		let c = ((self.edge_distance(pos) - EDGE_SIZE) as f32 / 4.0).clamp(0.0, 1.0);
 		math::ease_in_out_cubic(self.height.gen_f(pos)) * c
 	}
 }

@@ -223,6 +223,10 @@ impl Area {
 		Self {min, size}
 	}
 	
+	pub fn square(min: Pos, size: i32) -> Self {
+		Self {min, size: Pos::new(size, size)}
+	}
+	
 	pub fn centered(center: Pos, size: Pos) -> Self {
 		Self::new(center - size / 2, size)
 	}
@@ -245,6 +249,18 @@ impl Area {
 			x: self.min.x,
 			y: self.min.y
 		}
+	}
+	
+	pub fn random_pos(&self, rind: u32) -> Pos {
+		let seed = rind as i32;
+		let x = seed % self.size.x;
+		let y = (seed / self.size.x) % self.size.y;
+		Pos::new(x, y) + self.min
+	}
+	
+	pub fn shrink_by(&self, n: i32) -> Area {
+		let nn = Pos::new(n, n);
+		Area::new(self.min + nn, self.size - nn * 2)
 	}
 	
 	pub fn contains(&self, pos: Pos) -> bool {
