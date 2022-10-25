@@ -29,7 +29,9 @@ pub enum Ground {
 	#[assoc(accessible = false)]
 	Water,
 	#[assoc(sprite = Sprite::StoneFloor)]
-	Stone,
+	RockFloor,
+	#[assoc(sprite = Sprite::StoneFloor)]
+	StoneFloor,
 	#[assoc(accessible = false)]
 	Empty
 }

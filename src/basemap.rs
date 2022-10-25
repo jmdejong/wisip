@@ -20,6 +20,7 @@ macro_rules! t {
 const BIOME_SIZE: i32 = 48;
 const EDGE_SIZE: i32 = BIOME_SIZE / 4;
 const SUPER_BIOME_BOX: i32 = 5;
+const SUPER_BIOME_RADIUS: i32 = BIOME_SIZE / 2;
 // const SUPER_BIOME_BOX_SIZE: i32 = 256;
 // const SUPER_BIOME_RADIUS: i32 = 32;
 // const SUPER_BIOME_EDGE_SIZE: i32 = 6;
@@ -44,6 +45,7 @@ pub trait BaseMap {
 #[derive(Debug, Clone, PartialEq, Eq, Copy)]
 enum Biome {
 	Start,
+	Garden,
 	Forest,
 	Field,
 	Lake,
@@ -76,6 +78,8 @@ impl InfiniteMap {
 	fn biome_at(&self, b_pos: BPos) -> Biome {
 		if b_pos == self.start_biome() {
 			Biome::Start
+		} else if self.is_super_biome(b_pos)  && random::WhiteNoise::new(self.seed+333).gen(b_pos.0) % 10 < 10{
+			Biome::Garden
 		} else {
 			*random::pick_weighted(
 				random::WhiteNoise::new(self.seed+333).gen(b_pos.0),
@@ -107,23 +111,11 @@ impl InfiniteMap {
 				let b = BPos(bpos.0 + p);
 				let mut dist = pos.distance_to(self.biome_core(b));
 				if self.is_super_biome(b) {
-					dist = (dist - BIOME_SIZE / 2) * 2;
+					dist = (dist - SUPER_BIOME_RADIUS) * 2;
 				}
 				(dist, b)
 			})
 	}
-	
-	// fn super_biome_distance_sqr(&self, pos: Pos) -> i32 {
-	// 	let spos = pos / SUPER_BIOME_BOX_SIZE;
-	// 	let r = random::WhiteNoise::new(self.seed + 4294).gen(spos);
-	// 	let score = Area::square(
-	// 			spos * SUPER_BIOME_BOX_SIZE,
-	// 			SUPER_BIOME_BOX_SIZE
-	// 		).shrink_by(SUPER_BIOME_OFFSET)
-	// 		.random_pos(r);
-	// 	let dd = score - spos;
-	// 	dd.x * dd.x + dd.y * dd.y
-	// }
 	
 	fn nearest_super_biome(&self, bpos: BPos) -> BPos {
 		let sbox = bpos.0 / SUPER_BIOME_BOX;
@@ -185,12 +177,28 @@ impl InfiniteMap {
 				let dspawn = dpos.abs();
 				if dspawn.x <= 4 && dspawn.y <= 4 {
 					if dspawn.x + dspawn.y <= 5 {
-						t!(Sanctuary)
+						t!(StoneFloor)
 					} else {
 						t!(Dirt, Wall)
 					}
 				} else if dspawn.x <= 1 || dspawn.y <= 1 {
 					t!(Dirt)
+				} else {
+					*random::pick(rind, &[
+						t!(Grass1),
+						t!(Grass2),
+						t!(Grass3)
+					])
+				}
+			}
+			Biome::Garden => {
+				let dcore = dpos.abs().size();
+				if dcore == 0 {
+					t!(Sanctuary)
+				} else if dcore < SUPER_BIOME_RADIUS-1 {
+					t!(Grass1)
+				} else if dcore == SUPER_BIOME_RADIUS-1 {
+					t!(Sanctuary)
 				} else {
 					*random::pick(rind, &[
 						t!(Grass1),
@@ -265,7 +273,7 @@ impl InfiniteMap {
 						.into_iter()
 						.all(|d| self.rock_height(pos + d) > min_height);
 					t!(
-						Ground::Stone,
+						Ground::RockFloor,
 						if ismid {
 							Structure::RockMid
 						} else {
@@ -278,19 +286,19 @@ impl InfiniteMap {
 							(t!(Grass2), 10),
 							(t!(Grass3), 10),
 							(t!(Dirt), 1),
-							(t!(Stone), (height * 10.0) as u32),
+							(t!(RockFloor), (height * 10.0) as u32),
 						]), 50),
 						(*random::pick_weighted(rind, &[
 							(t!(Grass2), 1),
 							(t!(Grass3), 1),
 							(*random::pick_weighted(rtime, &[
-								(t!(Stone, Gravel), 20),
-								(t!(Stone), 50),
-								(t!(Stone, Stone), 5),
-								(t!(Stone, Gravel), 20),
-								(t!(Stone), 50),
-								(t!(Stone, Pebble), 3),
-								(t!(Stone), 50),
+								(t!(RockFloor, Gravel), 20),
+								(t!(RockFloor), 50),
+								(t!(RockFloor, Stone), 5),
+								(t!(RockFloor, Gravel), 20),
+								(t!(RockFloor), 50),
+								(t!(RockFloor, Pebble), 3),
+								(t!(RockFloor), 50),
 							]), 3),
 						]), 50),
 					])
