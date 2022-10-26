@@ -5,6 +5,7 @@
 		"tree": ["T", 0, 2],
 		"oldtree": ["T", 3, 0],
 		"wall": ["#", 7, 8],
+		"woodwall": ["#", 0, 3],
 		"rock": ["#", 8, 8],
 		"rockmid": [" ", 0, 0],
 		
@@ -14,7 +15,7 @@
 		"ground": [".", 3],
 		"stonefloor": [".", 8],
 		"dirt": [".", 3],
-		"leaves": ["-", 3],
+		"deadleaves": [",", 3],
 		"moss": ["-", 2],
 		"grass1": [",", 2],
 		"grass2": ["'", 2],
@@ -38,7 +39,8 @@
 		"water": ["~", 4, 4],
 		"floor": [".", 8],
 		
-		"player": ["@", 15],
+		"player": ["@", 7],
+		"sage": ["@", 8],
 		"portal": ["$", 5],
 		"stairdown": [">",7],
 		"stairup": ["<",7],

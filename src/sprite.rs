@@ -8,11 +8,13 @@ use serde::{Serialize};
 pub enum Sprite {
 	#[serde(rename="player")]
 	PlayerDefault,
+	Sage,
 	Dirt,
 	Grass1,
 	Grass2,
 	Grass3,
 	StoneFloor,
+	WoodFloor,
 	Gravel,
 	DenseGrass,
 	Heather,
@@ -21,6 +23,7 @@ pub enum Sprite {
 	Sanctuary,
 	Water,
 	Wall,
+	WoodWall,
 	Rock,
 	RockMid,
 	Sapling,
@@ -35,6 +38,6 @@ pub enum Sprite {
 	Rush,
 	Lilypad,
 	Moss,
-	DeadLeaf,
+	DeadLeaves,
 	PitcherPlant,
 }

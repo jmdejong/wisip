@@ -30,6 +30,14 @@ pub enum Ground {
 	#[assoc(sprite = Sprite::Grass3)]
 	Grass3,
 	
+	#[assoc(clear = Ground::Dirt)]
+	#[assoc(sprite = Sprite::Moss)]
+	Moss,
+	
+	#[assoc(clear = Ground::Dirt)]
+	#[assoc(sprite = Sprite::DeadLeaves)]
+	DeadLeaves,
+	
 	#[assoc(sprite = Sprite::Sanctuary)]
 	Sanctuary,
 	
@@ -43,6 +51,9 @@ pub enum Ground {
 	
 	#[assoc(sprite = Sprite::StoneFloor)]
 	StoneFloor,
+	
+	#[assoc(sprite = Sprite::WoodFloor)]
+	WoodFloor,
 	
 	#[assoc(accessible = false)]
 	Empty
@@ -61,6 +72,9 @@ pub enum Structure {
 	#[assoc(sprite = Sprite::Wall)]
 	#[assoc(blocking = true)]
 	Wall,
+	#[assoc(sprite = Sprite::WoodWall)]
+	#[assoc(blocking = true)]
+	WoodWall,
 	#[assoc(sprite = Sprite::Rock)]
 	#[assoc(blocking = true)]
 	Rock,
@@ -114,7 +128,9 @@ pub enum Structure {
 	Stone,
 	#[assoc(sprite = Sprite::Gravel)]
 	Gravel,
-	
+	#[assoc(sprite = Sprite::Sage)]
+	#[assoc(blocking = true)]
+	Sage,
 }
 
 impl Structure {

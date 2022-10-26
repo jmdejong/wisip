@@ -5,6 +5,8 @@
         "house": ["^^", 3, 1],
         "spikes": ["^^",7],
         "densegrass": [";;", 2],
-        "reed": ["ll", 2]
+        "reed": ["ll", 2],
+        "moss": ["..", 2],
+        "deadleaves": [",,", 11]
     }
 }

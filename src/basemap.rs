@@ -148,14 +148,24 @@ impl InfiniteMap {
 		match biome {
 			Biome::Start => {
 				let dspawn = dpos.abs();
-				if dspawn.x <= 4 && dspawn.y <= 4 {
+				if dspawn.x <= 4 && dspawn.y <= 4 && !(dspawn.y == 4 && dspawn.x == 4){
 					if dspawn.x + dspawn.y <= 5 {
 						t!(StoneFloor)
 					} else {
-						t!(Dirt, Wall)
+						t!(StoneFloor, Wall)
 					}
 				} else if dspawn.x <= 1 || dspawn.y <= 1 {
 					t!(Dirt)
+				} else if Area::centered(Pos::new(8, -8), Pos::new(5, 5)).contains(dpos) {
+					let dhouse = dpos - Pos::new(8, -8);
+					if dhouse == Pos::new(0, -1) {
+						t!(Dirt, Sage)
+					} else if dhouse == Pos::new(0, 2) || dhouse.abs().x < 2 && dhouse.abs().y < 2 {
+						t!(Dirt)
+					} else {
+						t!(Dirt, WoodWall)
+					}
+					
 				} else {
 					*random::pick(rind, &[
 						t!(Grass1),
@@ -187,8 +197,11 @@ impl InfiniteMap {
 						t!(Grass1),
 						t!(Grass2),
 						t!(Grass3),
-						t!(Dirt),
-						t!(Dirt),
+						t!(Moss),
+						t!(Moss),
+						t!(DeadLeaves),
+						t!(DeadLeaves),
+						t!(Dirt)
 					]), 100),
 					(t!(Grass1, Sapling), 3),
 					(t!(Dirt, YoungTree), 4),

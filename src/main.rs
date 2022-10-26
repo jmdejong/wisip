@@ -13,8 +13,8 @@ mod creature;
 mod errors;
 mod gameserver;
 mod grid;
-mod ground;
 mod inventory;
+mod map;
 mod persistence;
 mod player;
 mod pos;
@@ -39,7 +39,7 @@ use self::{
 	controls::Action,
 	world::World,
 	worldmessages::MessageCache,
-	persistence::{PersistentStorage, FileStorage},
+	persistence::{PersistentStorage, FileStorage, LoaderError},
 	config::{Config, WorldAction},
 };
 
@@ -49,7 +49,7 @@ fn main(){
 	
 	let config = Config::parse();
 	
-	println!("Server admin(s): {}", config.admins);
+	eprintln!("Server admin(s): {}", config.admins);
 	
 	let adresses = config.address
 		.unwrap_or_else(||
@@ -62,7 +62,7 @@ fn main(){
 			.map(|a| a.parse().unwrap())
 			.collect()
 		);
-	println!("adresses: {:?}", adresses);
+	eprintln!("adresses: {:?}", adresses);
 	let servers: Vec<ServerEnum> = 
 		adresses
 		.iter()
@@ -84,12 +84,12 @@ fn main(){
     let running = Arc::new(AtomicBool::new(true));
     let r = running.clone();
 	ctrlc::set_handler(move || {
-		println!("shutting down");
+		eprintln!("shutting down");
 		r.store(false, Ordering::SeqCst);
 	}).expect("can't set close handler");
 	
 	
-	println!("dezl started world {} on {}", config.name, Utc::now());
+	eprintln!("dezl started world {} on {}", config.name, Utc::now());
 	
 	while running.load(Ordering::SeqCst) {
 		let actions = gameserver.update();
@@ -97,22 +97,34 @@ fn main(){
 			match action {
 				Action::Input(player, control) => {
 					if let Err(err) = world.control_player(&player, control){
-						println!("error controlling player {:?}: {:?}", player, err);
+						eprintln!("error controlling player {:?}: {:?}", player, err);
 					}
 				}
 				Action::Join(player) => {
-					let playersave = persistence.load_player(&player).unwrap_or(world.default_player());
+					let playersave = match persistence.load_player(&player) {
+						Ok(save) => save,
+						Err(LoaderError::MissingResource(_)) => world.default_player(),
+						Err(err) => {
+							eprintln!("Error loading save for player {:?}: {:?}", player, err);
+							if let Err(senderr) = gameserver.send_player_error(&player, "loaderror", "could not load saved player data") {
+								eprintln!("Error: can not send error message to {:?}: {:?}", player, senderr);
+							}
+							continue
+						}
+					};
 					if let Err(err) = world.add_player(&player, playersave) {
-						println!("Error: can not add player {:?}: {:?}", player, err);
+						eprintln!("Error: can not add player {:?}: {:?}", player, err);
 						if let Err(senderr) = gameserver.send_player_error(&player, "worlderror", "invalid room or savefile") {
-							println!("Error: can not send error message to {:?}: {:?}", player, senderr);
+							eprintln!("Error: can not send error message to {:?}: {:?}", player, senderr);
 						}
 					}
 				}
 				Action::Leave(player) => {
-					persistence.save_player(&player, world.save_player(&player).unwrap()).unwrap();
-					if let Err(err) = world.remove_player(&player) {
-						println!("Error: can not remove player {:?}: {:?}", player, err);
+					if world.has_player(&player) {
+						persistence.save_player(&player, world.save_player(&player).unwrap()).unwrap();
+						if let Err(err) = world.remove_player(&player) {
+							eprintln!("Error: can not remove player {:?}: {:?}", player, err);
+						}
 					}
 					message_cache.remove(&player);
 				}
@@ -126,9 +138,9 @@ fn main(){
 			if message.is_empty(){
 				continue;
 			}
-// 			println!("m {}", message.to_json());
+// 			eprintln!("m {}", message.to_json());
 			if let Err(err) = gameserver.send(&player, message.to_json()) {
-				println!("Error: failed to send to {:?}: {:?}", player, err);
+				eprintln!("Error: failed to send to {:?}: {:?}", player, err);
 			}
 		}
 		if world.time.0 % 100 == 1 {
@@ -136,12 +148,12 @@ fn main(){
 		}
 		let elapsed_time = now.elapsed();
 		if elapsed_time >= Duration::from_millis(1) {
-			println!("Running update() took {} milliseconds.", elapsed_time.as_millis());
+			eprintln!("Running update() took {} milliseconds.", elapsed_time.as_millis());
 		}
 		thread::sleep(Duration::from_millis(config.step_duration));
 	}
 	save(&world, &persistence);
-	println!("shutting down on {}", Utc::now());
+	eprintln!("shutting down on {}", Utc::now());
 }
 
 fn save(world: &World, persistence: &impl PersistentStorage) {
@@ -149,7 +161,7 @@ fn save(world: &World, persistence: &impl PersistentStorage) {
 	for player in world.list_players() {
 		persistence.save_player(&player, world.save_player(&player).unwrap()).unwrap();
 	}
-	println!("saved world {} on step {}", world.name, world.time.0);
+	eprintln!("saved world {} on step {}", world.name, world.time.0);
 }
 
 

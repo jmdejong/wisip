@@ -2,8 +2,7 @@
 use std::collections::{HashMap, HashSet};
 use crate::{
 	pos::{Pos, Area},
-	tile,
-	tile::{Tile, Structure},
+	tile::{Tile, Structure, Ground},
 	basemap::{BaseMap, InfiniteMap},
 	timestamp::{Timestamp, Duration},
 	randomtick
@@ -11,14 +10,14 @@ use crate::{
 
 const SEED: u32 = 9876;
 
-pub struct Ground {
+pub struct Map {
 	basemap: InfiniteMap,
 	changes: HashMap<Pos, (Tile, Timestamp)>,
 	time: Timestamp,
 	modifications: HashMap<Pos, Tile>
 }
 
-impl Ground {
+impl Map {
 	
 	pub fn new(time: Timestamp) -> Self {
 		Self {
@@ -51,7 +50,7 @@ impl Ground {
 		self.set(pos, new_tile )
 	}
 	
-	pub fn set_ground(&mut self, pos: Pos, ground: tile::Ground) {
+	pub fn set_ground(&mut self, pos: Pos, ground: Ground) {
 		let new_tile = Tile::structure(ground, self.cell(pos).structure);
 		self.set(pos, new_tile )
 	}
@@ -90,11 +89,11 @@ impl Ground {
 		self.modifications.clone()
 	}
 	
-	pub fn save(&self) -> GroundSave {
+	pub fn save(&self) -> MapSave {
 		self.changes.clone().into_iter().collect()
 	}
 	
-	pub fn load(changes: GroundSave, time: Timestamp) -> Self {
+	pub fn load(changes: MapSave, time: Timestamp) -> Self {
 		Self {
 			basemap: InfiniteMap::new(SEED),
 			changes: changes.into_iter().collect(),
@@ -104,5 +103,5 @@ impl Ground {
 	}
 }
 
-pub type GroundSave = Vec<(Pos, (Tile, Timestamp))>;
+pub type MapSave = Vec<(Pos, (Tile, Timestamp))>;
 

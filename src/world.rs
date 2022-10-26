@@ -5,8 +5,6 @@ use serde::{Serialize, Deserialize};
 use crate::{
 	PlayerId,
 	controls::{Control, Selection},
-	Result,
-	aerr,
 	pos::{Pos, Area},
 	util::Holder,
 	sprite::Sprite,
@@ -14,13 +12,13 @@ use crate::{
 	timestamp::{Timestamp},
 	creature::{Creature, Mind, CreatureId, PlayerSave},
 	player::Player,
-	ground::{Ground, GroundSave}
+	map::{Map, MapSave}
 };
 
 pub struct World {
 	pub name: String,
 	pub time: Timestamp,
-	ground: Ground,
+	ground: Map,
 	players: HashMap<PlayerId, Player>,
 	creatures: Holder<CreatureId, Creature>,
 	drawing: Option<HashMap<Pos, Vec<Sprite>>>,
@@ -32,7 +30,7 @@ impl World {
 		let time = Timestamp(0);
 		Self {
 			name,
-			ground: Ground::new(time),
+			ground: Map::new(time),
 			players: HashMap::new(),
 			creatures: Holder::new(),
 			time,
@@ -44,9 +42,9 @@ impl World {
 		PlayerSave::new(self.ground.player_spawn())
 	}
 	
-	pub fn add_player(&mut self, playerid: &PlayerId, saved: PlayerSave) -> Result<()> {
+	pub fn add_player(&mut self, playerid: &PlayerId, saved: PlayerSave) -> Result<(), PlayerError> {
 		if self.players.contains_key(playerid){
-			return Err(aerr!("player {} already exists", playerid));
+			return Err(PlayerError::AlreadyExists(playerid.clone()));
 		}
 		let body = self.creatures.insert(Creature::load_player(playerid.clone(), saved));
 		self.players.insert(
@@ -56,22 +54,26 @@ impl World {
 		Ok(())
 	}
 	
-	pub fn remove_player(&mut self, playerid: &PlayerId) -> Result<()> {
-		let player = self.players.remove(playerid).ok_or_else(|| aerr!("player {} not found", playerid))?;
+	pub fn remove_player(&mut self, playerid: &PlayerId) -> Result<(), PlayerError> {
+		let player = self.players.remove(playerid).ok_or_else(|| PlayerError::NotFound(playerid.clone()))?;
 		self.creatures.remove(&player.body);
 		Ok(())
 	}
 	
-	pub fn save_player(&self, playerid: &PlayerId) -> Result<PlayerSave> {
-		let player = self.players.get(playerid).ok_or_else(|| aerr!("player {} not found", playerid))?;
-		let body = self.creatures.get(&player.body).ok_or_else(|| aerr!("player body for {} not found", playerid))?;
+	pub fn save_player(&self, playerid: &PlayerId) -> Result<PlayerSave, PlayerError> {
+		let player = self.players.get(playerid).ok_or_else(|| PlayerError::NotFound(playerid.clone()))?;
+		let body = self.creatures.get(&player.body).ok_or_else(|| PlayerError::BodyNotFound(playerid.clone()))?;
 		Ok(body.save())
 	}
 	
-	pub fn control_player(&mut self, playerid: &PlayerId, control: Control) -> Result<()> {
-		let player = self.players.get_mut(playerid).ok_or_else(|| aerr!("player not found"))?;
+	pub fn control_player(&mut self, playerid: &PlayerId, control: Control) -> Result<(), PlayerError> {
+		let player = self.players.get_mut(playerid).ok_or_else(|| PlayerError::NotFound(playerid.clone()))?;
 		player.plan = Some(control);
 		Ok(())
+	}
+	
+	pub fn has_player(&mut self, playerid: &PlayerId) -> bool {
+		self.players.contains_key(playerid)
 	}
 	
 	pub fn list_players(&self) -> Vec<PlayerId> {
@@ -241,7 +243,7 @@ impl World {
 	pub fn load(save: WorldSave) -> World {
 		World {
 			name: save.name,
-			ground: Ground::load(save.ground, save.time),
+			ground: Map::load(save.ground, save.time),
 			players: HashMap::new(),
 			creatures: Holder::new(),
 			time: save.time,
@@ -251,7 +253,7 @@ impl World {
 }
 
 
-fn draw_field(area: Area, tiles: &mut Ground, sprites: &HashMap<Pos, Vec<Sprite>>) -> FieldMessage {
+fn draw_field(area: Area, tiles: &mut Map, sprites: &HashMap<Pos, Vec<Sprite>>) -> FieldMessage {
 	println!("redrawing field");
 	let mut values :Vec<usize> = Vec::with_capacity((area.size().x * area.size().y) as usize);
 	let mut mapping: Vec<Vec<Sprite>> = Vec::new();
@@ -283,11 +285,18 @@ fn draw_field(area: Area, tiles: &mut Ground, sprites: &HashMap<Pos, Vec<Sprite>
 	}
 }
 
+#[derive(Debug)]
+pub enum PlayerError {
+	NotFound(PlayerId),
+	BodyNotFound(PlayerId),
+	AlreadyExists(PlayerId)
+}
+
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorldSave {
 	name: String,
 	time: Timestamp,
-	ground: GroundSave
+	ground: MapSave
 }
 

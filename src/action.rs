@@ -80,13 +80,13 @@ impl Interactable {
 			};
 			Some(InteractionResult {
 				remains: self.remains,
-				remains_ground: None,
 				items: if odds >= random::random_float(time.random_seed() ^ 84217) {
 					self.items.clone()
 				} else {
 					Vec::new()
 				},
-				use_item: action.use_item
+				use_item: action.use_item,
+				..Default::default()
 			})
 		} else {
 			None
@@ -100,7 +100,8 @@ pub struct InteractionResult {
 	pub remains: Option<Structure>,
 	pub remains_ground: Option<Ground>,
 	pub items: Vec<Item>,
-	pub use_item: bool
+	pub use_item: bool,
+	pub message: Option<String>
 }
 
 impl InteractionResult {
@@ -118,7 +119,8 @@ impl Default for InteractionResult {
 			remains: None,
 			remains_ground: None,
 			items: Vec::new(),
-			use_item: false
+			use_item: false,
+			message: None
 		}
 	}
 }
