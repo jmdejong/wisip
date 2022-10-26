@@ -4,6 +4,7 @@ use serde::{Serialize};
 
 #[derive(Debug, Clone, Copy, PartialEq, Hash, Eq, Serialize)]
 #[serde(rename_all="lowercase")]
+#[allow(dead_code)]
 pub enum Sprite {
 	#[serde(rename="player")]
 	PlayerDefault,
@@ -31,5 +32,9 @@ pub enum Sprite {
 	Crop,
 	Flower,
 	Reed,
+	Rush,
+	Lilypad,
+	Moss,
+	DeadLeaf,
 	PitcherPlant,
 }

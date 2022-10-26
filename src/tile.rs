@@ -12,26 +12,38 @@ use crate::{
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Assoc, Serialize, Deserialize)]
 #[func(fn sprite(&self) -> Option<Sprite>)]
 #[func(fn accessible(&self) -> bool {true})]
-#[func(fn interactions(&self) -> Vec<Interactable> {Vec::new()})]
+#[func(fn has_water(&self) -> bool {false})]
+#[func(fn clear(&self) -> Option<Ground>)]
 pub enum Ground {
 	#[assoc(sprite = Sprite::Dirt)]
 	Dirt,
+	
+	#[assoc(clear = Ground::Dirt)]
 	#[assoc(sprite = Sprite::Grass1)]
 	Grass1,
+	
+	#[assoc(clear = Ground::Dirt)]
 	#[assoc(sprite = Sprite::Grass2)]
 	Grass2,
+	
+	#[assoc(clear = Ground::Dirt)]
 	#[assoc(sprite = Sprite::Grass3)]
 	Grass3,
+	
 	#[assoc(sprite = Sprite::Sanctuary)]
 	Sanctuary,
+	
 	#[assoc(sprite = Sprite::Water)]
-	#[assoc(interactions = vec![Interactable::new(ActionType::Fill, 0, &[], None, &[Item::FilledPitcher])])]
+	#[assoc(has_water = true)]
 	#[assoc(accessible = false)]
 	Water,
+	
 	#[assoc(sprite = Sprite::StoneFloor)]
 	RockFloor,
+	
 	#[assoc(sprite = Sprite::StoneFloor)]
 	StoneFloor,
+	
 	#[assoc(accessible = false)]
 	Empty
 }
@@ -40,8 +52,11 @@ pub enum Ground {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Assoc, Serialize, Deserialize)]
 #[func(fn sprite(&self) -> Option<Sprite>)]
 #[func(fn blocking(&self) -> bool {false})]
+#[func(fn open(&self) -> bool {false})]
 #[func(fn interactions(&self) -> Vec<Interactable> {Vec::new()})]
+#[func(fn take(&self) -> Option<Item>)]
 pub enum Structure {
+	#[assoc(open = true)]
 	Air,
 	#[assoc(sprite = Sprite::Wall)]
 	#[assoc(blocking = true)]
@@ -67,28 +82,27 @@ pub enum Structure {
 	DenseGrass,
 	#[assoc(sprite = Sprite::Heather)]
 	Heather,
+	#[assoc(sprite = Sprite::Rush)]
+	Rush,
 	#[assoc(sprite = Sprite::Shrub)]
 	Shrub,
 	#[assoc(sprite = Sprite::Bush)]
 	Bush,
 	#[assoc(sprite = Sprite::Reed)]
-	#[assoc(interactions = vec![Interactable::new(ActionType::Cut, 1, &[0.5, 1.0], Some(Structure::Air), &[Item::Reed])])]
+	#[assoc(interactions = vec![Interactable::harvest(ActionType::Cut, 1, &[0.5, 1.0], &[Item::Reed])])]
 	Reed,
 	#[assoc(sprite = Sprite::PitcherPlant)]
-	#[assoc(interactions = vec![Interactable::new(ActionType::Cut, 1, &[0.5, 1.0], Some(Structure::Air), &[Item::Pitcher])])]
+	#[assoc(interactions = vec![Interactable::harvest(ActionType::Cut, 1, &[0.5, 1.0], &[Item::Pitcher])])]
 	PitcherPlant,
-	#[assoc(sprite = Sprite::Crop)]
-	#[assoc(interactions = vec![Interactable::take(&[])])]
-	Crop,
 	#[assoc(sprite = Sprite::Flower)]
-	#[assoc(interactions = vec![Interactable::take(&[Item::Flower])])]
+	#[assoc(take = Item::Flower)]
 	Flower,
 	#[assoc(sprite = Sprite::Pebble)]
-	#[assoc(interactions = vec![Interactable::take(&[Item::Pebble])])]
+	#[assoc(take = Item::Pebble)]
 	Pebble,
 	#[assoc(sprite = Sprite::Stone)]
+	#[assoc(take = Item::Stone)]
 	#[assoc(interactions = vec![
-		Interactable::take(&[Item::Stone]),
 		Interactable::new(
 			ActionType::Smash,
 			1,
@@ -101,6 +115,16 @@ pub enum Structure {
 	#[assoc(sprite = Sprite::Gravel)]
 	Gravel,
 	
+}
+
+impl Structure {
+	fn interactables(&self) -> Vec<Interactable> {
+		let mut interactions = self.interactions();
+		if let Some(item) = self.take() {
+			interactions.push(Interactable::take(&[item]));
+		}
+		interactions
+	}
 }
 
 
@@ -129,12 +153,29 @@ impl Tile {
 		!self.ground.accessible() || self.structure.blocking()
 	}
 	
-	pub fn interact(&self, action: Action, time: Timestamp) -> Option<InteractionResult> {
-		self.structure.interactions()
-			.into_iter()
-			.chain(self.ground.interactions().into_iter())
-			.filter_map(|interactable| interactable.apply(action, time))
-			.next()
+	pub fn interact(&self, item: Item, time: Timestamp) -> Option<InteractionResult> {
+		match item.action()? {
+			Action::Interact(interact) => 
+				self.structure.interactables()
+					.into_iter()
+					.filter_map(|interactable| interactable.apply(interact, time))
+					.next(),
+			Action::Fill(full) =>
+				if self.ground.has_water() {
+					Some(InteractionResult::exchange(full))
+				} else {
+					None 
+				}
+			Action::Clear =>
+				if self.structure.open() {
+					Some(InteractionResult {
+						remains_ground: Some(self.ground.clear()?),
+						..Default::default()
+					})
+				} else {
+					None
+				}
+		}
 	}
 }
 

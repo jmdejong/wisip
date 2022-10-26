@@ -51,11 +51,7 @@ impl Inventory {
 		self.selector = (self.selector + self.items.len()).rem_euclid(self.items.len() + 1);
 	}
 	
-	pub fn selected_action(&self) -> Option<Action> {
-		self.selected().action()
-	}
-	
-	fn selected(&self) -> Item {
+	pub fn selected(&self) -> Item {
 		if self.selector == 0 {
 			Item::Hands
 		} else {
@@ -92,10 +88,12 @@ pub enum Item {
 	Stone,
 	#[assoc(action=Action::new(Cut, 1, false))]
 	SharpStone,
-	#[assoc(action=Action::new(Fill, 1, true))]
+	#[assoc(action=Action::Fill(Item::FilledPitcher))]
 	Pitcher,
 	#[assoc(action=Action::new(Water, 1, false))]
 	FilledPitcher,
+	#[assoc(action=Action::Clear)]
+	Hoe,
 }
 
 
@@ -106,7 +104,6 @@ mod tests {
 	fn selects_take_action() {
 		let inv = Inventory::load(vec![]);
 		assert_eq!(inv.selected(), Item::Hands);
-		assert_eq!(inv.selected_action(), Some(Action::take()));
 	}
 	#[test]
 	fn hands_has_take_action() {

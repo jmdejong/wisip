@@ -2,6 +2,7 @@
 use std::collections::{HashMap, HashSet};
 use crate::{
 	pos::{Pos, Area},
+	tile,
 	tile::{Tile, Structure},
 	basemap::{BaseMap, InfiniteMap},
 	timestamp::{Timestamp, Duration},
@@ -47,6 +48,11 @@ impl Ground {
 	
 	pub fn set_structure(&mut self, pos: Pos, structure: Structure) {
 		let new_tile = Tile::structure(self.cell(pos).ground, structure) ;
+		self.set(pos, new_tile )
+	}
+	
+	pub fn set_ground(&mut self, pos: Pos, ground: tile::Ground) {
+		let new_tile = Tile::structure(ground, self.cell(pos).structure);
 		self.set(pos, new_tile )
 	}
 	

@@ -270,8 +270,8 @@ impl InfiniteMap {
 						(t!(Grass1), 50),
 						(t!(Grass2), 50),
 						(t!(Grass3), 50),
-						(t!(Dirt, Bush), 1),
-						(t!(Dirt, Heather), 10),
+						(t!(Dirt, Shrub), 1),
+						(t!(Dirt, Rush), 10),
 						(*random::pick(
 							rtime / 2,
 							&[
@@ -329,9 +329,9 @@ mod tests {
 	}
 	
 	#[test]
-	fn start_pos_has_sanctuary() {
+	fn start_pos_has_stone_floor() {
 		let map = InfiniteMap::new(9876);
-		assert_eq!(map.tile(map.start_pos(), Timestamp(1)), t!(Sanctuary));
+		assert_eq!(map.tile(map.start_pos(), Timestamp(1)), t!(StoneFloor));
 	}
 }
 
