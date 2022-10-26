@@ -101,7 +101,7 @@ pub struct InteractionResult {
 	pub remains_ground: Option<Ground>,
 	pub items: Vec<Item>,
 	pub use_item: bool,
-	pub message: Option<String>
+	pub message: Option<(String, String)>
 }
 
 impl InteractionResult {

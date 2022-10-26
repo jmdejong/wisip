@@ -77,21 +77,31 @@ pub type InventorySave = Vec<(Item, usize)>;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Assoc)]
 #[serde(rename_all="snake_case")]
 #[func(pub fn action(&self) -> Option<Action>)]
+#[func(pub fn description(&self) -> Option<&str>)]
 pub enum Item {
 	#[serde(rename="<take>")]
 	#[assoc(action=Action::take())]
+	#[assoc(description="Take items that are laying loose")]
 	Hands,
+	#[assoc(description="Some cut reeds")]
 	Reed,
+	#[assoc(description="A pretty flower")]
 	Flower,
+	#[assoc(description="A small stone")]
 	Pebble,
+	#[assoc(description="A mid-size stone. Stones can be broken by smashing two together")]
 	#[assoc(action=Action::new(Smash, 1, true))]
 	Stone,
+	#[assoc(description="A small stone with a sharp edge. It can be used to cut things, though it is very crude and may not always work")]
 	#[assoc(action=Action::new(Cut, 1, false))]
 	SharpStone,
+	#[assoc(description="A pitcher from the pitcher plant. It can function as a bucket")]
 	#[assoc(action=Action::Fill(Item::FilledPitcher))]
 	Pitcher,
+	#[assoc(description="A pitcher from the pitcher plant, filled with water")]
 	#[assoc(action=Action::new(Water, 1, false))]
 	FilledPitcher,
+	#[assoc(description="A simple hoe that can be used to clear the ground of small vegetation")]
 	#[assoc(action=Action::Clear)]
 	Hoe,
 }

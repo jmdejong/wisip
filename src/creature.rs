@@ -23,7 +23,8 @@ pub struct Creature {
 	pub walk_cooldown: Duration,
 	pub sprite: Sprite,
 	pub inventory: Inventory,
-	is_dead: bool
+	pub heard_sounds: Vec<(String, String)>,
+	is_dead: bool,
 }
 
 impl Creature {
@@ -42,6 +43,7 @@ impl Creature {
 			walk_cooldown: Duration(0),
 			sprite: Sprite::PlayerDefault,
 			inventory: Inventory::load(saved.inventory),
+			heard_sounds: Vec::new(),
 			is_dead: false
 		}
 	}

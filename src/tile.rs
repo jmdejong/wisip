@@ -64,6 +64,7 @@ pub enum Ground {
 #[func(fn sprite(&self) -> Option<Sprite>)]
 #[func(fn blocking(&self) -> bool {false})]
 #[func(fn open(&self) -> bool {false})]
+#[func(fn explain(&self) -> Option<&str>)]
 #[func(fn interactions(&self) -> Vec<Interactable> {Vec::new()})]
 #[func(fn take(&self) -> Option<Item>)]
 pub enum Structure {
@@ -130,6 +131,7 @@ pub enum Structure {
 	Gravel,
 	#[assoc(sprite = Sprite::Sage)]
 	#[assoc(blocking = true)]
+	#[assoc(explain = "Sage")]
 	Sage,
 }
 
@@ -170,6 +172,12 @@ impl Tile {
 	}
 	
 	pub fn interact(&self, item: Item, time: Timestamp) -> Option<InteractionResult> {
+		if let Some(name) = self.structure.explain() {
+			return Some(InteractionResult {
+				message: Some(("explain".to_string(), format!("{}: {}", name, item.description().unwrap_or("Unknown")))),
+				..Default::default()
+			});
+		}
 		match item.action()? {
 			Action::Interact(interact) => 
 				self.structure.interactables()

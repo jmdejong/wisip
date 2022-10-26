@@ -7,6 +7,6 @@
         "densegrass": [";;", 2],
         "reed": ["ll", 2],
         "moss": ["..", 2],
-        "deadleaves": [",,", 11]
+        "deadleaves": ["`,", 3]
     }
 }

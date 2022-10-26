@@ -100,6 +100,7 @@ impl World {
 				Some((*k, self.creature_plan(c)?))
 			).collect();
 		for (id, creature) in self.creatures.iter_mut() {
+			creature.heard_sounds = Vec::new();
 			if creature.cooldown.0 > 0 {
 				creature.cooldown.0 -= 1;
 				continue;
@@ -142,6 +143,9 @@ impl World {
 						}
 						if let Some(remains_ground) = interaction.remains_ground {
 							self.ground.set_ground(pos, remains_ground);
+						}
+						if let Some(message) = interaction.message {
+							creature.heard_sounds.push(message);
 						}
 					}
 				}
@@ -224,6 +228,9 @@ impl World {
 				}
 				wm.pos = Some(body.pos);
 				wm.inventory = Some(body.inventory.view());
+				if !body.heard_sounds.is_empty() {
+					wm.sounds = Some(body.heard_sounds.clone());
+				}
 			}
 			views.insert(playerid.clone(), wm);
 		}
