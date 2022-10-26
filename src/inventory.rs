@@ -6,7 +6,6 @@ use crate::{
 	action::{Action, ActionType::*}
 };
 
-
 #[derive(Debug, Clone)]
 pub struct Inventory {
 	items: Vec<(Item, usize)>,
@@ -25,10 +24,8 @@ impl Inventory {
 		self.items.push((item, 1));
 	}
 	
-	
-	
 	pub fn view(&self) -> InventoryMessage {
-		let mut view = vec![(Item::Hands, 1)];
+		let mut view = vec![(Item::Eyes, 1), (Item::Hands, 1)];
 		view.extend(&self.items);
 		(view, self.selector)
 	}
@@ -44,18 +41,24 @@ impl Inventory {
 		}
 	}
 	
+	fn count(&self) -> usize {
+		self.items.len() + 2
+	}
+	
 	pub fn select_next(&mut self) {
-		self.selector = (self.selector + 1 ).rem_euclid(self.items.len() + 1);
+		self.selector = (self.selector + 1).rem_euclid(self.count())
 	}
 	pub fn select_previous(&mut self) {
-		self.selector = (self.selector + self.items.len()).rem_euclid(self.items.len() + 1);
+		self.selector = (self.selector + self.count() - 1).rem_euclid(self.count());
 	}
 	
 	pub fn selected(&self) -> Item {
 		if self.selector == 0 {
+			Item::Eyes
+		} else if self.selector == 1 {
 			Item::Hands
 		} else {
-			self.items[self.selector - 1].0
+			self.items[self.selector - 2].0
 		}
 	}
 	
@@ -79,6 +82,10 @@ pub type InventorySave = Vec<(Item, usize)>;
 #[func(pub fn action(&self) -> Option<Action>)]
 #[func(pub fn description(&self) -> Option<&str>)]
 pub enum Item {
+	#[serde(rename="<inspect>")]
+	#[assoc(action=Action::Inspect)]
+	#[assoc(description="Inspect things around you")]
+	Eyes,
 	#[serde(rename="<take>")]
 	#[assoc(action=Action::take())]
 	#[assoc(description="Take items that are laying loose")]
@@ -111,13 +118,27 @@ pub enum Item {
 mod tests {
 	use super::*;
 	#[test]
-	fn selects_take_action() {
+	fn selects_eyes() {
 		let inv = Inventory::load(vec![]);
+		assert_eq!(inv.selected(), Item::Eyes);
+	}
+	#[test]
+	fn selects_take_hands() {
+		let mut inv = Inventory::load(vec![]);
+		inv.select_next();
 		assert_eq!(inv.selected(), Item::Hands);
+	}
+	#[test]
+	fn selects_stone() {
+		let mut inv = Inventory::load(vec![(Item::Stone, 1)]);
+		inv.select_next();
+		inv.select_next();
+		assert_eq!(inv.selected(), Item::Stone);
 	}
 	#[test]
 	fn hands_has_take_action() {
 		assert_eq!(Item::Hands.action(), Some(Action::take()));
 	}
+	
 }
 

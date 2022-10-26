@@ -26,7 +26,8 @@ pub struct Interact {
 pub enum Action {
 	Interact(Interact),
 	Fill(Item),
-	Clear
+	Clear,
+	Inspect
 }
 
 impl Action{
