@@ -223,10 +223,6 @@ impl Area {
 		Self {min, size}
 	}
 	
-	pub fn square(min: Pos, size: i32) -> Self {
-		Self {min, size: Pos::new(size, size)}
-	}
-	
 	pub fn centered(center: Pos, size: Pos) -> Self {
 		Self::new(center - size / 2, size)
 	}
@@ -258,6 +254,7 @@ impl Area {
 		Pos::new(x, y) + self.min
 	}
 	
+	#[allow(dead_code)]
 	pub fn shrink_by(&self, n: i32) -> Area {
 		let nn = Pos::new(n, n);
 		Area::new(self.min + nn, self.size - nn * 2)

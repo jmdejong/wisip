@@ -19,13 +19,6 @@ macro_rules! t {
 
 const BIOME_SIZE: i32 = 48;
 const EDGE_SIZE: i32 = BIOME_SIZE / 4;
-const SUPER_BIOME_BOX: i32 = 5;
-const SUPER_BIOME_RADIUS: i32 = BIOME_SIZE / 2;
-// const SUPER_BIOME_BOX_SIZE: i32 = 256;
-// const SUPER_BIOME_RADIUS: i32 = 32;
-// const SUPER_BIOME_EDGE_SIZE: i32 = 6;
-// const SUPER_BIOME_OFFSET: i32 = SUPER_BIOME_RADIUS + SUPER_BIOME_EDGE_SIZE;
-
 
 pub trait BaseMap {
 	fn cell(&mut self, pos: Pos, time: Timestamp) -> Tile;
@@ -45,7 +38,6 @@ pub trait BaseMap {
 #[derive(Debug, Clone, PartialEq, Eq, Copy)]
 enum Biome {
 	Start,
-	Garden,
 	Forest,
 	Field,
 	Lake,
@@ -68,7 +60,7 @@ impl InfiniteMap {
 	
 	
 	fn start_biome(&self) -> BPos {
-		self.nearest_super_biome(BPos(Pos::new(0, 0)))
+		BPos(Pos::new(0, 0))
 	}
 
 	fn start_pos(&self) -> Pos {
@@ -78,8 +70,6 @@ impl InfiniteMap {
 	fn biome_at(&self, b_pos: BPos) -> Biome {
 		if b_pos == self.start_biome() {
 			Biome::Start
-		} else if self.is_super_biome(b_pos)  && random::WhiteNoise::new(self.seed+333).gen(b_pos.0) % 10 < 10{
-			Biome::Garden
 		} else {
 			*random::pick_weighted(
 				random::WhiteNoise::new(self.seed+333).gen(b_pos.0),
@@ -97,10 +87,12 @@ impl InfiniteMap {
 	fn biome_core(&self, bpos: BPos) -> Pos {
 		let rind = random::WhiteNoise::new(self.seed+821).gen(bpos.0);
 		let core_size = BIOME_SIZE / 2;
-		let core_offset = Pos::new(
-			(rind % core_size as u32) as i32 - core_size / 2,
-			((rind / core_size as u32) % core_size as u32) as i32 - core_size / 2
-		);
+		let core_offset = if bpos == self.start_biome() {
+			Pos::new(0, 0)
+		} else {
+			Area::centered(Pos::new(0, 0), Pos::new(core_size, core_size))
+				.random_pos(rind)
+		};
 		bpos.0 * BIOME_SIZE + core_offset + Pos::new(bpos.0.y * BIOME_SIZE / 2, 0)
 	}
 	
@@ -109,33 +101,14 @@ impl InfiniteMap {
 		[(0, 0), (1, 0), (0, 1), (1, 1)].into_iter()
 			.map(move |p| {
 				let b = BPos(bpos.0 + p);
-				let mut dist = pos.distance_to(self.biome_core(b));
-				if self.is_super_biome(b) {
-					dist = (dist - SUPER_BIOME_RADIUS) * 2;
-				}
+				let dist = pos.distance_to(self.biome_core(b));
 				(dist, b)
 			})
 	}
 	
-	fn nearest_super_biome(&self, bpos: BPos) -> BPos {
-		let sbox = bpos.0 / SUPER_BIOME_BOX;
-		let r = random::WhiteNoise::new(self.seed + 4299).gen(sbox);
-		BPos(
-			Area::square(sbox * SUPER_BIOME_BOX, SUPER_BIOME_BOX)
-				.shrink_by(1)
-				.random_pos(r)
-		)
-	}
-	
-	fn is_super_biome(&self, bpos: BPos) -> bool {
-		bpos == self.nearest_super_biome(bpos)
-	}
-	
 	fn closest_biome_pos(&self, pos: Pos) -> BPos {
 		self.neighbour_biomes(pos)
-			.min_by_key(|(d, _)| *d
-				// if is_super_biome(b) && d < BIOME_SIZE {0} else {*d}
-			)
+			.min_by_key(|(d, _)| *d)
 			.unwrap()
 			.1
 	}
@@ -183,22 +156,6 @@ impl InfiniteMap {
 					}
 				} else if dspawn.x <= 1 || dspawn.y <= 1 {
 					t!(Dirt)
-				} else {
-					*random::pick(rind, &[
-						t!(Grass1),
-						t!(Grass2),
-						t!(Grass3)
-					])
-				}
-			}
-			Biome::Garden => {
-				let dcore = dpos.abs().size();
-				if dcore == 0 {
-					t!(Sanctuary)
-				} else if dcore < SUPER_BIOME_RADIUS-1 {
-					t!(Grass1)
-				} else if dcore == SUPER_BIOME_RADIUS-1 {
-					t!(Sanctuary)
 				} else {
 					*random::pick(rind, &[
 						t!(Grass1),
