@@ -64,7 +64,7 @@ impl InfiniteMap {
 	}
 
 	fn start_pos(&self) -> Pos {
-		self.biome_core(self.start_biome())
+		self.biome_core(self.start_biome()) + Pos::new(0, 2)
 	}
 
 	fn biome_at(&self, b_pos: BPos) -> Biome {
@@ -148,7 +148,9 @@ impl InfiniteMap {
 		match biome {
 			Biome::Start => {
 				let dspawn = dpos.abs();
-				if dspawn.x <= 4 && dspawn.y <= 4 && !(dspawn.y == 4 && dspawn.x == 4){
+				if dspawn.x == 0 && dspawn.y == 0 {
+					t!(StoneFloor, MarkerAltar)
+				} else if dspawn.x <= 4 && dspawn.y <= 4 && !(dspawn.y == 4 && dspawn.x == 4){
 					if dspawn.x + dspawn.y <= 5 {
 						t!(StoneFloor)
 					} else {
@@ -206,7 +208,7 @@ impl InfiniteMap {
 					(t!(Grass1, Sapling), 3),
 					(t!(Dirt, YoungTree), 4),
 					(t!(Dirt, Tree), 13),
-					(t!(Dirt, OldTree), 1),
+					(t!(Dirt, OldTreeTinder), 1),
 					(t!(Dirt), 1)
 				])
 			}

@@ -1,9 +1,12 @@
 
+use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 use enum_assoc::Assoc;
 use crate::{
 	worldmessages::InventoryMessage,
-	action::{Action, ActionType::*}
+	action::{Action, ActionType::*, CraftType},
+	tile::Structure,
+	hashmap,
 };
 
 #[derive(Debug, Clone)]
@@ -62,15 +65,31 @@ impl Inventory {
 		}
 	}
 	
-	pub fn remove_selected(&mut self) {
-		if self.selector == 0 {
-			return;
+	pub fn pay(&mut self, cost: HashMap<Item, usize>) -> bool {
+		if cost.is_empty() {
+			return true;
 		}
-		let idx = self.selector - 1;
-		self.items[idx].1 -= 1;
-		if self.items[idx].1 == 0 {
-			self.items.remove(idx);
-			self.selector -= 1;
+		let mut cost_ = cost.clone();
+		if let Some(items) = self.items.iter()
+				.map(|(item, n)| {
+					let amount = cost_.remove(item).unwrap_or(0);
+					if amount > *n {
+						None
+					} else {
+						Some((*item, *n - amount))
+					}
+				})
+				.collect::<Option<Vec<(Item, usize)>>>() {
+			if !cost_.is_empty() {
+				false
+			} else {
+				self.items = items;
+				self.items.retain(|(_, n)| *n > 0);
+				self.selector = self.selector.min(self.count() - 1);
+				true
+			}
+		} else {
+			false
 		}
 	}
 }
@@ -86,31 +105,48 @@ pub enum Item {
 	#[assoc(action=Action::Inspect)]
 	#[assoc(description="Inspect things around you")]
 	Eyes,
+	
 	#[serde(rename="<take>")]
 	#[assoc(action=Action::take())]
 	#[assoc(description="Take items that are laying loose")]
 	Hands,
+	
 	#[assoc(description="Some cut reeds")]
 	Reed,
+	
 	#[assoc(description="A pretty flower")]
+	#[assoc(action=Action::Craft(CraftType::Marker, Item::MarkerStone, hashmap![Item::Stone => 1, Item::Flower => 9]))]
 	Flower,
+	
 	#[assoc(description="A small stone")]
 	Pebble,
+	
 	#[assoc(description="A mid-size stone. Stones can be broken by smashing two together")]
 	#[assoc(action=Action::new(Smash, 1, true))]
 	Stone,
+	
 	#[assoc(description="A small stone with a sharp edge. It can be used to cut things, though it is very crude and may not always work")]
 	#[assoc(action=Action::new(Cut, 1, false))]
 	SharpStone,
+	
 	#[assoc(description="A pitcher from the pitcher plant. It can function as a bucket")]
-	#[assoc(action=Action::Fill(Item::FilledPitcher))]
+	#[assoc(action=Action::Craft(CraftType::Water, Item::FilledPitcher, HashMap::new()))]
 	Pitcher,
+	
 	#[assoc(description="A pitcher from the pitcher plant, filled with water")]
 	#[assoc(action=Action::new(Water, 1, false))]
 	FilledPitcher,
+	
 	#[assoc(description="A simple hoe that can be used to clear the ground of small vegetation")]
 	#[assoc(action=Action::Clear)]
 	Hoe,
+	
+	#[assoc(description="Tinder from the tinder fungus. Can be placed with some pebbles on a clear space to create a fireplace")]
+	#[assoc(action=Action::Build(Structure::Fireplace, hashmap![Item::Pebble => 10]))]
+	Tinder,
+	
+	#[assoc(description="A marker stone that can be placed to create a land claim")]
+	MarkerStone,
 }
 
 

@@ -40,6 +40,7 @@
 		"floor": [".", 8],
 		
 		"player": ["@", 7],
+		"altar": ["A", 7],
 		"sage": ["@", 8],
 		"portal": ["$", 5],
 		"stairdown": [">",7],

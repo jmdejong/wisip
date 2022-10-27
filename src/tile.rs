@@ -4,7 +4,7 @@ use enum_assoc::Assoc;
 use crate::{
 	sprite::Sprite,
 	inventory::Item,
-	action::{Action, ActionType, Interactable, InteractionResult},
+	action::{Action, ActionType, CraftType, Interactable, InteractionResult},
 	timestamp::Timestamp
 };
 
@@ -12,9 +12,9 @@ use crate::{
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Assoc, Serialize, Deserialize)]
 #[func(fn sprite(&self) -> Option<Sprite>)]
 #[func(fn accessible(&self) -> bool {true})]
-#[func(fn has_water(&self) -> bool {false})]
 #[func(fn clear(&self) -> Option<Ground>)]
 #[func(fn describe(&self) -> Option<&str>)]
+#[func(fn craft(&self) -> Option<CraftType>)]
 pub enum Ground {
 	#[assoc(sprite = Sprite::Dirt)]
 	#[assoc(describe = "Dirt")]
@@ -53,6 +53,7 @@ pub enum Ground {
 	#[assoc(has_water = true)]
 	#[assoc(accessible = false)]
 	#[assoc(describe = "Water")]
+	#[assoc(craft = CraftType::Water)]
 	Water,
 	
 	#[assoc(sprite = Sprite::StoneFloor)]
@@ -75,13 +76,14 @@ pub enum Ground {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Assoc, Serialize, Deserialize)]
 #[func(fn sprite(&self) -> Option<Sprite>)]
 #[func(fn blocking(&self) -> bool {false})]
-#[func(fn open(&self) -> bool {false})]
+#[func(fn is_open(&self) -> bool {false})]
 #[func(fn explain(&self) -> Option<&str>)]
 #[func(fn interactions(&self) -> Vec<Interactable> {Vec::new()})]
 #[func(fn take(&self) -> Option<Item>)]
 #[func(fn describe(&self) -> Option<&str>)]
+#[func(fn craft(&self) -> Option<CraftType>)]
 pub enum Structure {
-	#[assoc(open = true)]
+	#[assoc(is_open = true)]
 	Air,
 	
 	#[assoc(sprite = Sprite::Wall)]
@@ -122,6 +124,12 @@ pub enum Structure {
 	#[assoc(blocking = true)]
 	#[assoc(describe = "Dead tree")]
 	OldTree,
+	
+	#[assoc(sprite = Sprite::OldTree)]
+	#[assoc(blocking = true)]
+	#[assoc(interactions = vec![Interactable::new(ActionType::Cut, 1, &[0.5, 1.0], Some(Structure::OldTree), &[Item::Tinder])])]
+	#[assoc(describe = "Dead tree with tinder fungus on it")]
+	OldTreeTinder,
 	
 	#[assoc(sprite = Sprite::DenseGrass)]
 	#[assoc(describe = "Dense grass")]
@@ -186,6 +194,17 @@ pub enum Structure {
 	#[assoc(explain = "Sage")]
 	#[assoc(describe = "Sage. An old wise person with grey hair. This sage can tell you about items in your inventory")]
 	Sage,
+	
+	#[assoc(sprite = Sprite::Fireplace)]
+	#[assoc(blocking = true)]
+	#[assoc(describe = "Fireplace. Safe place to have a fire")]
+	Fireplace,
+	
+	#[assoc(sprite = Sprite::Altar)]
+	#[assoc(blocking = true)]
+	#[assoc(describe = "Marker Altar. Bring 10 flowers and a stone to create a marker stone")]
+	#[assoc(craft = CraftType::Marker)]
+	MarkerAltar,
 }
 
 impl Structure {
@@ -234,19 +253,18 @@ impl Tile {
 			}
 		}
 		match item.action()? {
-			Action::Interact(interact) => 
-				self.structure.interactables()
+			Action::Interact(interact) => {
+				let mut result = self.structure.interactables()
 					.into_iter()
 					.filter_map(|interactable| interactable.apply(interact, time))
-					.next(),
-			Action::Fill(full) =>
-				if self.ground.has_water() {
-					Some(InteractionResult::exchange(full))
-				} else {
-					None 
+					.next()?;
+				if interact.use_item {
+					result.cost.insert(item, 1);
 				}
+				Some(result)
+			}
 			Action::Clear =>
-				if self.structure.open() {
+				if self.structure.is_open() {
 					Some(InteractionResult {
 						remains_ground: Some(self.ground.clear()?),
 						..Default::default()
@@ -262,6 +280,29 @@ impl Tile {
 					)),
 					..Default::default()
 				})
+			},
+			Action::BuildClaim(_) => {
+				None
+			},
+			Action::Build(structure, mut cost) => {
+				cost.entry(item).and_modify(|n| {*n += 1;}).or_insert(1);
+				Some(InteractionResult {
+					remains: Some(structure),
+					cost: cost,
+					..Default::default()
+				})
+			}
+			Action::Craft(typ, product, mut cost) => {
+				cost.entry(item).and_modify(|n| {*n += 1;}).or_insert(1);
+				if Some(typ) == self.structure.craft() || Some(typ) == self.ground.craft() {
+					Some(InteractionResult {
+						items: vec![product],
+						cost: cost,
+						..Default::default()
+					})
+				} else {
+					None
+				}
 			}
 		}
 	}

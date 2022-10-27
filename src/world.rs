@@ -132,20 +132,19 @@ impl World {
 					let tile = self.ground.cell(pos);
 					let item = creature.inventory.selected();
 					if let Some(interaction) = tile.interact(item, self.time) {
-						if interaction.use_item {
-							creature.inventory.remove_selected();
-						}
-						for item in interaction.items {
-							creature.inventory.add(item);
-						}
-						if let Some(remains) = interaction.remains {
-							self.ground.set_structure(pos, remains);
-						}
-						if let Some(remains_ground) = interaction.remains_ground {
-							self.ground.set_ground(pos, remains_ground);
-						}
-						if let Some(message) = interaction.message {
-							creature.heard_sounds.push(message);
+						if creature.inventory.pay(interaction.cost) {
+							for item in interaction.items {
+								creature.inventory.add(item);
+							}
+							if let Some(remains) = interaction.remains {
+								self.ground.set_structure(pos, remains);
+							}
+							if let Some(remains_ground) = interaction.remains_ground {
+								self.ground.set_ground(pos, remains_ground);
+							}
+							if let Some(message) = interaction.message {
+								creature.heard_sounds.push(message);
+							}
 						}
 					}
 				}

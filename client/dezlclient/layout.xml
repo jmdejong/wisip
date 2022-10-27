@@ -4,7 +4,7 @@
 <!-- 		<textbox id="healthtitle" height="1" format="true">Health ({filled}/{total})</textbox> -->
 <!-- 		<bar id="health" height="1" full-char="#" empty-char="_" full-style="fg:2; bg:2" empty-style="fg:1; bg: 1;"></bar> -->
 		<vbox height="2"></vbox>
-		<vbox height="10" key="inventory">
+		<vbox height="20" key="inventory">
 			<textbox height="1">Inventory:</textbox>
 			<listing id="inventory">
 				Flowers

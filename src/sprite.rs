@@ -40,4 +40,6 @@ pub enum Sprite {
 	Moss,
 	DeadLeaves,
 	PitcherPlant,
+	Fireplace,
+	Altar,
 }

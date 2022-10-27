@@ -1,4 +1,5 @@
 
+use std::collections::HashMap;
 use crate::{
 	inventory::Item,
 	tile::{Structure, Ground},
@@ -15,19 +16,28 @@ pub enum ActionType {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum CraftType {
+	Marker,
+	Water
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Interact {
 	typ: ActionType,
 	level: u32,
-	use_item: bool
+	pub use_item: bool
 }
 
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum Action {
 	Interact(Interact),
-	Fill(Item),
 	Clear,
-	Inspect
+	Inspect,
+	BuildClaim(Structure),
+	Craft(CraftType, Item, HashMap<Item, usize>),
+	Build(Structure, HashMap<Item, usize>),
 }
 
 impl Action{
@@ -86,7 +96,6 @@ impl Interactable {
 				} else {
 					Vec::new()
 				},
-				use_item: action.use_item,
 				..Default::default()
 			})
 		} else {
@@ -96,32 +105,11 @@ impl Interactable {
 }
 
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct InteractionResult {
 	pub remains: Option<Structure>,
 	pub remains_ground: Option<Ground>,
 	pub items: Vec<Item>,
-	pub use_item: bool,
+	pub cost: HashMap<Item, usize>,
 	pub message: Option<(String, String)>
-}
-
-impl InteractionResult {
-	pub fn exchange(item: Item) -> Self {
-		Self {
-			items: vec![item],
-			..Default::default()
-		}
-	}
-}
-
-impl Default for InteractionResult {
-	fn default() -> Self {
-		Self {
-			remains: None,
-			remains_ground: None,
-			items: Vec::new(),
-			use_item: false,
-			message: None
-		}
-	}
 }
