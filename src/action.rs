@@ -8,7 +8,7 @@ use crate::{
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum ActionType {
+pub enum InteractionType {
 	Take,
 	Smash,
 	Cut,
@@ -23,7 +23,7 @@ pub enum CraftType {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Interact {
-	typ: ActionType,
+	typ: InteractionType,
 	level: u32,
 	pub use_item: bool
 }
@@ -42,10 +42,10 @@ pub enum Action {
 
 impl Action{
 	pub fn take() -> Self {
-		Self::new(ActionType::Take, 0, false)
+		Self::new(InteractionType::Take, 0, false)
 	}
 	
-	pub fn new(typ: ActionType, level: u32, use_item: bool) -> Self {
+	pub fn new(typ: InteractionType, level: u32, use_item: bool) -> Self {
 		Self::Interact(Interact { typ, level, use_item } )
 	}
 }
@@ -55,13 +55,13 @@ impl Action{
 pub struct Interactable {
 	remains: Option<Structure>,
 	items: Vec<Item>,
-	action_type: ActionType,
+	action_type: InteractionType,
 	min_level: u32,
 	level_odds: Vec<f32>
 }
 
 impl Interactable {
-	pub fn new(action_type: ActionType, min_level: u32, level_odds: &[f32], remains: Option<Structure>, items: &[Item]) -> Self {
+	pub fn new(action_type: InteractionType, min_level: u32, level_odds: &[f32], remains: Option<Structure>, items: &[Item]) -> Self {
 		Self {
 			action_type,
 			min_level,
@@ -71,12 +71,12 @@ impl Interactable {
 		}
 	}
 	
-	pub fn harvest(action_type: ActionType, min_level: u32, level_odds: &[f32], items: &[Item]) -> Self {
+	pub fn harvest(action_type: InteractionType, min_level: u32, level_odds: &[f32], items: &[Item]) -> Self {
 		Self::new(action_type, min_level, level_odds, Some(Structure::Air), items)
 	}
 	
 	pub fn take(items: &[Item]) -> Self {
-		Self::new(ActionType::Take, 0, &[], Some(Structure::Air), items)
+		Self::new(InteractionType::Take, 0, &[], Some(Structure::Air), items)
 	}
 	
 	pub fn apply(&self, action: Interact, time: Timestamp) -> Option<InteractionResult> {

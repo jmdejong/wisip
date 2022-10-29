@@ -4,7 +4,7 @@ use enum_assoc::Assoc;
 use crate::{
 	sprite::Sprite,
 	inventory::Item,
-	action::{Action, ActionType, CraftType, Interactable, InteractionResult},
+	action::{Action, InteractionType, CraftType, Interactable, InteractionResult},
 	timestamp::Timestamp
 };
 
@@ -127,7 +127,7 @@ pub enum Structure {
 	
 	#[assoc(sprite = Sprite::OldTree)]
 	#[assoc(blocking = true)]
-	#[assoc(interactions = vec![Interactable::new(ActionType::Cut, 1, &[0.5, 1.0], Some(Structure::OldTree), &[Item::Tinder])])]
+	#[assoc(interactions = vec![Interactable::new(InteractionType::Cut, 1, &[0.5, 1.0], Some(Structure::OldTree), &[Item::Tinder])])]
 	#[assoc(describe = "Dead tree with tinder fungus on it")]
 	OldTreeTinder,
 	
@@ -152,12 +152,12 @@ pub enum Structure {
 	Bush,
 	
 	#[assoc(sprite = Sprite::Reed)]
-	#[assoc(interactions = vec![Interactable::harvest(ActionType::Cut, 1, &[0.5, 1.0], &[Item::Reed])])]
+	#[assoc(interactions = vec![Interactable::harvest(InteractionType::Cut, 1, &[0.5, 1.0], &[Item::Reed])])]
 	#[assoc(describe = "Reeds. Can be cut")]
 	Reed,
 	
 	#[assoc(sprite = Sprite::PitcherPlant)]
-	#[assoc(interactions = vec![Interactable::harvest(ActionType::Cut, 1, &[0.5, 1.0], &[Item::Pitcher])])]
+	#[assoc(interactions = vec![Interactable::harvest(InteractionType::Cut, 1, &[0.5, 1.0], &[Item::Pitcher])])]
 	#[assoc(describe = "Pitcher plant. Can be cut")]
 	PitcherPlant,
 	
@@ -175,7 +175,7 @@ pub enum Structure {
 	#[assoc(take = Item::Stone)]
 	#[assoc(interactions = vec![
 		Interactable::new(
-			ActionType::Smash,
+			InteractionType::Smash,
 			1,
 			&[0.4, 1.0],
 			Some(Structure::Gravel),

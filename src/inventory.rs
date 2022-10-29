@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 use enum_assoc::Assoc;
 use crate::{
 	worldmessages::InventoryMessage,
-	action::{Action, ActionType::*, CraftType},
+	action::{Action, InteractionType::*, CraftType},
 	tile::Structure,
 	hashmap,
 };
