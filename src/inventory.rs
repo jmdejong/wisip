@@ -185,14 +185,13 @@ mod tests {
 	#[test]
 	fn selects_take_hands() {
 		let mut inv = Inventory::load(vec![]);
-		inv.select_next();
+		inv.select(Selector::Next);
 		assert_eq!(inv.selected(), Item::Hands);
 	}
 	#[test]
 	fn selects_stone() {
 		let mut inv = Inventory::load(vec![(Item::Stone, 1)]);
-		inv.select_next();
-		inv.select_next();
+		inv.select(Selector::Idx(2));
 		assert_eq!(inv.selected(), Item::Stone);
 	}
 	#[test]

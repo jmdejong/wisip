@@ -107,8 +107,12 @@ impl World {
 				creature.cooldown.0 -= 1;
 				continue;
 			}
-			match plans.get(id) {
-				Some(Control::Move(direction)) => {
+			let Some(plan) = plans.get(id) 
+				else {
+					continue 
+				};
+			match plan {
+				Control::Move(direction) => {
 					creature.cooldown = creature.walk_cooldown;
 					let newpos = creature.pos + *direction;
 					let tile = self.ground.cell(newpos);
@@ -120,78 +124,79 @@ impl World {
 						creature.pos = newpos;
 					}
 				}
-				Some(Control::Suicide) => {
+				Control::Suicide => {
 					creature.kill();
 				}
-				Some(Control::Select(selector)) => {
+				Control::Select(selector) => {
 					creature.inventory.select(*selector);
 				}
-				Some(Control::MoveSelected(selector)) => {
+				Control::MoveSelected(selector) => {
 					creature.inventory.move_selected(*selector);
 				}
-				Some(Control::Interact(direction)) => {
+				Control::Interact(direction) => {
 					let pos = creature.pos + direction.map(|dir| dir.to_position()).unwrap_or_else(Pos::zero);
 					let tile = self.ground.cell(pos);
 					let item = creature.inventory.selected();
-					if let Some(interaction) = tile.interact(item, self.time) {
-						if interaction.claim {
-							if let Some(player_id) = creature.player() {
-								if self.claims.contains_key(&player_id) {
-									creature.heard_sounds.push((BuildError, "Claim already present".to_string()));
-									continue;
-								}
-								if self.claims.values().any(|p| p.distance_to(pos) < 64) {
-									creature.heard_sounds.push((BuildError, "Too close to existing claim".to_string()));
-									continue;
-								}
-								if pos.distance_to(self.ground.player_spawn()) < 128 {
-									creature.heard_sounds.push((BuildError, "Too close to spawn".to_string()));
-									continue;
-								}
-								self.claims.insert(player_id, pos);
-							} else {
-								creature.heard_sounds.push((
-									BuildError,
-									"Only players can claim land and you're not a player. If you read this something has probably gone wrong.".to_string()
-								));
+					let Some(interaction) = tile.interact(item, self.time) 
+						else {
+							continue
+						};
+					if interaction.claim {
+						if let Some(player_id) = creature.player() {
+							if self.claims.contains_key(&player_id) {
+								creature.heard_sounds.push((BuildError, "Only one claim per player allowed".to_string()));
 								continue;
 							}
-						}
-						if interaction.build {
-							if let Some(claim_pos) = creature.player().as_ref().and_then(|player_id| self.claims.get(player_id)) {
-								if pos.distance_to(*claim_pos) > 24 {
-									creature.heard_sounds.push((
-										BuildError,
-										"Too far from land claim to build".to_string()
-									));
-									continue;
-								}
-							} else {
-								creature.heard_sounds.push((
-									BuildError,
-									"Need land claim to build".to_string()
-								));
+							if self.claims.values().any(|p| p.distance_to(pos) < 64) {
+								creature.heard_sounds.push((BuildError, "Too close to existing claim".to_string()));
 								continue;
 							}
-						}
-						if !creature.inventory.pay(interaction.cost) {
+							if pos.distance_to(self.ground.player_spawn()) < 128 {
+								creature.heard_sounds.push((BuildError, "Too close to spawn".to_string()));
+								continue;
+							}
+							self.claims.insert(player_id, pos);
+						} else {
+							creature.heard_sounds.push((
+								BuildError,
+								"Only players can claim land and you're not a player. If you read this something has probably gone wrong.".to_string()
+							));
 							continue;
 						}
-						for item in interaction.items {
-							creature.inventory.add(item);
-						}
-						if let Some(remains) = interaction.remains {
-							self.ground.set_structure(pos, remains);
-						}
-						if let Some(remains_ground) = interaction.remains_ground {
-							self.ground.set_ground(pos, remains_ground);
-						}
-						if let Some(message) = interaction.message {
-							creature.heard_sounds.push(message);
+					}
+					if interaction.build {
+						if let Some(claim_pos) = creature.player().as_ref().and_then(|player_id| self.claims.get(player_id)) {
+							if pos.distance_to(*claim_pos) > 24 {
+								creature.heard_sounds.push((
+									BuildError,
+									"Too far from land claim to build".to_string()
+								));
+								continue;
+							}
+						} else {
+							creature.heard_sounds.push((
+								BuildError,
+								"Need land claim to build".to_string()
+							));
+							continue;
 						}
 					}
+					if !creature.inventory.pay(interaction.cost) {
+						continue;
+					}
+					for item in interaction.items {
+						creature.inventory.add(item);
+					}
+					if let Some(remains) = interaction.remains {
+						self.ground.set_structure(pos, remains);
+					}
+					if let Some(remains_ground) = interaction.remains_ground {
+						self.ground.set_ground(pos, remains_ground);
+					}
+					if let Some(message) = interaction.message {
+						creature.heard_sounds.push(message);
+					}
 				}
-				None => { }
 			}
 		}
 		for player in self.players.values_mut() {
