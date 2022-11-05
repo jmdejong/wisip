@@ -113,17 +113,15 @@ class Display:
 	def showHelp(self):
 		self.layout.id_elements.get("msg").style.height = Value(.8, Relativity.VERY_RELATIVE)
 		self.layout.resize()
-		self.screen.clear()
-		self.layout.update()
+		self.update(force=True)
 		
 	def hideHelp(self):
 		self.layout.id_elements.get("msg").style.height = Value(3, Relativity.ABSOLUTE)
 		self.layout.resize()
-		self.screen.clear()
-		self.layout.update(force=True)
+		self.update(force=True)
 	
-	def update(self):
-		self.layout.update()
+	def update(self, force=False):
+		self.layout.update(force)
 		self.screen.update()
 	
 	def update_size(self):
