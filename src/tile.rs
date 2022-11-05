@@ -18,10 +18,12 @@ use crate::{
 #[func(fn describe(&self) -> Option<&str>)]
 #[func(fn craft(&self) -> Option<CraftType>)]
 #[func(fn buildable(&self) -> bool {false})]
+#[func(pub fn restoring(&self) -> bool {false})]
 pub enum Ground {
 	#[assoc(sprite = Sprite::Dirt)]
 	#[assoc(describe = "Dirt")]
 	#[assoc(buildable = true)]
+	#[assoc(restoring = true)]
 	Dirt,
 	
 	#[assoc(clear = Ground::Dirt)]
@@ -87,7 +89,7 @@ pub enum Ground {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Assoc, Serialize, Deserialize)]
 #[func(fn sprite(&self) -> Option<Sprite>)]
 #[func(fn blocking(&self) -> bool {false})]
-#[func(fn is_open(&self) -> bool {false})]
+#[func(pub fn is_open(&self) -> bool {false})]
 #[func(fn explain(&self) -> Option<&str>)]
 #[func(fn interactions(&self) -> Vec<Interactable> {Vec::new()})]
 #[func(fn take(&self) -> Option<Item>)]

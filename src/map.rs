@@ -14,7 +14,7 @@ pub struct Map {
 	basemap: InfiniteMap,
 	changes: HashMap<Pos, (Tile, Timestamp)>,
 	time: Timestamp,
-	modifications: HashMap<Pos, Tile>
+	modifications: HashSet<Pos>
 }
 
 impl Map {
@@ -24,7 +24,7 @@ impl Map {
 			basemap: InfiniteMap::new(SEED),
 			changes: HashMap::new(),
 			time,
-			modifications: HashMap::new()
+			modifications: HashSet::new()
 		}
 	}
 	
@@ -42,7 +42,7 @@ impl Map {
 		} else {
 			self.changes.insert(pos, (tile, self.time));
 		}
-		self.modifications.insert(pos, tile);
+		self.modifications.insert(pos);
 	}
 	
 	pub fn set_structure(&mut self, pos: Pos, structure: Structure) {
@@ -65,7 +65,7 @@ impl Map {
 		let tick_positions = areas.iter()
 			.flat_map(|area| {
 				let chunk_min = area.min() / chunk_size;
-				let chunk_max = (area.max() - Pos::new(1, 1) / chunk_size) + Pos::new(1, 1);
+				let chunk_max = (area.max() / chunk_size) + Pos::new(1, 1);
 				let chunk_area = Area::new(chunk_min, chunk_max - chunk_min);
 				chunk_area.iter()
 					.map(|chunk_pos| chunk_pos * chunk_size + tick_pos)
@@ -75,8 +75,18 @@ impl Map {
 		self.time = time;
 		let last_tick = time - Duration((chunk_size * chunk_size) as i64);
 		for pos in tick_positions {
-			if self.basemap.cell(pos, last_tick) != self.basemap.cell(pos, time) {
-				self.modifications.insert(pos, self.basemap.cell(pos, time));
+			let base_cell = self.basemap.cell(pos, time);
+			if let Some((built, _built_time)) = self.changes.get(&pos) {
+				if built.structure.is_open()
+						&& (built.ground.restoring() || built.ground == base_cell.ground)
+						&& base_cell.structure.is_open() {
+					if built != &base_cell {
+						self.modifications.insert(pos);
+					}
+					self.changes.remove(&pos);
+				}
+			} else if self.basemap.cell(pos, last_tick) != base_cell {
+				self.modifications.insert(pos);
 			}
 		}
 	}
@@ -85,8 +95,8 @@ impl Map {
 		self.modifications.clear()
 	}
 	
-	pub fn modified(&self) -> HashMap<Pos, Tile> {
-		self.modifications.clone()
+	pub fn modified(&mut self) -> HashMap<Pos, Tile> {
+		self.modifications.clone().into_iter().map(|pos| (pos, self.cell(pos))).collect()
 	}
 	
 	pub fn save(&self) -> MapSave {
@@ -98,7 +108,7 @@ impl Map {
 			basemap: InfiniteMap::new(SEED),
 			changes: changes.into_iter().collect(),
 			time,
-			modifications: HashMap::new()
+			modifications: HashSet::new()
 		}
 	}
 }
