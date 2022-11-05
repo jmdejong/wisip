@@ -164,6 +164,15 @@ pub enum Item {
 	#[assoc(action=Action::Clear)]
 	Hoe,
 	
+	#[assoc(description="Unknown green seeds")]
+	GreenSeeds,
+	
+	#[assoc(description="Unknown yellow seeds")]
+	YellowSeeds,
+	
+	#[assoc(description="Unknown brown seeds")]
+	BrownSeeds,
+	
 	#[assoc(description="Tinder from the tinder fungus. Can be placed with some pebbles on a clear space to create a fireplace")]
 	#[assoc(action=Action::Build(Structure::Fireplace, hashmap![Item::Pebble => 10]))]
 	Tinder,

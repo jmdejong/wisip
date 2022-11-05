@@ -187,7 +187,9 @@ impl InfiniteMap {
 					} else {
 						*pick_weighted(randomize_u32(randomize_u32(rtime/4) + 5924), &[
 							(Structure::Air, 40),
-							(Structure::DenseGrass, 10),
+							(Structure::DenseGrassGrn, 4),
+							(Structure::DenseGrassBrn, 3),
+							(Structure::DenseGrassY, 3),
 							(Structure::Flower, 1)
 						])
 					}
@@ -232,7 +234,9 @@ impl InfiniteMap {
 						(t!(Grass1), 10),
 						(t!(Grass2), 10),
 						(t!(Grass3), 10),
-						(t!(Grass1, DenseGrass), 10),
+						(t!(Grass1, DenseGrassGrn), 3),
+						(t!(Grass2, DenseGrassBrn), 3),
+						(t!(Grass3, DenseGrassY), 3),
 						(t!(Grass1, Shrub), 2)
 					])
 				}

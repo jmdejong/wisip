@@ -145,8 +145,19 @@ pub enum Structure {
 	OldTreeTinder,
 	
 	#[assoc(sprite = Sprite::DenseGrass)]
+	#[assoc(interactions = vec![Interactable::harvest(InteractionType::Take, 0, &[0.1], &[Item::GreenSeeds])])]
 	#[assoc(describe = "Dense grass")]
-	DenseGrass,
+	DenseGrassGrn,
+	
+	#[assoc(sprite = Sprite::DenseGrass)]
+	#[assoc(interactions = vec![Interactable::harvest(InteractionType::Take, 0, &[0.1], &[Item::BrownSeeds])])]
+	#[assoc(describe = "Dense grass")]
+	DenseGrassBrn,
+	
+	#[assoc(sprite = Sprite::DenseGrass)]
+	#[assoc(interactions = vec![Interactable::harvest(InteractionType::Take, 0, &[0.1], &[Item::YellowSeeds])])]
+	#[assoc(describe = "Dense grass")]
+	DenseGrassY,
 	
 	#[assoc(sprite = Sprite::Heather)]
 	#[assoc(describe = "Heather")]

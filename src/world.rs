@@ -151,7 +151,7 @@ impl World {
 								creature.heard_sounds.push((BuildError, "Too close to existing claim".to_string()));
 								continue;
 							}
-							if pos.distance_to(self.ground.player_spawn()) < 128 {
+							if pos.distance_to(self.ground.player_spawn()) < 96 {
 								creature.heard_sounds.push((BuildError, "Too close to spawn".to_string()));
 								continue;
 							}
