@@ -13,7 +13,8 @@ pub enum Control {
 	Move(Direction),
 	Suicide,
 	Interact(Option<Direction>),
-	Select(Selector)
+	Select(Selector),
+	MoveSelected(Selector),
 }
 
 #[derive(Debug, Clone)]

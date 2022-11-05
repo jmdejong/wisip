@@ -10,6 +10,8 @@ use crate::{
 	hashmap,
 };
 
+const FIXED_ENTRIES: usize = 2;
+
 #[derive(Debug, Clone)]
 pub struct Inventory {
 	items: Vec<(Item, usize)>,
@@ -46,7 +48,7 @@ impl Inventory {
 	}
 	
 	fn count(&self) -> usize {
-		self.items.len() + 2
+		self.items.len() + FIXED_ENTRIES
 	}
 	
 	pub fn select(&mut self, selector: Selector) {
@@ -60,13 +62,30 @@ impl Inventory {
 		}
 	}
 	
+	pub fn move_selected(&mut self, selector: Selector) {
+		if self.selector < FIXED_ENTRIES {
+			return;
+		}
+		let target = match selector {
+			Selector::Next => self.selector + 1,
+			Selector::Previous => self.selector - 1,
+			Selector::Idx(idx) => idx,
+		};
+		if target < FIXED_ENTRIES || target >= self.count() {
+			return;
+		}
+		let item = self.items.remove(self.selector - FIXED_ENTRIES);
+		self.items.insert(target - FIXED_ENTRIES, item);
+		self.select(selector);
+	}
+	
 	pub fn selected(&self) -> Item {
 		if self.selector == 0 {
 			Item::Eyes
 		} else if self.selector == 1 {
 			Item::Hands
 		} else {
-			self.items[self.selector - 2].0
+			self.items[self.selector - FIXED_ENTRIES].0
 		}
 	}
 	

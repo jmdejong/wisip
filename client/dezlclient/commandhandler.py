@@ -32,8 +32,9 @@ class CommandHandler:
 			"ijson": self.ijson,
 			"ij": self.ijson,
 			"hy": self.hy,
-			"select": lambda selector: self.input({"select": selector}),
 			"interact": lambda direction: self.input({"interact": direction}),
+			"select": lambda selector: self.input({"select": selector}),
+			"moveselected": lambda selector: self.input({"moveselected": selector}),
 			"help": self.toggleHelp
 		}
 		

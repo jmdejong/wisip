@@ -37,6 +37,8 @@
 "7": ["select", {"idx": 6}],
 "8": ["select", {"idx": 7}],
 "9": ["select", {"idx": 8}],
+"<": ["moveselected", "previous"],
+">": ["moveselected", "next"],
 "t": ["runinput"],
 "\n": ["runinput"],
 "pageup": ["scrollchat", 1],
@@ -62,9 +64,10 @@
     "WASD/HJKL: interact",
     "f/space: interact in current direction",
     "+-/,./1-9: select item",
+    "<>: move selected item up/down",
     " ",
     "t: type chat message",
-    "PgUp/PgDn/[/]: scroll chat/help",
+    "PgUp/PgDn/[]: scroll chat/help",
     "ctrl-c: close client",
     "? or /help: back to game"
 ]

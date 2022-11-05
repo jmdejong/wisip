@@ -126,6 +126,9 @@ impl World {
 				Some(Control::Select(selector)) => {
 					creature.inventory.select(*selector);
 				}
+				Some(Control::MoveSelected(selector)) => {
+					creature.inventory.move_selected(*selector);
+				}
 				Some(Control::Interact(direction)) => {
 					let pos = creature.pos + direction.map(|dir| dir.to_position()).unwrap_or_else(Pos::zero);
 					let tile = self.ground.cell(pos);
