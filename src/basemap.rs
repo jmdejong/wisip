@@ -5,7 +5,7 @@ use crate::{
 	timestamp::Timestamp,
 	tile::{Tile, Ground, Structure},
 	grid::Grid,
-	random,
+	random::{WhiteNoise, Fractal, randomize_u32, pick, pick_weighted},
 	randomtick,
 	util::math
 };
@@ -47,14 +47,14 @@ enum Biome {
 
 pub struct InfiniteMap {
 	seed: u32,
-	height: random::Fractal
+	height: Fractal
 }
 
 impl InfiniteMap {
 	pub fn new(seed: u32) -> Self {
 		Self {
 			seed,
-			height: random::Fractal::new(seed + 344, vec![(3,0.12), (5,0.20), (7,0.26), (11,0.42)]),
+			height: Fractal::new(seed + 344, vec![(3,0.12), (5,0.20), (7,0.26), (11,0.42)]),
 		}
 	}
 	
@@ -71,8 +71,8 @@ impl InfiniteMap {
 		if b_pos == self.start_biome() {
 			Biome::Start
 		} else {
-			*random::pick_weighted(
-				random::WhiteNoise::new(self.seed+333).gen(b_pos.0),
+			*pick_weighted(
+				WhiteNoise::new(self.seed+333).gen(b_pos.0),
 				&[
 					(Biome::Field, 10),
 					(Biome::Forest, 10),
@@ -85,7 +85,7 @@ impl InfiniteMap {
 	}
 	
 	fn biome_core(&self, bpos: BPos) -> Pos {
-		let rind = random::WhiteNoise::new(self.seed+821).gen(bpos.0);
+		let rind = WhiteNoise::new(self.seed+821).gen(bpos.0);
 		let core_size = BIOME_SIZE / 2;
 		let core_offset = if bpos == self.start_biome() {
 			Pos::new(0, 0)
@@ -126,7 +126,7 @@ impl InfiniteMap {
 	}
 
 	fn biome_pos(&self, pos: Pos) -> (BPos, Pos) {
-		let rind = random::WhiteNoise::new(self.seed+343).gen(pos);
+		let rind = WhiteNoise::new(self.seed+343).gen(pos);
 		let edge_size = EDGE_SIZE;
 		let mut offset = Pos::new((rind % edge_size as u32) as i32 - edge_size / 2, ((rind / edge_size as u32) % edge_size as u32) as i32 - edge_size / 2);
 		if offset.size() > edge_size / 2 {
@@ -142,8 +142,8 @@ impl InfiniteMap {
 	fn tile(&self, pos: Pos, time: Timestamp) -> Tile {
 		let (bpos, dpos) = self.biome_pos(pos);
 		let biome = self.biome_at(bpos);
-		let rind = random::WhiteNoise::new(self.seed + 7943).gen(pos);
-		let rtime = randomtick::tick_num(pos, time) as u32 + random::WhiteNoise::new(self.seed + 356).gen(pos);
+		let rind = WhiteNoise::new(self.seed + 7943).gen(pos);
+		let rtime = randomtick::tick_num(pos, time) as u32 + WhiteNoise::new(self.seed + 356).gen(pos);
 		match biome {
 			Biome::Start => {
 				let dspawn = dpos.abs();
@@ -168,7 +168,7 @@ impl InfiniteMap {
 					}
 					
 				} else {
-					*random::pick(rind, &[
+					*pick(rind, &[
 						t!(Grass1),
 						t!(Grass2),
 						t!(Grass3)
@@ -176,25 +176,26 @@ impl InfiniteMap {
 				}
 			}
 			Biome::Field => {
-				*random::pick_weighted(rind, &[
-					(t!(Grass1), 10),
-					(t!(Grass2), 10),
-					(t!(Grass3), 10),
-					(t!(Grass1, DenseGrass), 10),
-					(t!(Grass1, Shrub), 1),
-					(
-						if rtime.rem_euclid(2) == 0 {
-							t!(Grass1, Flower)
-						} else {
-							t!(Grass1)
-						},
-						2
-					)
-				])
+				t!(
+					*pick(rind, &[
+						Ground::Grass1,
+						Ground::Grass2,
+						Ground::Grass3
+					]),
+					if WhiteNoise::new(self.seed + 9429).gen_f(pos) < 0.02 {
+						Structure::Shrub
+					} else {
+						*pick_weighted(randomize_u32(randomize_u32(rtime/4) + 5924), &[
+							(Structure::Air, 40),
+							(Structure::DenseGrass, 10),
+							(Structure::Flower, 1)
+						])
+					}
+				)
 			}
 			Biome::Forest => {
-				*random::pick_weighted(rtime, &[
-					(*random::pick(rind, &[
+				*pick_weighted(rtime, &[
+					(*pick(rind, &[
 						t!(Grass1),
 						t!(Grass2),
 						t!(Grass3),
@@ -213,7 +214,7 @@ impl InfiniteMap {
 			}
 			Biome::Lake => {
 				let c = ((self.edge_distance(pos) - EDGE_SIZE) as f32 / 12.0).clamp(0.0, 1.0);
-				let reed_density = random::Fractal::new(self.seed+276, vec![(7, 0.5), (11, 0.5)]).gen_f(pos) * 0.4 - 0.2;
+				let reed_density = Fractal::new(self.seed+276, vec![(7, 0.5), (11, 0.5)]).gen_f(pos) * 0.4 - 0.2;
 				let height = 0.4 - self.height.gen_f(pos) + (1.0 - c) * 0.6;
 				if height.abs() < reed_density {
 					t!(
@@ -227,7 +228,7 @@ impl InfiniteMap {
 				} else if height < 0.0 {
 					t!(Water)
 				} else {
-					*random::pick_weighted(rind, &[
+					*pick_weighted(rind, &[
 						(t!(Grass1), 10),
 						(t!(Grass2), 10),
 						(t!(Grass3), 10),
@@ -252,17 +253,17 @@ impl InfiniteMap {
 						}
 					)
 				} else {
-					*random::pick_weighted((height * 100.0) as u32, &[
-						(*random::pick_weighted(rind, &[
+					*pick_weighted((height * 100.0) as u32, &[
+						(*pick_weighted(rind, &[
 							(t!(Grass2), 10),
 							(t!(Grass3), 10),
 							(t!(Dirt), 1),
 							(t!(RockFloor), (height * 10.0) as u32),
 						]), 50),
-						(*random::pick_weighted(rind, &[
+						(*pick_weighted(rind, &[
 							(t!(Grass2), 1),
 							(t!(Grass3), 1),
-							(*random::pick_weighted(rtime, &[
+							(*pick_weighted(rtime, &[
 								(t!(RockFloor, Gravel), 20),
 								(t!(RockFloor), 50),
 								(t!(RockFloor, Stone), 5),
@@ -276,17 +277,17 @@ impl InfiniteMap {
 				}
 			}
 			Biome::Bog => {
-				let height = self.height.gen_f(pos*2) + random::WhiteNoise::new(self.seed+3294).gen_f(pos) * 0.1;
+				let height = self.height.gen_f(pos*2) + WhiteNoise::new(self.seed+3294).gen_f(pos) * 0.1;
 				if height < 0.45 {
 					t!(Water)
 				} else {
-					*random::pick_weighted(rind, &[
+					*pick_weighted(rind, &[
 						(t!(Grass1), 50),
 						(t!(Grass2), 50),
 						(t!(Grass3), 50),
 						(t!(Dirt, Shrub), 1),
 						(t!(Dirt, Rush), 10),
-						(*random::pick(
+						(*pick(
 							rtime / 2,
 							&[
 								t!(Grass1, PitcherPlant),

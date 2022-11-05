@@ -5,6 +5,7 @@
         "house": ["^^", 3, 1],
         "spikes": ["^^",7],
         "densegrass": [";;", 2],
+        "gravel": [":;", 8],
         "reed": ["ll", 2],
         "moss": ["..", 2],
         "deadleaves": ["`,", 3]
