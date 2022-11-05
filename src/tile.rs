@@ -5,7 +5,9 @@ use crate::{
 	sprite::Sprite,
 	inventory::Item,
 	action::{Action, InteractionType, CraftType, Interactable, InteractionResult},
-	timestamp::Timestamp
+	timestamp::Timestamp,
+	worldmessages::SoundType::Explain,
+	hashmap,
 };
 
 
@@ -15,33 +17,40 @@ use crate::{
 #[func(fn clear(&self) -> Option<Ground>)]
 #[func(fn describe(&self) -> Option<&str>)]
 #[func(fn craft(&self) -> Option<CraftType>)]
+#[func(fn buildable(&self) -> bool {false})]
 pub enum Ground {
 	#[assoc(sprite = Sprite::Dirt)]
 	#[assoc(describe = "Dirt")]
+	#[assoc(buildable = true)]
 	Dirt,
 	
 	#[assoc(clear = Ground::Dirt)]
 	#[assoc(sprite = Sprite::Grass1)]
+	#[assoc(buildable = true)]
 	#[assoc(describe = "Grass")]
 	Grass1,
 	
 	#[assoc(clear = Ground::Dirt)]
 	#[assoc(sprite = Sprite::Grass2)]
+	#[assoc(buildable = true)]
 	#[assoc(describe = "Grass")]
 	Grass2,
 	
 	#[assoc(clear = Ground::Dirt)]
 	#[assoc(sprite = Sprite::Grass3)]
+	#[assoc(buildable = true)]
 	#[assoc(describe = "Grass")]
 	Grass3,
 	
 	#[assoc(clear = Ground::Dirt)]
 	#[assoc(sprite = Sprite::Moss)]
+	#[assoc(buildable = true)]
 	#[assoc(describe = "Moss")]
 	Moss,
 	
 	#[assoc(clear = Ground::Dirt)]
 	#[assoc(sprite = Sprite::DeadLeaves)]
+	#[assoc(buildable = true)]
 	#[assoc(describe = "Old leaves")]
 	DeadLeaves,
 	
@@ -57,10 +66,12 @@ pub enum Ground {
 	Water,
 	
 	#[assoc(sprite = Sprite::StoneFloor)]
+	#[assoc(buildable = true)]
 	#[assoc(describe = "Rock floor")]
 	RockFloor,
 	
 	#[assoc(sprite = Sprite::StoneFloor)]
+	#[assoc(buildable = true)]
 	#[assoc(describe = "Stone floor")]
 	StoneFloor,
 	
@@ -205,6 +216,11 @@ pub enum Structure {
 	#[assoc(describe = "Marker Altar. Bring 10 flowers and a stone to create a marker stone")]
 	#[assoc(craft = CraftType::Marker)]
 	MarkerAltar,
+	
+	#[assoc(sprite = Sprite::MarkStone)]
+	#[assoc(blocking = true)]
+	#[assoc(describe = "Mark stone. Center of a land claim")]
+	MarkStone,
 }
 
 impl Structure {
@@ -243,11 +259,15 @@ impl Tile {
 		!self.ground.accessible() || self.structure.blocking()
 	}
 	
+	fn can_build(&self) -> bool {
+		self.structure.is_open() && self.ground.buildable()
+	}
+	
 	pub fn interact(&self, item: Item, time: Timestamp) -> Option<InteractionResult> {
 		if let Some(name) = self.structure.explain() {
 			if item.action() != Some(Action::Inspect) {
 				return Some(InteractionResult {
-					message: Some(("explain".to_string(), format!("{}: {}", name, item.description().unwrap_or("Unknown")))),
+					message: Some((Explain, format!("{}: {}", name, item.description().unwrap_or("Unknown")))),
 					..Default::default()
 				});
 			}
@@ -272,26 +292,37 @@ impl Tile {
 				} else {
 					None
 				}
-			Action::Inspect => {
+			Action::Inspect => 
 				Some(InteractionResult {
 					message: Some((
-						"describe".to_string(),
+						Explain,
 						format!("{}  --  {}", self.ground.describe().unwrap_or(""), self.structure.describe().unwrap_or(""))
 					)),
 					..Default::default()
-				})
-			},
-			Action::BuildClaim(_) => {
-				None
-			},
-			Action::Build(structure, mut cost) => {
-				cost.entry(item).and_modify(|n| {*n += 1;}).or_insert(1);
-				Some(InteractionResult {
-					remains: Some(structure),
-					cost: cost,
-					..Default::default()
-				})
-			}
+				}),
+			Action::BuildClaim(structure) =>
+				if self.can_build() {
+					Some(InteractionResult {
+						remains: Some(structure),
+						cost: hashmap!{item => 1},
+						claim: true,
+						..Default::default()
+					})
+				} else {
+					None
+				}
+			Action::Build(structure, mut cost) =>
+				if self.can_build() {
+					cost.entry(item).and_modify(|n| {*n += 1;}).or_insert(1);
+					Some(InteractionResult {
+						remains: Some(structure),
+						cost: cost,
+						build: true,
+						..Default::default()
+					})
+				} else {
+					None
+				}
 			Action::Craft(typ, product, mut cost) => {
 				cost.entry(item).and_modify(|n| {*n += 1;}).or_insert(1);
 				if Some(typ) == self.structure.craft() || Some(typ) == self.ground.craft() {

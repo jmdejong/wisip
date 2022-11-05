@@ -41,5 +41,6 @@ pub enum Sprite {
 	DeadLeaves,
 	PitcherPlant,
 	Fireplace,
+	MarkStone,
 	Altar,
 }

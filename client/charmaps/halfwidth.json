@@ -35,6 +35,9 @@
 		"stone": ["o", 7],
 		"sharpstone": ["/", 7],
 		"flint": ["/", 8],
+		"markstone": ["0", 7],
+		"fireplace": ["M", 7],
+		"fire": ["M", 9],
 		
 		"water": ["~", 4, 4],
 		"floor": [".", 8],

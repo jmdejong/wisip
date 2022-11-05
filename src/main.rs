@@ -147,7 +147,7 @@ fn main(){
 			save(&world, &persistence);
 		}
 		let elapsed_time = now.elapsed();
-		if elapsed_time >= Duration::from_millis(1) {
+		if elapsed_time >= Duration::from_millis(5) {
 			eprintln!("Running update() took {} milliseconds.", elapsed_time.as_millis());
 		}
 		thread::sleep(Duration::from_millis(config.step_duration));

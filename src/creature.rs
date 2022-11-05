@@ -7,7 +7,8 @@ use crate::{
 	PlayerId,
 	timestamp::Duration,
 	util::HolderId,
-	inventory::{Inventory, InventorySave}
+	inventory::{Inventory, InventorySave},
+	worldmessages::SoundType,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -23,15 +24,16 @@ pub struct Creature {
 	pub walk_cooldown: Duration,
 	pub sprite: Sprite,
 	pub inventory: Inventory,
-	pub heard_sounds: Vec<(String, String)>,
+	pub heard_sounds: Vec<(SoundType, String)>,
 	is_dead: bool,
 }
 
 impl Creature {
 	
-	#[allow(dead_code)]
-	pub fn is_player(&self) -> bool {
-		matches!(self.mind, Mind::Player(_))
+	pub fn player(&self) -> Option<PlayerId> {
+		match &self.mind {
+			Mind::Player(id) => Some(id.clone())
+		}
 	}
 	
 	
@@ -46,12 +48,6 @@ impl Creature {
 			heard_sounds: Vec::new(),
 			is_dead: false
 		}
-	}
-	
-	
-	#[allow(dead_code)]
-	pub fn is_dead(&self) -> bool {
-		self.is_dead
 	}
 	
 	pub fn kill(&mut self) {

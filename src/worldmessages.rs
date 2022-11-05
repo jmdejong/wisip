@@ -67,7 +67,7 @@ worldmessages!(
 pub type ChangeMessage = Vec<(Pos, Vec<Sprite>)>;
 pub type InventoryMessage = (Vec<(Item, usize)>, usize);
 pub type GroundMessage = Vec<String>;
-pub type SoundMessage = Vec<(String, String)>;
+pub type SoundMessage = Vec<(SoundType, String)>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
 pub struct FieldMessage {
@@ -77,6 +77,14 @@ pub struct FieldMessage {
 	pub mapping: Vec<Vec<Sprite>>,
 	pub offset: Pos
 }
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
+#[serde(rename_all="lowercase")]
+pub enum SoundType {
+	BuildError,
+	Explain
+}
+
 
 #[derive(Debug, Clone, Default)]
 pub struct MessageCache {

@@ -4,6 +4,7 @@ use crate::{
 	inventory::Item,
 	tile::{Structure, Ground},
 	timestamp::Timestamp,
+	worldmessages::SoundType,
 	random
 };
 
@@ -111,5 +112,7 @@ pub struct InteractionResult {
 	pub remains_ground: Option<Ground>,
 	pub items: Vec<Item>,
 	pub cost: HashMap<Item, usize>,
-	pub message: Option<(String, String)>
+	pub message: Option<(SoundType, String)>,
+	pub claim: bool,
+	pub build: bool,
 }

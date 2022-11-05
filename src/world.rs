@@ -8,7 +8,7 @@ use crate::{
 	pos::{Pos, Area},
 	util::Holder,
 	sprite::Sprite,
-	worldmessages::{WorldMessage, FieldMessage, ChangeMessage},
+	worldmessages::{WorldMessage, FieldMessage, ChangeMessage, SoundType::{BuildError}},
 	timestamp::{Timestamp},
 	creature::{Creature, Mind, CreatureId, PlayerSave},
 	player::Player,
@@ -22,6 +22,7 @@ pub struct World {
 	players: HashMap<PlayerId, Player>,
 	creatures: Holder<CreatureId, Creature>,
 	drawing: Option<HashMap<Pos, Vec<Sprite>>>,
+	claims: HashMap<PlayerId, Pos>,
 }
 
 impl World {
@@ -35,6 +36,7 @@ impl World {
 			creatures: Holder::new(),
 			time,
 			drawing: None,
+			claims: HashMap::new(),
 		}
 	}
 	
@@ -132,19 +134,60 @@ impl World {
 					let tile = self.ground.cell(pos);
 					let item = creature.inventory.selected();
 					if let Some(interaction) = tile.interact(item, self.time) {
-						if creature.inventory.pay(interaction.cost) {
-							for item in interaction.items {
-								creature.inventory.add(item);
+						if interaction.claim {
+							if let Some(player_id) = creature.player() {
+								if self.claims.contains_key(&player_id) {
+									creature.heard_sounds.push((BuildError, "Claim already present".to_string()));
+									continue;
+								}
+								if self.claims.values().filter(|p| p.distance_to(pos) < 64).next().is_some() {
+									creature.heard_sounds.push((BuildError, "Too close to existing claim".to_string()));
+									continue;
+								}
+								if pos.distance_to(self.ground.player_spawn()) < 128 {
+									creature.heard_sounds.push((BuildError, "Too close to spawn".to_string()));
+									continue;
+								}
+								self.claims.insert(player_id, pos);
+							} else {
+								creature.heard_sounds.push((
+									BuildError,
+									"Only players can claim land and you're not a player. If you read this something has probably gone wrong.".to_string()
+								));
+								continue;
 							}
-							if let Some(remains) = interaction.remains {
-								self.ground.set_structure(pos, remains);
+						}
+						if interaction.build {
+							if let Some(claim_pos) = creature.player().as_ref().and_then(|player_id| self.claims.get(player_id)) {
+								if pos.distance_to(*claim_pos) > 24 {
+									creature.heard_sounds.push((
+										BuildError,
+										"Too far from land claim to build".to_string()
+									));
+									continue;
+								}
+							} else {
+								creature.heard_sounds.push((
+									BuildError,
+									"Need land claim to build".to_string()
+								));
+								continue;
 							}
-							if let Some(remains_ground) = interaction.remains_ground {
-								self.ground.set_ground(pos, remains_ground);
-							}
-							if let Some(message) = interaction.message {
-								creature.heard_sounds.push(message);
-							}
+						}
+						if !creature.inventory.pay(interaction.cost) {
+							continue;
+						}
+						for item in interaction.items {
+							creature.inventory.add(item);
+						}
+						if let Some(remains) = interaction.remains {
+							self.ground.set_structure(pos, remains);
+						}
+						if let Some(remains_ground) = interaction.remains_ground {
+							self.ground.set_ground(pos, remains_ground);
+						}
+						if let Some(message) = interaction.message {
+							creature.heard_sounds.push(message);
 						}
 					}
 				}
@@ -253,7 +296,8 @@ impl World {
 			players: HashMap::new(),
 			creatures: Holder::new(),
 			time: save.time,
-			drawing: None
+			drawing: None,
+			claims: HashMap::new(),
 		}
 	}
 }

@@ -146,6 +146,7 @@ pub enum Item {
 	Tinder,
 	
 	#[assoc(description="A marker stone that can be placed to create a land claim")]
+	#[assoc(action=Action::BuildClaim(Structure::MarkStone))]
 	MarkerStone,
 }
 
