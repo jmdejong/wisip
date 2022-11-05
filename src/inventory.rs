@@ -5,6 +5,7 @@ use enum_assoc::Assoc;
 use crate::{
 	worldmessages::InventoryMessage,
 	action::{Action, InteractionType::*, CraftType},
+	controls::Selector,
 	tile::Structure,
 	hashmap,
 };
@@ -48,11 +49,15 @@ impl Inventory {
 		self.items.len() + 2
 	}
 	
-	pub fn select_next(&mut self) {
-		self.selector = (self.selector + 1).rem_euclid(self.count())
-	}
-	pub fn select_previous(&mut self) {
-		self.selector = (self.selector + self.count() - 1).rem_euclid(self.count());
+	pub fn select(&mut self, selector: Selector) {
+		self.selector = match selector {
+			Selector::Next =>
+				(self.selector + 1).rem_euclid(self.count()),
+			Selector::Previous =>
+				(self.selector + self.count() - 1).rem_euclid(self.count()),
+			Selector::Idx(idx) =>
+				idx.min(self.count() - 1),
+		}
 	}
 	
 	pub fn selected(&self) -> Item {

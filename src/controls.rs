@@ -13,7 +13,7 @@ pub enum Control {
 	Move(Direction),
 	Suicide,
 	Interact(Option<Direction>),
-	Select(Selection)
+	Select(Selector)
 }
 
 #[derive(Debug, Clone)]
@@ -24,9 +24,10 @@ pub enum Action {
 }
 
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 #[serde(rename_all="lowercase")]
-pub enum Selection {
+pub enum Selector {
 	Next,
-	Previous
+	Previous,
+	Idx(usize),
 }

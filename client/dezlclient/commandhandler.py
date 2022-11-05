@@ -25,12 +25,6 @@ class CommandHandler:
 			"log": self.log,
 			"do": self.do,
 			"runinput": self.runInput,
-			"selectwidget": self.selectWidget,
-			"selectitem": self.selectItem,
-			"inputwithselected": self.actWithSelected,
-			"use": self.useSelected,
-			"drop": self.dropSelected,
-			"take": self.takeSelected,
 			"eval": self.eval,
 			"exec": self.exec,
 			"scrollchat": self.scrollChat,
@@ -41,9 +35,7 @@ class CommandHandler:
 			"hy": self.hy,
 			"interact": self.interact,
 			"q": self.interact,
-			"buy": lambda option: self.interact("buy "+option),
-			"selectnext": lambda: self.input({"select": "next"}),
-			"selectprevious": lambda: self.input({"select": "previous"}),
+			"select": lambda selector: self.input({"select": selector}),
 			"help": self.toggleHelp
 		}
 		

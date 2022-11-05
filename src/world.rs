@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 
 use crate::{
 	PlayerId,
-	controls::{Control, Selection},
+	controls::{Control},
 	pos::{Pos, Area},
 	util::Holder,
 	sprite::Sprite,
@@ -123,11 +123,8 @@ impl World {
 				Some(Control::Suicide) => {
 					creature.kill();
 				}
-				Some(Control::Select(Selection::Next)) => {
-					creature.inventory.select_next();
-				}
-				Some(Control::Select(Selection::Previous)) => {
-					creature.inventory.select_previous();
+				Some(Control::Select(selector)) => {
+					creature.inventory.select(*selector);
 				}
 				Some(Control::Interact(direction)) => {
 					let pos = creature.pos + direction.map(|dir| dir.to_position()).unwrap_or_else(Pos::zero);
