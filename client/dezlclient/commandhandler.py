@@ -20,7 +20,6 @@ class CommandHandler:
 			"input": self.input,
 			"move": self.move,
 			"say": self.say,
-			"pick": self.pick,
 			"chat": self.chat,
 			"log": self.log,
 			"do": self.do,
@@ -33,9 +32,8 @@ class CommandHandler:
 			"ijson": self.ijson,
 			"ij": self.ijson,
 			"hy": self.hy,
-			"interact": self.interact,
-			"q": self.interact,
 			"select": lambda selector: self.input({"select": selector}),
+			"interact": lambda direction: self.input({"interact": direction}),
 			"help": self.toggleHelp
 		}
 		
@@ -88,42 +86,6 @@ class CommandHandler:
 	def runInput(self, startText=""):
 		self.client.inputHandler.startTyping(startText)
 	
-	def selectWidget(self, value, relative=False, modular=False):
-		self.client.display.selectMenu(value, relative, modular)
-	
-	def selectItem(self, value, relative=False, modular=False):
-		self.client.display.selectItem(None, value, relative, modular)
-	
-	def actWithSelected(self, action, menu):
-		self.input([action, self.client.display.getSelectedItem(menu).getSelected()])
-	
-	def useSelected(self):
-		menu = "inventory"
-		selected = self.client.display.getSelectedItem(menu)
-		self.input(["use", selected])
-	
-	def interactSelected(self):
-		menu = "ground"
-		selected = self.client.display.getSelectedItem(menu)
-		self.input(["interact", selected])
-	
-	def dropSelected(self):
-		menu = self.client.display.getSelectedMenu()
-		selected = self.client.display.getSelectedItem(menu)
-		if menu == "inventory":
-			action = "drop"
-		else:
-			return
-		self.input([action, selected])
-	
-	def takeSelected(self):
-		menu = self.client.display.getSelectedMenu()
-		if menu == "ground":
-			selected = self.client.display.getSelectedItem(menu)
-		else:
-			selected = None
-		self.input(["take", selected])
-	
 	def toggleHelp(self, *_):
 		self.client.toggleHelp()
 	
@@ -148,7 +110,4 @@ class CommandHandler:
 	
 	def ijson(self, text):
 		self.input(json.loads(text))
-	
-	def interact(self, arg):
-		self.input(["interact", ["none", "north", "south", "east", "west"], arg])
 	
