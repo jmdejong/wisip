@@ -41,6 +41,8 @@
 "\n": ["runinput"],
 "pageup": ["scrollchat", 1],
 "pagedown": ["scrollchat", -1],
+"[": ["scrollchat", 1],
+"]": ["scrollchat", -1],
 "/": ["runinput", "/"],
 "?": ["help"]
 },
@@ -62,7 +64,7 @@
     "+-/,./1-9: select item",
     " ",
     "t: type chat message",
-    "PgUp/PgDn: scroll chat/help",
+    "PgUp/PgDn/[/]: scroll chat/help",
     "ctrl-c: close client",
     "? or /help: back to game"
 ]
