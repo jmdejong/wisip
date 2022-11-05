@@ -120,8 +120,7 @@ impl InfiniteMap {
 		let (dist, bpos) = distances[0];
 		let my_biome= self.biome_at(bpos);
 		distances[1..].iter()
-			.filter(|(_, b)| self.biome_at(*b) != my_biome)
-			.next()
+			.find(|(_, b)| self.biome_at(*b) != my_biome)
 			.map(|(d, _)| d - dist)
 			.unwrap_or(BIOME_SIZE / 2)
 	}

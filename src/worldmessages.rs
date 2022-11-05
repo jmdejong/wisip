@@ -12,7 +12,7 @@ use crate::{
 macro_rules! worldmessages {
 	($($name: ident, $typ: ident, $strname: expr, $filter: expr);*;) => {
 	
-		#[derive(Debug, Clone, Default, PartialEq)]
+		#[derive(Debug, Clone, Default, PartialEq, Eq)]
 		pub struct WorldMessage {
 			$(
 				pub $name: Option<$typ>,

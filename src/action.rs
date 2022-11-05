@@ -67,7 +67,7 @@ impl Interactable {
 			action_type,
 			min_level,
 			level_odds: level_odds.to_vec(),
-			remains: remains,
+			remains,
 			items: items.to_vec()
 		}
 	}
@@ -85,7 +85,7 @@ impl Interactable {
 			let relative_level = (action.level - self.min_level) as usize;
 			let odds = if relative_level < self.level_odds.len() {
 				self.level_odds[relative_level]
-			} else if self.level_odds.len() > 0 {
+			} else if !self.level_odds.is_empty() {
 				self.level_odds[self.level_odds.len() - 1]
 			} else {
 				1.0

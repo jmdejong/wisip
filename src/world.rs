@@ -140,7 +140,7 @@ impl World {
 									creature.heard_sounds.push((BuildError, "Claim already present".to_string()));
 									continue;
 								}
-								if self.claims.values().filter(|p| p.distance_to(pos) < 64).next().is_some() {
+								if self.claims.values().any(|p| p.distance_to(pos) < 64) {
 									creature.heard_sounds.push((BuildError, "Too close to existing claim".to_string()));
 									continue;
 								}

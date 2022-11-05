@@ -65,14 +65,13 @@ impl Inventory {
 		}
 	}
 	
-	pub fn pay(&mut self, cost: HashMap<Item, usize>) -> bool {
+	pub fn pay(&mut self, mut cost: HashMap<Item, usize>) -> bool {
 		if cost.is_empty() {
 			return true;
 		}
-		let mut cost_ = cost.clone();
 		if let Some(items) = self.items.iter()
 				.map(|(item, n)| {
-					let amount = cost_.remove(item).unwrap_or(0);
+					let amount = cost.remove(item).unwrap_or(0);
 					if amount > *n {
 						None
 					} else {
@@ -80,7 +79,7 @@ impl Inventory {
 					}
 				})
 				.collect::<Option<Vec<(Item, usize)>>>() {
-			if !cost_.is_empty() {
+			if !cost.is_empty() {
 				false
 			} else {
 				self.items = items;

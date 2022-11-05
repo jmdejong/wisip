@@ -251,7 +251,7 @@ impl Tile {
 	
 	pub fn sprites(&self) -> Vec<Sprite> {
 		[self.structure.sprite(), self.ground.sprite()].into_iter()
-			.filter_map(|s| s)
+			.flatten()
 			.collect()
 	}
 	
@@ -316,7 +316,7 @@ impl Tile {
 					cost.entry(item).and_modify(|n| {*n += 1;}).or_insert(1);
 					Some(InteractionResult {
 						remains: Some(structure),
-						cost: cost,
+						cost,
 						build: true,
 						..Default::default()
 					})
@@ -328,7 +328,7 @@ impl Tile {
 				if Some(typ) == self.structure.craft() || Some(typ) == self.ground.craft() {
 					Some(InteractionResult {
 						items: vec![product],
-						cost: cost,
+						cost,
 						..Default::default()
 					})
 				} else {
