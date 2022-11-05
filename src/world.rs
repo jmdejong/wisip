@@ -285,7 +285,8 @@ impl World {
 		WorldSave {
 			name: self.name.clone(),
 			time: self.time,
-			ground: self.ground.save()
+			ground: self.ground.save(),
+			claims: self.claims.clone(),
 		}
 	}
 	
@@ -297,7 +298,7 @@ impl World {
 			creatures: Holder::new(),
 			time: save.time,
 			drawing: None,
-			claims: HashMap::new(),
+			claims: save.claims,
 		}
 	}
 }
@@ -347,6 +348,7 @@ pub enum PlayerError {
 pub struct WorldSave {
 	name: String,
 	time: Timestamp,
-	ground: MapSave
+	ground: MapSave,
+	claims: HashMap<PlayerId, Pos>,
 }
 
