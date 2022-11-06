@@ -21,7 +21,8 @@ pub enum InteractionType {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CraftType {
 	Marker,
-	Water
+	Water,
+	GardeningTable
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

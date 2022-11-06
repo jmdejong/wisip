@@ -50,4 +50,5 @@ pub enum Sprite {
 	BrownStem,
 	PlantedSeed,
 	Stick,
+	WorkTable
 }

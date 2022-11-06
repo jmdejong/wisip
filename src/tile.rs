@@ -28,31 +28,26 @@ pub enum Ground {
 	
 	#[assoc(clear = Ground::Dirt)]
 	#[assoc(sprite = Sprite::Grass1)]
-	#[assoc(buildable = true)]
 	#[assoc(describe = "Grass")]
 	Grass1,
 	
 	#[assoc(clear = Ground::Dirt)]
 	#[assoc(sprite = Sprite::Grass2)]
-	#[assoc(buildable = true)]
 	#[assoc(describe = "Grass")]
 	Grass2,
 	
 	#[assoc(clear = Ground::Dirt)]
 	#[assoc(sprite = Sprite::Grass3)]
-	#[assoc(buildable = true)]
 	#[assoc(describe = "Grass")]
 	Grass3,
 	
 	#[assoc(clear = Ground::Dirt)]
 	#[assoc(sprite = Sprite::Moss)]
-	#[assoc(buildable = true)]
 	#[assoc(describe = "Moss")]
 	Moss,
 	
 	#[assoc(clear = Ground::Dirt)]
 	#[assoc(sprite = Sprite::DeadLeaves)]
-	#[assoc(buildable = true)]
 	#[assoc(describe = "Old leaves")]
 	DeadLeaves,
 	
@@ -237,6 +232,12 @@ pub enum Structure {
 	#[assoc(describe = "Fireplace. Filled with ash")]
 	#[assoc(interactions = vec![Interactable::new(InteractionType::Take, 0, &[], Some(Structure::Fireplace), &[Item::Ash])])]
 	AshPlace,
+	
+	#[assoc(sprite = Sprite::WorkTable)]
+	#[assoc(blocking = true)]
+	#[assoc(describe = "Gardening worktable. Build a crude hoe with a stick, some reed rope and a sharp stone")]
+	#[assoc(craft = CraftType::GardeningTable)]
+	GardeningTable,
 	
 	#[assoc(sprite = Sprite::Altar)]
 	#[assoc(blocking = true)]

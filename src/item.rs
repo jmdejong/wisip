@@ -80,7 +80,10 @@ pub enum Item {
 	
 	#[assoc(name="stick")]
 	#[assoc(description="Stick")]
-	#[assoc(actions=vec![Action::interact(Fuel, 1, true)])]
+	#[assoc(actions=vec![
+		Action::Craft(CraftType::GardeningTable, Item::Hoe, hashmap![Item::Reed => 1, Item::SharpStone => 1]),
+		Action::interact(Fuel, 1, true)
+	])]
 	Stick,
 	
 	#[assoc(name="tinder")]

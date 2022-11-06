@@ -157,10 +157,12 @@ impl InfiniteMap {
 					}
 				} else if dspawn.x <= 1 || dspawn.y <= 1 {
 					t!(Dirt)
-				} else if Area::centered(Pos::new(8, -8), Pos::new(5, 5)).contains(dpos) {
-					let dhouse = dpos - Pos::new(8, -8);
+				} else if Area::centered(Pos::new(9, -8), Pos::new(5, 5)).contains(dpos) {
+					let dhouse = dpos - Pos::new(9, -8);
 					if dhouse == Pos::new(0, -1) {
 						t!(Dirt, Sage)
+					} else if dhouse  == Pos::new(1, 1) {
+						t!(Dirt, GardeningTable)
 					} else if dhouse == Pos::new(0, 2) || dhouse.abs().x < 2 && dhouse.abs().y < 2 {
 						t!(Dirt)
 					} else {
