@@ -14,6 +14,7 @@ mod errors;
 mod gameserver;
 mod grid;
 mod inventory;
+mod item;
 mod map;
 mod persistence;
 mod player;

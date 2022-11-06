@@ -1,7 +1,7 @@
 
 use std::collections::HashMap;
 use crate::{
-	inventory::Item,
+	item::Item,
 	tile::{Structure, Ground},
 	timestamp::Timestamp,
 	worldmessages::SoundType,

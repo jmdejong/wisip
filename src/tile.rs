@@ -3,7 +3,7 @@ use serde::{Serialize, Deserialize, Serializer, Deserializer};
 use enum_assoc::Assoc;
 use crate::{
 	sprite::Sprite,
-	inventory::Item,
+	item::Item,
 	action::{Action, InteractionType, CraftType, Interactable, InteractionResult},
 	timestamp::Timestamp,
 	worldmessages::SoundType::Explain,
