@@ -49,4 +49,5 @@ pub enum Sprite {
 	GreenStem,
 	BrownStem,
 	PlantedSeed,
+	Stick,
 }

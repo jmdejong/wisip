@@ -98,7 +98,7 @@ impl InfiniteMap {
 	
 	fn neighbour_biomes(&self, pos: Pos) -> impl Iterator<Item=(i32, BPos)> + '_ {
 		let bpos = BPos(Pos::new(pos.x - (pos.y / 2), pos.y)  / BIOME_SIZE);
-		[(0, 0), (1, 0), (0, 1), (1, 1)].into_iter()
+		[(0, 0), (1, 0), (0, 1), (1, 1), (0, 2), (1, 2)].into_iter()
 			.map(move |p| {
 				let b = BPos(bpos.0 + p);
 				let dist = pos.distance_to(self.biome_core(b));
@@ -118,7 +118,7 @@ impl InfiniteMap {
 			.collect();
 		distances.sort_by_key(|(d, _)| *d);
 		let (dist, bpos) = distances[0];
-		let my_biome= self.biome_at(bpos);
+		let my_biome = self.biome_at(bpos);
 		distances[1..].iter()
 			.find(|(_, b)| self.biome_at(*b) != my_biome)
 			.map(|(d, _)| d - dist)
@@ -197,15 +197,14 @@ impl InfiniteMap {
 			}
 			Biome::Forest => {
 				*pick_weighted(rtime, &[
-					(*pick(rind, &[
-						t!(Grass1),
-						t!(Grass2),
-						t!(Grass3),
-						t!(Moss),
-						t!(Moss),
-						t!(DeadLeaves),
-						t!(DeadLeaves),
-						t!(Dirt)
+					(*pick_weighted(rind, &[
+						(t!(Grass1), 10),
+						(t!(Grass2), 10),
+						(t!(Grass3), 10),
+						(t!(Moss), 40),
+						(t!(DeadLeaves), 40),
+						(t!(Dirt), 30),
+						(t!(Dirt, Stick), 1)
 					]), 100),
 					(t!(Grass1, Sapling), 3),
 					(t!(Dirt, YoungTree), 4),

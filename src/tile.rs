@@ -283,9 +283,9 @@ pub enum Structure {
 	#[assoc(grow = (3, Structure::Stick))]
 	StickPlantWatered,
 	
-	#[assoc(sprite = Sprite::BrownStem)]
-	#[assoc(describe = "Stick. A brown stem is what remains of the plant")]
-	#[assoc(interactions = vec![Interactable::harvest(InteractionType::Take, 0, &[], &[Item::Stick])])]
+	#[assoc(sprite = Sprite::Stick)]
+	#[assoc(describe = "A wooden stick")]
+	#[assoc(interactions = vec![Interactable::take(&[Item::Stick])])]
 	Stick,
 }
 
