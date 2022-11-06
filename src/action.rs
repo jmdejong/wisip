@@ -14,6 +14,8 @@ pub enum InteractionType {
 	Smash,
 	Cut,
 	Water,
+	Fuel,
+	Fertilize
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -43,10 +45,10 @@ pub enum Action {
 
 impl Action{
 	pub fn take() -> Self {
-		Self::new(InteractionType::Take, 0, false)
+		Self::interact(InteractionType::Take, 0, false)
 	}
 	
-	pub fn new(typ: InteractionType, level: u32, use_item: bool) -> Self {
+	pub fn interact(typ: InteractionType, level: u32, use_item: bool) -> Self {
 		Self::Interact(Interact { typ, level, use_item } )
 	}
 }
@@ -70,6 +72,10 @@ impl Interactable {
 			remains,
 			items: items.to_vec()
 		}
+	}
+	
+	pub fn transform(action_type: InteractionType, min_level: u32, into: Structure) -> Self {
+		Self::new(action_type, min_level, &[], Some(into), &[])
 	}
 	
 	pub fn harvest(action_type: InteractionType, min_level: u32, level_odds: &[f32], items: &[Item]) -> Self {

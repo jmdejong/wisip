@@ -223,7 +223,20 @@ pub enum Structure {
 	#[assoc(sprite = Sprite::Fireplace)]
 	#[assoc(blocking = true)]
 	#[assoc(describe = "Fireplace. Safe place to have a fire")]
+	#[assoc(interactions = vec![Interactable::transform(InteractionType::Fuel, 1, Structure::Fire)])]
 	Fireplace,
+	
+	#[assoc(sprite = Sprite::Fire)]
+	#[assoc(blocking = true)]
+	#[assoc(describe = "Fire. Safely contained in fireplace.")]
+	#[assoc(grow = (1, Structure::AshPlace))]
+	Fire,
+	
+	#[assoc(sprite = Sprite::AshPlace)]
+	#[assoc(blocking = true)]
+	#[assoc(describe = "Fireplace. Filled with ash")]
+	#[assoc(interactions = vec![Interactable::new(InteractionType::Take, 0, &[], Some(Structure::Fireplace), &[Item::Ash])])]
+	AshPlace,
 	
 	#[assoc(sprite = Sprite::Altar)]
 	#[assoc(blocking = true)]
@@ -251,14 +264,24 @@ pub enum Structure {
 	YellowSeed,
 	
 	#[assoc(sprite = Sprite::Seedling)]
+	#[assoc(describe = "Seedling. Needs water")]
+	#[assoc(interactions = vec![Interactable::transform(InteractionType::Water, 1, Structure::BrownSeedlingWatered)])]
+	BrownSeedling,
+	
+	#[assoc(sprite = Sprite::Seedling)]
 	#[assoc(describe = "Seedling")]
 	#[assoc(grow = (1, Structure::StickPlant))]
-	BrownSeedling,
+	BrownSeedlingWatered,
+	
+	#[assoc(sprite = Sprite::GreenStem)]
+	#[assoc(describe = "A plant with a long stem. Needs water")]
+	#[assoc(interactions = vec![Interactable::transform(InteractionType::Water, 1, Structure::StickPlantWatered)])]
+	StickPlant,
 	
 	#[assoc(sprite = Sprite::GreenStem)]
 	#[assoc(describe = "A plant with a long stem")]
 	#[assoc(grow = (3, Structure::Stick))]
-	StickPlant,
+	StickPlantWatered,
 	
 	#[assoc(sprite = Sprite::BrownStem)]
 	#[assoc(describe = "Stick. A brown stem is what remains of the plant")]
@@ -307,15 +330,19 @@ impl Tile {
 	}
 	
 	pub fn interact(&self, item: Item, time: Timestamp) -> Option<InteractionResult> {
+		item.actions().into_iter().filter_map(|action| self.act(action, item, time)).next()
+	}
+	
+	pub fn act(&self, action: Action, item: Item, time: Timestamp) -> Option<InteractionResult> {
 		if let Some(name) = self.structure.explain() {
-			if item.action() != Some(Action::Inspect) {
+			if action != Action::Inspect {
 				return Some(InteractionResult {
 					message: Some((Explain, format!("{}: {}", name, item.description().unwrap_or("Unknown")))),
 					..Default::default()
 				});
 			}
 		}
-		match item.action()? {
+		match action {
 			Action::Interact(interact) => {
 				let mut result = self.structure.interactables()
 					.into_iter()

@@ -37,6 +37,7 @@
 		"flint": ["/", 8],
 		"markstone": ["0", 7],
 		"fireplace": ["M", 7],
+		"ashplace": ["M", 8],
 		"fire": ["M", 9],
 		
 		"water": ["~", 4, 4],
