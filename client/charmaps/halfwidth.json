@@ -75,6 +75,8 @@
 		"cottonyarn": ["0", 15],
 		"sewingtable": ["s", 15],
 		"bag": ["6", 7],
+		"greenstem": ["|", 10],
+		"brownstem": ["|", 3],
 		" ": [" ", 7]
 	},
 	"writable": {

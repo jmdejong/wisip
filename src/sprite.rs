@@ -43,4 +43,8 @@ pub enum Sprite {
 	Fireplace,
 	MarkStone,
 	Altar,
+	Seedling,
+	GreenStem,
+	BrownStem,
+	PlantedSeed,
 }

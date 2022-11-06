@@ -95,6 +95,7 @@ pub enum Ground {
 #[func(fn take(&self) -> Option<Item>)]
 #[func(fn describe(&self) -> Option<&str>)]
 #[func(fn craft(&self) -> Option<CraftType>)]
+#[func(fn grow(&self) -> Option<(i64, Structure)>)]
 pub enum Structure {
 	#[assoc(is_open = true)]
 	Air,
@@ -145,17 +146,17 @@ pub enum Structure {
 	OldTreeTinder,
 	
 	#[assoc(sprite = Sprite::DenseGrass)]
-	#[assoc(interactions = vec![Interactable::harvest(InteractionType::Take, 0, &[0.1], &[Item::GreenSeeds])])]
+	#[assoc(interactions = vec![Interactable::harvest(InteractionType::Take, 0, &[0.1], &[Item::GreenSeed])])]
 	#[assoc(describe = "Dense grass")]
 	DenseGrassGrn,
 	
 	#[assoc(sprite = Sprite::DenseGrass)]
-	#[assoc(interactions = vec![Interactable::harvest(InteractionType::Take, 0, &[0.1], &[Item::BrownSeeds])])]
+	#[assoc(interactions = vec![Interactable::harvest(InteractionType::Take, 0, &[0.1], &[Item::BrownSeed])])]
 	#[assoc(describe = "Dense grass")]
 	DenseGrassBrn,
 	
 	#[assoc(sprite = Sprite::DenseGrass)]
-	#[assoc(interactions = vec![Interactable::harvest(InteractionType::Take, 0, &[0.1], &[Item::YellowSeeds])])]
+	#[assoc(interactions = vec![Interactable::harvest(InteractionType::Take, 0, &[0.1], &[Item::YellowSeed])])]
 	#[assoc(describe = "Dense grass")]
 	DenseGrassY,
 	
@@ -234,6 +235,35 @@ pub enum Structure {
 	#[assoc(blocking = true)]
 	#[assoc(describe = "Mark stone. Center of a land claim")]
 	MarkStone,
+	
+	#[assoc(sprite = Sprite::PlantedSeed)]
+	#[assoc(grow = (1, Structure::BrownSeedling))]
+	#[assoc(describe = "Planted seed")]
+	BrownSeed,
+	
+	#[assoc(grow = (1, Structure::BrownSeedling))]
+	#[assoc(describe = "Planted seed")]
+	GreenSeed,
+	
+	#[assoc(sprite = Sprite::PlantedSeed)]
+	#[assoc(grow = (1, Structure::BrownSeedling))]
+	#[assoc(describe = "Planted seed")]
+	YellowSeed,
+	
+	#[assoc(sprite = Sprite::Seedling)]
+	#[assoc(describe = "Seedling")]
+	#[assoc(grow = (1, Structure::StickPlant))]
+	BrownSeedling,
+	
+	#[assoc(sprite = Sprite::GreenStem)]
+	#[assoc(describe = "A plant with a long stem")]
+	#[assoc(grow = (3, Structure::Stick))]
+	StickPlant,
+	
+	#[assoc(sprite = Sprite::BrownStem)]
+	#[assoc(describe = "Stick. A brown stem is what remains of the plant")]
+	#[assoc(interactions = vec![Interactable::harvest(InteractionType::Take, 0, &[], &[Item::Stick])])]
+	Stick,
 }
 
 impl Structure {
@@ -349,6 +379,10 @@ impl Tile {
 				}
 			}
 		}
+	}
+	
+	pub fn grow(&self) -> Option<(i64, Structure)> {
+		self.structure.grow()
 	}
 }
 

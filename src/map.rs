@@ -60,6 +60,7 @@ impl Map {
 	}
 	
 	pub fn tick(&mut self, time: Timestamp, areas: Vec<Area>) {
+		self.time = time;
 		let chunk_size = randomtick::CHUNK_SIZE;
 		let tick_pos = randomtick::tick_position(time);
 		let tick_positions = areas.iter()
@@ -72,22 +73,37 @@ impl Map {
 					.filter(|pos| area.contains(*pos))
 			})
 			.collect::<HashSet<Pos>>();
-		self.time = time;
-		let last_tick = time - Duration((chunk_size * chunk_size) as i64);
 		for pos in tick_positions {
-			let base_cell = self.basemap.cell(pos, time);
-			if let Some((built, _built_time)) = self.changes.get(&pos) {
-				if built.structure.is_open()
-						&& (built.ground.restoring() || built.ground == base_cell.ground)
-						&& base_cell.structure.is_open() {
-					if built != &base_cell {
-						self.modifications.insert(pos);
-					}
-					self.changes.remove(&pos);
+			self.tick_one(pos);
+		}
+	}
+	
+	fn tick_one(&mut self, pos: Pos) {
+		let tick_interval = randomtick::CHUNK_AREA as i64;
+		let last_tick = self.time - Duration(tick_interval);
+		let base_cell = self.basemap.cell(pos, self.time);
+		if let Some((mut built, mut built_time)) = self.changes.get(&pos) {
+			while let Some((nticks, stage)) = built.grow() {
+				let update_time = built_time + Duration(nticks * tick_interval);
+				if update_time <= self.time {
+					built.structure = stage;
+					built_time = update_time;
+					self.changes.insert(pos, (built, built_time));
+					self.modifications.insert(pos);
+				} else {
+					break
 				}
-			} else if self.basemap.cell(pos, last_tick) != base_cell {
-				self.modifications.insert(pos);
 			}
+			if built.structure.is_open()
+					&& (built.ground.restoring() || built.ground == base_cell.ground)
+					&& base_cell.structure.is_open() {
+				if built != base_cell {
+					self.modifications.insert(pos);
+				}
+				self.changes.remove(&pos);
+			}
+		} else if self.basemap.cell(pos, last_tick) != base_cell {
+			self.modifications.insert(pos);
 		}
 	}
 	

@@ -185,7 +185,7 @@ impl InfiniteMap {
 					if WhiteNoise::new(self.seed + 9429).gen_f(pos) < 0.02 {
 						Structure::Shrub
 					} else {
-						*pick_weighted(randomize_u32(randomize_u32(rtime/4) + 5924), &[
+						*pick_weighted(randomize_u32(randomize_u32(rtime/4).wrapping_add(5924)), &[
 							(Structure::Air, 40),
 							(Structure::DenseGrassGrn, 4),
 							(Structure::DenseGrassBrn, 3),
