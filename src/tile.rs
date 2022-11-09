@@ -252,41 +252,6 @@ pub enum Structure {
 	#[assoc(describe = "Mark stone. Center of a land claim")]
 	MarkStone,
 	
-	#[assoc(sprite = Sprite::PlantedSeed)]
-	#[assoc(grow = (1, Structure::BrownSeedling))]
-	#[assoc(describe = "Planted seed")]
-	BrownSeed,
-	
-	#[assoc(sprite = Sprite::PlantedSeed)]
-	// #[assoc(grow = (1, Structure::GreenSeedling{watered: false}))]
-	#[assoc(describe = "Planted seed")]
-	GreenSeed,
-	
-	#[assoc(sprite = Sprite::PlantedSeed)]
-	#[assoc(grow = (1, Structure::BrownSeedling))]
-	#[assoc(describe = "Planted seed")]
-	YellowSeed,
-	
-	#[assoc(sprite = Sprite::Seedling)]
-	#[assoc(describe = "Seedling. Needs water")]
-	#[assoc(interactions = vec![Interactable::transform(InteractionType::Water, 1, Structure::BrownSeedlingWatered)])]
-	BrownSeedling,
-	
-	#[assoc(sprite = Sprite::Seedling)]
-	#[assoc(describe = "Seedling")]
-	#[assoc(grow = (1, Structure::StickPlant))]
-	BrownSeedlingWatered,
-	
-	#[assoc(sprite = Sprite::GreenStem)]
-	#[assoc(describe = "A plant with a long stem. Needs water")]
-	#[assoc(interactions = vec![Interactable::transform(InteractionType::Water, 1, Structure::StickPlantWatered)])]
-	StickPlant,
-	
-	#[assoc(sprite = Sprite::GreenStem)]
-	#[assoc(describe = "A plant with a long stem")]
-	#[assoc(grow = (3, Structure::Stick))]
-	StickPlantWatered,
-	
 	#[assoc(sprite = Sprite::Stick)]
 	#[assoc(describe = "A wooden stick")]
 	#[assoc(interactions = vec![Interactable::take(&[Item::Stick])])]
@@ -301,6 +266,11 @@ pub enum Structure {
 	#[assoc(describe = "KnifeLeaf")]
 	#[assoc(interactions = vec![Interactable::take(&[Item::KnifeLeaf, Item::YellowSeed])])]
 	KnifeLeaf,
+	
+	#[assoc(sprite = Sprite::HardwoodStick)]
+	#[assoc(describe = "HardwoodStick")]
+	#[assoc(interactions = vec![Interactable::take(&[Item::HardwoodStick, Item::BrownSeed])])]
+	HardwoodStick,
 	
 	#[assoc(sprite = _0.sprite())]
 	#[assoc(description = _0.description())]

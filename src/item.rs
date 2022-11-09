@@ -75,7 +75,7 @@ pub enum Item {
 	YellowSeed,
 	
 	#[assoc(name="brown seed")]
-	#[assoc(actions=vec![Action::Build(Structure::BrownSeed, HashMap::new())])]
+	#[assoc(actions=vec![Action::Build(Structure::Crop(Crop::brownseed()), HashMap::new())])]
 	#[assoc(description="Unknown brown seed")]
 	BrownSeed,
 	
@@ -100,6 +100,13 @@ pub enum Item {
 		Action::interact(Cut, 2, true)
 	])]
 	KnifeLeaf,
+	
+	#[assoc(name="hardwood stick")]
+	#[assoc(description="A strong stick")]
+	#[assoc(actions=vec![
+		Action::interact(Fuel, 2, true)
+	])]
+	HardwoodStick,
 	
 	#[assoc(name="tinder")]
 	#[assoc(description="Tinder from the tinder fungus. Can be placed with some pebbles on a clear space to create a fireplace")]

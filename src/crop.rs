@@ -59,6 +59,27 @@ enum CropType {
 	#[assoc(describe = "A plant with sharp leaves")]
 	#[assoc(grow = (1, Structure::KnifeLeaf))]
 	KnifePlant,
+	
+	
+	#[assoc(sprite = Sprite::PlantedSeed)]
+	#[assoc(describe = "Planted seed")]
+	#[assoc(next = (1, CropType::BrownSeedling))]
+	BrownSeed,
+	
+	#[assoc(sprite = Sprite::Seedling)]
+	#[assoc(describe = "Seedling")]
+	#[assoc(next = (1, CropType::YoungHardPlant))]
+	BrownSeedling,
+	
+	#[assoc(sprite = Sprite::YoungHardPlant)]
+	#[assoc(describe = "A small plant with a hard stem")]
+	#[assoc(next = (1, CropType::HardPlant))]
+	YoungHardPlant,
+	
+	#[assoc(sprite = Sprite::HardPlant)]
+	#[assoc(describe = "Plant with a very hard stem")]
+	#[assoc(grow = (1, Structure::HardwoodStick))]
+	HardPlant,
 }
 
 
@@ -126,5 +147,9 @@ impl Crop {
 	
 	pub fn yellowseed() -> Self {
 		Self::new(CropType::YellowSeed)
+	}
+	
+	pub fn brownseed() -> Self {
+		Self::new(CropType::BrownSeed)
 	}
 }

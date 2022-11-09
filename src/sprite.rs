@@ -57,5 +57,8 @@ pub enum Sprite {
 	YoungKnifePlant,
 	KnifePlant,
 	KnifeLeaf,
+	YoungHardPlant,
+	HardPlant,
+	HardwoodStick,
 	Unknown,
 }

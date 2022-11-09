@@ -81,6 +81,9 @@
 		"youngknifeplant": ["k", 10],
 		"knifeplant": ["K", 2],
 		"knifeleaf": ["k", 3],
+		"younghardplant": ["h", 2],
+		"hardplant": ["H", 2],
+		"hardwoodstick": ["|", 3],
 		" ": [" ", 7]
 	},
 	"writable": {
