@@ -56,7 +56,7 @@ pub enum Item {
 	
 	#[assoc(name="water pitcher")]
 	#[assoc(description="A pitcher from the pitcher plant, filled with water")]
-	#[assoc(actions=vec![Action::interact(Water, 1, true)])]
+	#[assoc(actions=vec![Action::interact_change(Water, 1, Item::Pitcher)])]
 	FilledPitcher,
 	
 	#[assoc(name="hoe")]

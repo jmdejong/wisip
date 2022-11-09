@@ -29,9 +29,15 @@ pub enum CraftType {
 pub struct Interact {
 	typ: InteractionType,
 	level: u32,
-	pub use_item: bool
+	pub use_item: bool,
+	received: Option<Item>,
 }
 
+impl Interact {
+	pub fn received(&self) -> Vec<Item> {
+		self.received.into_iter().collect()
+	}
+}
 
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -50,7 +56,11 @@ impl Action{
 	}
 	
 	pub fn interact(typ: InteractionType, level: u32, use_item: bool) -> Self {
-		Self::Interact(Interact { typ, level, use_item } )
+		Self::Interact(Interact { typ, level, use_item, received: None } )
+	}
+	
+	pub fn interact_change(typ: InteractionType, level: u32, received: Item) -> Self {
+		Self::Interact(Interact { typ, level, use_item: true, received: Some(received) } )
 	}
 }
 
@@ -99,11 +109,14 @@ impl Interactable {
 			};
 			Some(InteractionResult {
 				remains: self.remains,
-				items: if odds >= random::random_float(time.random_seed() ^ 84217) {
-					self.items.clone()
-				} else {
-					Vec::new()
-				},
+				items: [
+					action.received(),
+					if odds >= random::random_float(time.random_seed() ^ 84217) {
+						self.items.clone()
+					} else {
+						Vec::new()
+					}
+				].concat(),
 				..Default::default()
 			})
 		} else {
