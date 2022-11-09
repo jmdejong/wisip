@@ -7,6 +7,7 @@ use crate::{
 	action::{Action, InteractionType::*, CraftType},
 	tile::Structure,
 	hashmap,
+	crop::Crop,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, Assoc)]
@@ -65,7 +66,7 @@ pub enum Item {
 	
 	#[assoc(name="green seeds")]
 	#[assoc(description="Unknown green seeds")]
-	#[assoc(actions=vec![Action::Build(Structure::GreenSeed, HashMap::new())])]
+	#[assoc(actions=vec![Action::Build(Structure::Crop(Crop::greenseed()), HashMap::new())])]
 	GreenSeed,
 	
 	#[assoc(name="yellow seeds")]
@@ -85,6 +86,13 @@ pub enum Item {
 		Action::interact(Fuel, 1, true)
 	])]
 	Stick,
+	
+	#[assoc(name="discleaf")]
+	#[assoc(description="Disk leaf")]
+	#[assoc(actions=vec![
+		Action::interact(Fuel, 1, true)
+	])]
+	DiscLeaf,
 	
 	#[assoc(name="tinder")]
 	#[assoc(description="Tinder from the tinder fungus. Can be placed with some pebbles on a clear space to create a fireplace")]

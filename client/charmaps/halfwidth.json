@@ -75,6 +75,8 @@
 		"bag": ["6", 7],
 		"greenstem": ["|", 10],
 		"brownstem": ["|", 3],
+		"leafplant": ["o", 10],
+		"discleaf": ["o", 11],
 		" ": [" ", 7]
 	},
 	"writable": {

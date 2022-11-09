@@ -193,8 +193,7 @@ dependencies = [
 [[package]]
 name = "enum-assoc"
 version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e0e46053d81318009b3e7e7715844eca65b93a60bf888dd27d87c244c81a0ed"
+source = "git+https://github.com/Adhalianna/enum-assoc#bc582746dde0bfde6143d4e478b5493ad522d501"
 dependencies = [
  "proc-macro2",
  "quote",

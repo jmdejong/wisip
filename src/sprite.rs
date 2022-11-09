@@ -50,5 +50,8 @@ pub enum Sprite {
 	BrownStem,
 	PlantedSeed,
 	Stick,
-	WorkTable
+	WorkTable,
+	LeafPlant,
+	DiscLeaf,
+	Unknown,
 }

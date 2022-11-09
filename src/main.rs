@@ -10,6 +10,7 @@ mod basemap;
 mod config;
 mod controls;
 mod creature;
+mod crop;
 mod errors;
 mod gameserver;
 mod grid;

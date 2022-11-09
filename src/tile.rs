@@ -8,6 +8,7 @@ use crate::{
 	timestamp::Timestamp,
 	worldmessages::SoundType::Explain,
 	hashmap,
+	crop::Crop,
 };
 
 
@@ -89,6 +90,7 @@ pub enum Ground {
 #[func(fn interactions(&self) -> Vec<Interactable> {Vec::new()})]
 #[func(fn take(&self) -> Option<Item>)]
 #[func(fn describe(&self) -> Option<&str>)]
+#[func(fn description(&self) -> Option<String> { self.describe().map(|s| s.to_string())})]
 #[func(fn craft(&self) -> Option<CraftType>)]
 #[func(fn grow(&self) -> Option<(i64, Structure)>)]
 pub enum Structure {
@@ -255,7 +257,8 @@ pub enum Structure {
 	#[assoc(describe = "Planted seed")]
 	BrownSeed,
 	
-	#[assoc(grow = (1, Structure::BrownSeedling))]
+	#[assoc(sprite = Sprite::PlantedSeed)]
+	// #[assoc(grow = (1, Structure::GreenSeedling{watered: false}))]
 	#[assoc(describe = "Planted seed")]
 	GreenSeed,
 	
@@ -288,7 +291,19 @@ pub enum Structure {
 	#[assoc(describe = "A wooden stick")]
 	#[assoc(interactions = vec![Interactable::take(&[Item::Stick])])]
 	Stick,
+	
+	#[assoc(sprite = Sprite::DiscLeaf)]
+	#[assoc(describe = "DiscLeaf")]
+	#[assoc(interactions = vec![Interactable::take(&[Item::DiscLeaf, Item::GreenSeed])])]
+	DiscLeaf,
+	
+	#[assoc(sprite = _0.sprite())]
+	#[assoc(description = _0.description())]
+	#[assoc(interactions = _0.all_interactions())]
+	#[assoc(grow = _0.grow()?)]
+	Crop(Crop),
 }
+
 
 impl Structure {
 	fn interactables(&self) -> Vec<Interactable> {
@@ -367,7 +382,11 @@ impl Tile {
 				Some(InteractionResult {
 					message: Some((
 						Explain,
-						format!("{}  --  {}", self.ground.describe().unwrap_or(""), self.structure.describe().unwrap_or(""))
+						format!(
+							"{}  --  {}",
+							self.ground.describe().unwrap_or(""),
+							self.structure.description().unwrap_or("".to_string())
+						)
 					)),
 					..Default::default()
 				}),
@@ -433,4 +452,9 @@ impl<'de> Deserialize<'de> for Tile {
 		Ok(Self{ground, structure})
 	}
 }
+
+
+
+
+
 
