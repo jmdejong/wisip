@@ -29,7 +29,7 @@ enum CropType {
 	#[assoc(next = (1, CropType::YoungLeafPlant))]
 	GreenSeedling,
 	
-	#[assoc(sprite = Sprite::LeafPlant)]
+	#[assoc(sprite = Sprite::YoungLeafPlant)]
 	#[assoc(describe = "A small plant with big round leaves")]
 	#[assoc(next = (1, CropType::LeafPlant))]
 	YoungLeafPlant,
@@ -38,6 +38,27 @@ enum CropType {
 	#[assoc(describe = "A plant with big round leaves")]
 	#[assoc(grow = (1, Structure::DiscLeaf))]
 	LeafPlant,
+	
+	
+	#[assoc(sprite = Sprite::PlantedSeed)]
+	#[assoc(describe = "Planted seed")]
+	#[assoc(next = (1, CropType::YellowSeedling))]
+	YellowSeed,
+	
+	#[assoc(sprite = Sprite::Seedling)]
+	#[assoc(describe = "Seedling")]
+	#[assoc(next = (1, CropType::YoungKnifePlant))]
+	YellowSeedling,
+	
+	#[assoc(sprite = Sprite::YoungKnifePlant)]
+	#[assoc(describe = "A small plant with sharp leaves")]
+	#[assoc(next = (1, CropType::KnifePlant))]
+	YoungKnifePlant,
+	
+	#[assoc(sprite = Sprite::KnifePlant)]
+	#[assoc(describe = "A plant with sharp leaves")]
+	#[assoc(grow = (1, Structure::KnifeLeaf))]
+	KnifePlant,
 }
 
 
@@ -95,7 +116,15 @@ impl Crop {
 		self.typ.sprite()
 	}
 	
+	fn new(typ: CropType) -> Self {
+		Self { typ, flags: 0 }
+	}
+	
 	pub fn greenseed() -> Self {
-		Self {typ: CropType::GreenSeed, flags: 0 }
+		Self::new(CropType::GreenSeed)
+	}
+	
+	pub fn yellowseed() -> Self {
+		Self::new(CropType::YellowSeed)
 	}
 }

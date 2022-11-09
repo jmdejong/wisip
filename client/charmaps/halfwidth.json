@@ -75,8 +75,12 @@
 		"bag": ["6", 7],
 		"greenstem": ["|", 10],
 		"brownstem": ["|", 3],
-		"leafplant": ["o", 10],
+		"youngleafplant": ["o", 10],
+		"leafplant": ["O", 10],
 		"discleaf": ["o", 11],
+		"youngknifeplant": ["k", 10],
+		"knifeplant": ["K", 2],
+		"knifeleaf": ["k", 3],
 		" ": [" ", 7]
 	},
 	"writable": {

@@ -51,7 +51,11 @@ pub enum Sprite {
 	PlantedSeed,
 	Stick,
 	WorkTable,
+	YoungLeafPlant,
 	LeafPlant,
 	DiscLeaf,
+	YoungKnifePlant,
+	KnifePlant,
+	KnifeLeaf,
 	Unknown,
 }

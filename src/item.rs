@@ -64,19 +64,19 @@ pub enum Item {
 	#[assoc(actions=vec![Action::Clear])]
 	Hoe,
 	
-	#[assoc(name="green seeds")]
-	#[assoc(description="Unknown green seeds")]
+	#[assoc(name="green seed")]
+	#[assoc(description="Unknown green seed")]
 	#[assoc(actions=vec![Action::Build(Structure::Crop(Crop::greenseed()), HashMap::new())])]
 	GreenSeed,
 	
-	#[assoc(name="yellow seeds")]
-	#[assoc(actions=vec![Action::Build(Structure::YellowSeed, HashMap::new())])]
-	#[assoc(description="Unknown yellow seeds")]
+	#[assoc(name="yellow seed")]
+	#[assoc(actions=vec![Action::Build(Structure::Crop(Crop::yellowseed()), HashMap::new())])]
+	#[assoc(description="Unknown yellow seed")]
 	YellowSeed,
 	
-	#[assoc(name="brown seeds")]
+	#[assoc(name="brown seed")]
 	#[assoc(actions=vec![Action::Build(Structure::BrownSeed, HashMap::new())])]
-	#[assoc(description="Unknown brown seeds")]
+	#[assoc(description="Unknown brown seed")]
 	BrownSeed,
 	
 	#[assoc(name="stick")]
@@ -93,6 +93,13 @@ pub enum Item {
 		Action::interact(Fuel, 1, true)
 	])]
 	DiscLeaf,
+	
+	#[assoc(name="knifeleaf")]
+	#[assoc(description="Knife leaf")]
+	#[assoc(actions=vec![
+		Action::interact(Cut, 2, true)
+	])]
+	KnifeLeaf,
 	
 	#[assoc(name="tinder")]
 	#[assoc(description="Tinder from the tinder fungus. Can be placed with some pebbles on a clear space to create a fireplace")]

@@ -297,6 +297,11 @@ pub enum Structure {
 	#[assoc(interactions = vec![Interactable::take(&[Item::DiscLeaf, Item::GreenSeed])])]
 	DiscLeaf,
 	
+	#[assoc(sprite = Sprite::KnifeLeaf)]
+	#[assoc(describe = "KnifeLeaf")]
+	#[assoc(interactions = vec![Interactable::take(&[Item::KnifeLeaf, Item::YellowSeed])])]
+	KnifeLeaf,
+	
 	#[assoc(sprite = _0.sprite())]
 	#[assoc(description = _0.description())]
 	#[assoc(interactions = _0.all_interactions())]
