@@ -37,7 +37,7 @@ join = "join" in sys.argv
 
 if inet:
 	sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-	sock.connect(("localhost", 9021))
+	sock.connect(("localhost", 9231))
 else:
 	sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
 	sock.connect("\0rustifarm")

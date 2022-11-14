@@ -8,7 +8,7 @@ import json
 
 async def main():
 
-	async with websockets.connect("ws://127.0.0.1:9232") as sock:
+	async with websockets.connect("ws://127.0.0.1:9231") as sock:
 		
 		def listen():
 			while(True):
