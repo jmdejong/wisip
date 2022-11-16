@@ -250,7 +250,6 @@ impl World {
 	pub fn view(&mut self) -> HashMap<PlayerId, WorldMessage> {
 		let dynamic_sprites = self.draw_dynamic();
 		let changes = self.draw_changes(dynamic_sprites.clone());
-		let mut field = None;
 		let mut views: HashMap<PlayerId, WorldMessage> = HashMap::new();
 		for (playerid, player) in self.players.iter_mut() {
 			let mut wm = WorldMessage::default();
@@ -267,10 +266,7 @@ impl World {
 				} else {
 					player.is_new = false;
 					player.view_center = Some(body.pos);
-					if field.is_none(){
-						field = Some(draw_field(player.view_area().unwrap(), &mut self.ground, &dynamic_sprites));
-					}
-					wm.field = Some(field.clone().unwrap());
+					wm.field = Some(draw_field(player.view_area().unwrap(), &mut self.ground, &dynamic_sprites));
 				}
 				wm.pos = Some(body.pos);
 				wm.inventory = Some(body.inventory.view());
