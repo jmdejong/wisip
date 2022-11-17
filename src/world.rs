@@ -313,7 +313,7 @@ fn draw_field(area: Area, tiles: &mut Map, sprites: &HashMap<Pos, Vec<Sprite>>) 
 		if let Some(dynamic_sprites) = sprites.get(&pos) {
 			tile_sprites.extend_from_slice(dynamic_sprites);
 		}
-		let tile = tiles.cell(pos);
+		let tile = tiles.load_cell(pos);
 		tile_sprites.append(&mut tile.sprites());
 		values.push(
 			match mapping.iter().position(|x| x == &tile_sprites) {

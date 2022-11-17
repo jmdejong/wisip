@@ -16,7 +16,7 @@ use crate::{
 #[func(fn interactions(&self) -> Vec<Interactable> {Vec::new()})]
 #[func(fn next(&self) -> Option<(i64, CropType)>)]
 #[func(fn grow(&self) -> Option<(i64, Structure)>)]
-#[func(fn fertilized_grow(&self) -> Option<(i64, Structure)>)]
+#[func(fn fertilized_grow(&self) -> Option<CropType>)]
 enum CropType {
 	
 	#[assoc(sprite = Sprite::PlantedSeed)]
@@ -32,12 +32,19 @@ enum CropType {
 	#[assoc(sprite = Sprite::YoungLeafPlant)]
 	#[assoc(describe = "A small plant with big round leaves")]
 	#[assoc(next = (1, CropType::LeafPlant))]
+	#[assoc(fertilized_grow = CropType::LeafShoot)]
 	YoungLeafPlant,
 	
 	#[assoc(sprite = Sprite::LeafPlant)]
 	#[assoc(describe = "A plant with big round leaves")]
-	#[assoc(grow = (1, Structure::DiscLeaf))]
+	#[assoc(grow = (1, Structure::SeedingDiscLeaf))]
+	#[assoc(fertilized_grow = CropType::LeafShoot)]
 	LeafPlant,
+	
+	#[assoc(sprite = Sprite::LeafPlant)]
+	#[assoc(describe = "A shoot of a plant with big round leaves")]
+	#[assoc(grow = (1, Structure::DiscLeaf))]
+	LeafShoot,
 	
 	
 	#[assoc(sprite = Sprite::PlantedSeed)]
@@ -53,12 +60,19 @@ enum CropType {
 	#[assoc(sprite = Sprite::YoungKnifePlant)]
 	#[assoc(describe = "A small plant with sharp leaves")]
 	#[assoc(next = (1, CropType::KnifePlant))]
+	#[assoc(fertilized_grow = CropType::KnifeShoot)]
 	YoungKnifePlant,
 	
 	#[assoc(sprite = Sprite::KnifePlant)]
 	#[assoc(describe = "A plant with sharp leaves")]
-	#[assoc(grow = (1, Structure::KnifeLeaf))]
+	#[assoc(grow = (1, Structure::SeedingKnifeLeaf))]
+	#[assoc(fertilized_grow = CropType::KnifeShoot)]
 	KnifePlant,
+	
+	#[assoc(sprite = Sprite::KnifePlant)]
+	#[assoc(describe = "A shoot of a plant with sharp leaves")]
+	#[assoc(grow = (1, Structure::KnifeLeaf))]
+	KnifeShoot,
 	
 	
 	#[assoc(sprite = Sprite::PlantedSeed)]
@@ -74,12 +88,19 @@ enum CropType {
 	#[assoc(sprite = Sprite::YoungHardPlant)]
 	#[assoc(describe = "A small plant with a hard stem")]
 	#[assoc(next = (1, CropType::HardPlant))]
+	#[assoc(fertilized_grow = CropType::HardShoot)]
 	YoungHardPlant,
 	
 	#[assoc(sprite = Sprite::HardPlant)]
 	#[assoc(describe = "Plant with a very hard stem")]
-	#[assoc(grow = (1, Structure::HardwoodStick))]
+	#[assoc(grow = (1, Structure::SeedingHardwood))]
+	#[assoc(fertilized_grow = CropType::HardShoot)]
 	HardPlant,
+	
+	#[assoc(sprite = Sprite::HardPlant)]
+	#[assoc(describe = "A shoot of a plant with hard branches")]
+	#[assoc(grow = (1, Structure::HardwoodStick))]
+	HardShoot,
 }
 
 
@@ -113,23 +134,33 @@ impl Crop {
 	}
 	
 	pub fn description(&self) -> String {
-		if self.flags & WATERED != 0 {
-			self.typ.describe().to_string()
-		} else {
-			format!("{}. Needs water", self.typ.describe())
+		let mut description = self.typ.describe().to_string();
+		if self.flags & WATERED == 0 {
+			description = format!("{}. Needs water", description)
 		}
+		if self.flags & FERTILIZED == 0 && self.typ.fertilized_grow().is_some() {
+			description = format!("{}. Can be fertilized", description);
+		}
+		description
 	}
 	
-	pub fn grow(&self) -> Option<(i64, Structure)> {
+	pub fn grow(&self) -> Option<(i64, Structure, Option<Structure>)> {
 		if self.flags & WATERED == 0 {
-			None
-		} else if self.flags & FERTILIZED != 0 && self.typ.fertilized_grow().is_some() {
-			self.typ.fertilized_grow()
-		} else if let Some((steps, typ)) = self.typ.next() {
+			return None;
+		}
+		let shoot =
+			if self.flags & FERTILIZED != 0 {
+				self.typ.fertilized_grow().map(|typ| Structure::Crop(Self { typ, flags: 0 }))
+			} else {
+				None
+			};
+		if let Some((steps, typ)) = self.typ.next() {
 			let crop = Self { typ, flags: 0 };
-			Some((steps, Structure::Crop(crop)))
+			Some((steps, Structure::Crop(crop), shoot))
+		} else if let Some((steps, typ)) = self.typ.grow() {
+			Some((steps, typ, shoot))
 		} else {
-			self.typ.grow()
+			None
 		}
 	}
 	

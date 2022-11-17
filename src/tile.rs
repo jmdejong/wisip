@@ -92,7 +92,7 @@ pub enum Ground {
 #[func(fn describe(&self) -> Option<&str>)]
 #[func(fn description(&self) -> Option<String> { self.describe().map(|s| s.to_string())})]
 #[func(fn craft(&self) -> Option<CraftType>)]
-#[func(fn grow(&self) -> Option<(i64, Structure)>)]
+#[func(fn grow(&self) -> Option<(i64, Structure, Option<Structure>)>)]
 pub enum Structure {
 	#[assoc(is_open = true)]
 	Air,
@@ -226,7 +226,7 @@ pub enum Structure {
 	#[assoc(sprite = Sprite::Fire)]
 	#[assoc(blocking = true)]
 	#[assoc(describe = "Fire. Safely contained in fireplace.")]
-	#[assoc(grow = (1, Structure::AshPlace))]
+	#[assoc(grow = (1, Structure::AshPlace, None))]
 	Fire,
 	
 	#[assoc(sprite = Sprite::AshPlace)]
@@ -257,19 +257,34 @@ pub enum Structure {
 	#[assoc(interactions = vec![Interactable::take(&[Item::Stick])])]
 	Stick,
 	
+	#[assoc(sprite = Sprite::SeedingHardwood)]
+	#[assoc(describe = "Seeding Hardwood")]
+	#[assoc(interactions = vec![Interactable::take(&[Item::BrownSeed])])]
+	SeedingHardwood,
+	
+	#[assoc(sprite = Sprite::SeedingDiscLeaf)]
+	#[assoc(describe = "Seeding Disc plant")]
+	#[assoc(interactions = vec![Interactable::take(&[Item::GreenSeed])])]
+	SeedingDiscLeaf,
+	
+	#[assoc(sprite = Sprite::SeedingKnifeLeaf)]
+	#[assoc(describe = "Seeding Knife plant")]
+	#[assoc(interactions = vec![Interactable::take(&[Item::YellowSeed])])]
+	SeedingKnifeLeaf,
+	
 	#[assoc(sprite = Sprite::DiscLeaf)]
 	#[assoc(describe = "DiscLeaf")]
-	#[assoc(interactions = vec![Interactable::take(&[Item::DiscLeaf, Item::GreenSeed])])]
+	#[assoc(interactions = vec![Interactable::take(&[Item::DiscLeaf])])]
 	DiscLeaf,
 	
 	#[assoc(sprite = Sprite::KnifeLeaf)]
 	#[assoc(describe = "KnifeLeaf")]
-	#[assoc(interactions = vec![Interactable::take(&[Item::KnifeLeaf, Item::YellowSeed])])]
+	#[assoc(interactions = vec![Interactable::take(&[Item::KnifeLeaf])])]
 	KnifeLeaf,
 	
 	#[assoc(sprite = Sprite::HardwoodStick)]
 	#[assoc(describe = "HardwoodStick")]
-	#[assoc(interactions = vec![Interactable::take(&[Item::HardwoodStick, Item::BrownSeed])])]
+	#[assoc(interactions = vec![Interactable::take(&[Item::HardwoodStick])])]
 	HardwoodStick,
 	
 	#[assoc(sprite = _0.sprite())]
@@ -403,7 +418,7 @@ impl Tile {
 		}
 	}
 	
-	pub fn grow(&self) -> Option<(i64, Structure)> {
+	pub fn grow(&self) -> Option<(i64, Structure, Option<Structure>)> {
 		self.structure.grow()
 	}
 }

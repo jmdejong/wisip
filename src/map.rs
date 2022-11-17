@@ -1,7 +1,7 @@
 
 use std::collections::{HashMap, HashSet};
 use crate::{
-	pos::{Pos, Area},
+	pos::{Pos, Area, Direction},
 	tile::{Tile, Structure, Ground},
 	basemap::{BaseMap, InfiniteMap},
 	timestamp::{Timestamp, Duration},
@@ -34,6 +34,11 @@ impl Map {
 	
 	pub fn cell(&mut self, pos: Pos) -> Tile {
 		self.changes.get(&pos).map(|change| change.0).unwrap_or_else(|| self.base_cell(pos))
+	}
+	
+	pub fn load_cell(&mut self, pos: Pos) -> Tile {
+		self.tick_one(pos);
+		self.cell(pos)
 	}
 	
 	pub fn set(&mut self, pos: Pos, tile: Tile) {
@@ -79,17 +84,27 @@ impl Map {
 	}
 	
 	fn tick_one(&mut self, pos: Pos) {
+		self.modifications.insert(pos);
 		let tick_interval = randomtick::CHUNK_AREA as i64;
-		let last_tick = self.time - Duration(tick_interval);
 		let base_cell = self.basemap.cell(pos, self.time);
 		if let Some((mut built, mut built_time)) = self.changes.get(&pos) {
-			while let Some((nticks, stage)) = built.grow() {
+			while let Some((nticks, stage, surround)) = built.grow() {
 				let update_time = built_time + Duration(nticks * tick_interval);
 				if update_time <= self.time {
 					built.structure = stage;
 					built_time = update_time;
 					self.changes.insert(pos, (built, built_time));
-					self.modifications.insert(pos);
+					if let Some(shoot) = surround {
+						for d in Direction::DIRECTIONS {
+							let npos = pos + d;
+							let mut ntile = self.cell(npos);
+							if ntile.structure.is_open() {
+								ntile.structure = shoot;
+								self.changes.insert(npos, (ntile, built_time));
+								self.modifications.insert(npos);
+							}
+						}
+					}
 				} else {
 					break
 				}
@@ -97,13 +112,8 @@ impl Map {
 			if built.structure.is_open()
 					&& (built.ground.restoring() || built.ground == base_cell.ground)
 					&& base_cell.structure.is_open() {
-				if built != base_cell {
-					self.modifications.insert(pos);
-				}
 				self.changes.remove(&pos);
 			}
-		} else if self.basemap.cell(pos, last_tick) != base_cell {
-			self.modifications.insert(pos);
 		}
 	}
 	

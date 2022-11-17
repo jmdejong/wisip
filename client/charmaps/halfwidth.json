@@ -84,6 +84,9 @@
 		"younghardplant": ["h", 2],
 		"hardplant": ["H", 2],
 		"hardwoodstick": ["|", 3],
+		"seedingknifeleaf": ["k", 11],
+		"seedingdiscleaf": ["o", 2],
+		"seedinghardwood": ["h", 3],
 		" ": [" ", 7]
 	},
 	"writable": {

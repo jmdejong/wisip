@@ -60,5 +60,8 @@ pub enum Sprite {
 	YoungHardPlant,
 	HardPlant,
 	HardwoodStick,
+	SeedingKnifeLeaf,
+	SeedingDiscLeaf,
+	SeedingHardwood,
 	Unknown,
 }
