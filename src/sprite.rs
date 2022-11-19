@@ -63,5 +63,9 @@ pub enum Sprite {
 	SeedingKnifeLeaf,
 	SeedingDiscLeaf,
 	SeedingHardwood,
+	HardKnifePlant,
+	HardDiscPlant,
+	HardwoodKnife,
+	HardwoodTable,
 	Unknown,
 }

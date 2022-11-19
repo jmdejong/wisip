@@ -93,6 +93,7 @@ pub enum Ground {
 #[func(fn description(&self) -> Option<String> { self.describe().map(|s| s.to_string())})]
 #[func(fn craft(&self) -> Option<CraftType>)]
 #[func(fn grow(&self) -> Option<(i64, Structure, Option<Structure>)>)]
+#[func(fn join(&self, other: Structure) -> Option<Structure>)]
 pub enum Structure {
 	#[assoc(is_open = true)]
 	Air,
@@ -283,14 +284,25 @@ pub enum Structure {
 	KnifeLeaf,
 	
 	#[assoc(sprite = Sprite::HardwoodStick)]
-	#[assoc(describe = "HardwoodStick")]
+	#[assoc(describe = "Hardwood stick")]
 	#[assoc(interactions = vec![Interactable::take(&[Item::HardwoodStick])])]
 	HardwoodStick,
+	
+	#[assoc(sprite = Sprite::HardwoodKnife)]
+	#[assoc(describe = "Hardwood knife")]
+	#[assoc(interactions = vec![Interactable::take(&[Item::HardwoodKnife])])]
+	HardwoodKnife,
+	
+	#[assoc(sprite = Sprite::HardwoodTable)]
+	#[assoc(describe = "Hardwood Table")]
+	#[assoc(interactions = vec![Interactable::take(&[Item::HardwoodTable])])]
+	HardwoodTable,
 	
 	#[assoc(sprite = _0.sprite())]
 	#[assoc(description = _0.description())]
 	#[assoc(interactions = _0.all_interactions())]
 	#[assoc(grow = _0.grow()?)]
+	#[assoc(join = _0.join(other)?)]
 	Crop(Crop),
 }
 
@@ -302,6 +314,10 @@ impl Structure {
 			interactions.push(Interactable::take(&[item]));
 		}
 		interactions
+	}
+	
+	pub fn joined(&self, other: Structure) -> Option<Structure> {
+		self.join(other).or_else(|| other.join(*self))
 	}
 }
 

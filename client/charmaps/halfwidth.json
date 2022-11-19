@@ -87,6 +87,10 @@
 		"seedingknifeleaf": ["k", 11],
 		"seedingdiscleaf": ["o", 2],
 		"seedinghardwood": ["h", 3],
+		"hardknifeplant": ["K", 3],
+		"harddiscplant": ["O", 3],
+		"hardwoodknife": ["k", 3],
+		"hardwoodtable": ["o", 3],
 		" ": [" ", 7]
 	},
 	"writable": {

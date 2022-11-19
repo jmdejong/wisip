@@ -98,7 +98,11 @@ impl Map {
 						for d in Direction::DIRECTIONS {
 							let npos = pos + d;
 							let mut ntile = self.cell(npos);
-							if ntile.structure.is_open() {
+							if let Some(product) = shoot.joined(ntile.structure) {
+								ntile.structure = product;
+								self.changes.insert(npos, (ntile, built_time));
+								self.modifications.insert(npos);
+							} else if ntile.structure.is_open() {
 								ntile.structure = shoot;
 								self.changes.insert(npos, (ntile, built_time));
 								self.modifications.insert(npos);

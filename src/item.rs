@@ -108,6 +108,20 @@ pub enum Item {
 	])]
 	HardwoodStick,
 	
+	#[assoc(name="wood knife")]
+	#[assoc(description="A surprisingly effective wooden knife")]
+	#[assoc(actions=vec![
+		Action::interact(Cut, 2, false)
+	])]
+	HardwoodKnife,
+	
+	#[assoc(name="wood table")]
+	#[assoc(description="A wooden table")]
+	#[assoc(actions=vec![
+		Action::Build(Structure::HardwoodTable, HashMap::new())
+	])]
+	HardwoodTable,
+	
 	#[assoc(name="tinder")]
 	#[assoc(description="Tinder from the tinder fungus. Can be placed with some pebbles on a clear space to create a fireplace")]
 	#[assoc(actions=vec![Action::Build(Structure::Fireplace, hashmap![Item::Pebble => 10])])]

@@ -17,6 +17,7 @@ use crate::{
 #[func(fn next(&self) -> Option<(i64, CropType)>)]
 #[func(fn grow(&self) -> Option<(i64, Structure)>)]
 #[func(fn fertilized_grow(&self) -> Option<CropType>)]
+#[func(fn inosculate(&self) -> Vec<(CropType, CropType)> {Vec::new()})]
 enum CropType {
 	
 	#[assoc(sprite = Sprite::PlantedSeed)]
@@ -100,7 +101,21 @@ enum CropType {
 	#[assoc(sprite = Sprite::HardPlant)]
 	#[assoc(describe = "A shoot of a plant with hard branches")]
 	#[assoc(grow = (1, Structure::HardwoodStick))]
+	#[assoc(inosculate = vec![
+		(CropType::LeafShoot, CropType::HardDiscPlant),
+		(CropType::KnifeShoot, CropType::HardKnifePlant)
+	])]
 	HardShoot,
+	
+	#[assoc(sprite = Sprite::HardKnifePlant)]
+	#[assoc(describe = "A shoot of a hardwood plant inosculated with a shoot of a knife plant")]
+	#[assoc(grow = (1, Structure::HardwoodKnife))]
+	HardKnifePlant,
+	
+	#[assoc(sprite = Sprite::HardDiscPlant)]
+	#[assoc(describe = "A shoot of a hardwood plant inosculated with a shoot of a disc plant")]
+	#[assoc(grow = (1, Structure::HardwoodTable))]
+	HardDiscPlant,
 }
 
 
@@ -164,6 +179,17 @@ impl Crop {
 		}
 	}
 	
+	pub fn join(&self, other: Structure) -> Option<Structure> {
+		if let Structure::Crop(crop) = other {
+			for (with, product) in self.typ.inosculate() {
+				if with == crop.typ {
+					return Some(Structure::Crop(Self{ typ: product, flags: 0 }))
+				}
+			}
+		}
+		None
+	}
+	
 	pub fn sprite(&self) -> Sprite {
 		self.typ.sprite()
 	}
@@ -183,4 +209,7 @@ impl Crop {
 	pub fn brownseed() -> Self {
 		Self::new(CropType::BrownSeed)
 	}
+	
+	
 }
+
