@@ -23,6 +23,7 @@ class Client:
 		self.logFile = logFile
 		self.closeMessage = None
 		self.helpVisible = False
+		self.playerPos = None
 		
 		self.inputHandler = InputHandler(self, keybindings.actions)
 		
@@ -128,6 +129,7 @@ class Client:
 		
 		if msgType == "playerpos":
 			self.display.setFieldCenter(msg[1])
+			self.playerPos = msg[1]
 		
 		# if msgType == "health":
 		# 	health, maxHealth = msg[1]

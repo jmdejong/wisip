@@ -35,6 +35,7 @@ class CommandHandler:
 			"interact": lambda direction: self.input({"interact": direction}),
 			"select": lambda selector: self.input({"select": selector}),
 			"moveselected": lambda selector: self.input({"moveselected": selector}),
+			"where": lambda _: self.log("current location: {}".format(self.client.playerPos)),
 			"help": self.toggleHelp
 		}
 		
