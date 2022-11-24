@@ -67,5 +67,8 @@ pub enum Sprite {
 	HardDiscPlant,
 	HardwoodKnife,
 	HardwoodTable,
+	SawBlade,
+	SawTable,
+	SawPlant,
 	Unknown,
 }

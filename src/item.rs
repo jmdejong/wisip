@@ -111,6 +111,7 @@ pub enum Item {
 	#[assoc(name="wood knife")]
 	#[assoc(description="A surprisingly effective wooden knife")]
 	#[assoc(actions=vec![
+		Action::Craft(CraftType::GardeningTable, Item::Axe, hashmap![Item::Reed => 1, Item::HardwoodStick=> 1]),
 		Action::interact(Cut, 2, false)
 	])]
 	HardwoodKnife,
@@ -136,6 +137,37 @@ pub enum Item {
 	#[assoc(description="Wood ash. Can be used as fertilizer")]
 	#[assoc(actions=vec![Action::interact(Fertilize, 1, true)])]
 	Ash,
+	
+	#[assoc(name="axe")]
+	#[assoc(description="A wooden axe")]
+	#[assoc(actions=vec![
+		Action::interact(Chop, 2, false)
+	])]
+	Axe,
+	
+	#[assoc(name="log")]
+	#[assoc(description="Wooden log")]
+	#[assoc(actions=vec![
+		Action::Craft(CraftType::SawTable, Item::Plank, HashMap::new()),
+		Action::interact(Fuel, 2, true)
+	])]
+	Log,
+	
+	
+	#[assoc(name="sawblade")]
+	#[assoc(description="Wooden round saw blade")]
+	#[assoc(actions=vec![
+		Action::interact(BuildSaw, 1, true)
+	])]
+	SawBlade,
+	
+	#[assoc(name="plank")]
+	#[assoc(description="Wooden plank")]
+	#[assoc(actions=vec![
+		Action::Build(Structure::PlankWall, HashMap::new()),
+		Action::interact(Fuel, 2, true)
+	])]
+	Plank,
 }
 
 

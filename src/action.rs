@@ -13,16 +13,19 @@ pub enum InteractionType {
 	Take,
 	Smash,
 	Cut,
+	Chop,
 	Water,
 	Fuel,
-	Fertilize
+	Fertilize,
+	BuildSaw,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum CraftType {
 	Marker,
 	Water,
-	GardeningTable
+	GardeningTable,
+	SawTable,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

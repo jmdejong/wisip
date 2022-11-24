@@ -5,7 +5,7 @@
 		"tree": ["T", 0, 2],
 		"oldtree": ["T", 3, 0],
 		"wall": ["#", 7, 8],
-		"woodwall": ["#", 0, 3],
+		"woodwall": ["#", 1, 3],
 		"rock": ["#", 8, 8],
 		"rockmid": [" ", 0, 0],
 		
@@ -88,9 +88,12 @@
 		"seedingdiscleaf": ["o", 2],
 		"seedinghardwood": ["h", 3],
 		"hardknifeplant": ["K", 3],
-		"harddiscplant": ["O", 3],
+		"harddiscplant": ["0", 11],
+		"sawplant": ["Q", 10],
 		"hardwoodknife": ["k", 3],
-		"hardwoodtable": ["o", 3],
+		"hardwoodtable": ["0", 3],
+		"sawblade": ["q", 3],
+		"sawtable": ["P", 3],
 		" ": [" ", 7]
 	},
 	"writable": {

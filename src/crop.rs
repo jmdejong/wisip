@@ -116,6 +116,11 @@ enum CropType {
 	#[assoc(describe = "A shoot of a hardwood plant inosculated with a shoot of a disc plant")]
 	#[assoc(grow = (1, Structure::HardwoodTable))]
 	HardDiscPlant,
+	
+	#[assoc(sprite = Sprite::SawPlant)]
+	#[assoc(describe = "A shoot of a knife plant inosculated with a shoot of a disc plant")]
+	#[assoc(grow = (1, Structure::SawBlade))]
+	SawPlant,
 }
 
 

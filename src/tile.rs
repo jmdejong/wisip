@@ -125,16 +125,19 @@ pub enum Structure {
 	#[assoc(sprite = Sprite::YoungTree)]
 	#[assoc(blocking = true)]
 	#[assoc(describe = "Young tree")]
+	#[assoc(interactions = vec![Interactable::harvest(InteractionType::Chop, 1, &[1.0], &[Item::Stick])])]
 	YoungTree,
 	
 	#[assoc(sprite = Sprite::Tree)]
 	#[assoc(blocking = true)]
 	#[assoc(describe = "Tree")]
+	#[assoc(interactions = vec![Interactable::harvest(InteractionType::Chop, 1, &[1.0], &[Item::Log])])]
 	Tree,
 	
 	#[assoc(sprite = Sprite::OldTree)]
 	#[assoc(blocking = true)]
 	#[assoc(describe = "Dead tree")]
+	#[assoc(interactions = vec![Interactable::harvest(InteractionType::Chop, 1, &[1.0], &[Item::Stick])])]
 	OldTree,
 	
 	#[assoc(sprite = Sprite::OldTree)]
@@ -294,9 +297,29 @@ pub enum Structure {
 	HardwoodKnife,
 	
 	#[assoc(sprite = Sprite::HardwoodTable)]
-	#[assoc(describe = "Hardwood Table")]
-	#[assoc(interactions = vec![Interactable::take(&[Item::HardwoodTable])])]
+	#[assoc(describe = "Hardwood Table. Can be used for crafting")]
+	#[assoc(interactions = vec![
+		Interactable::take(&[Item::HardwoodTable]),
+		Interactable::transform(InteractionType::BuildSaw, 1, Structure::SawTable)
+	])]
+	#[assoc(craft = CraftType::GardeningTable)]
 	HardwoodTable,
+	
+	#[assoc(sprite = Sprite::SawTable)]
+	#[assoc(describe = "Saw table. Can cut planks from logs")]
+	#[assoc(craft = CraftType::SawTable)]
+	SawTable,
+	
+	#[assoc(sprite = Sprite::SawBlade)]
+	#[assoc(describe = "Saw blade")]
+	#[assoc(interactions = vec![Interactable::take(&[Item::SawBlade])])]
+	SawBlade,
+	
+	#[assoc(sprite = Sprite::WoodWall)]
+	#[assoc(blocking = true)]
+	#[assoc(describe = "Wooden wall")]
+	#[assoc(interactions = vec![Interactable::harvest(InteractionType::Chop, 1, &[1.0], &[Item::Plank])])]
+	PlankWall,
 	
 	#[assoc(sprite = _0.sprite())]
 	#[assoc(description = _0.description())]
