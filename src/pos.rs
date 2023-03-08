@@ -234,6 +234,10 @@ impl Area {
 	pub fn size(&self) -> Pos {
 		self.size
 	}
+
+	pub fn surface(&self) -> i32 {
+		self.size.x * self.size.y
+	}
 	
 	pub fn max(&self) -> Pos {
 		self.min + self.size
@@ -255,9 +259,9 @@ impl Area {
 	}
 	
 	#[allow(dead_code)]
-	pub fn shrink_by(&self, n: i32) -> Area {
+	pub fn grow(&self, n: i32) -> Area {
 		let nn = Pos::new(n, n);
-		Area::new(self.min + nn, self.size - nn * 2)
+		Area::new(self.min - nn, self.size + nn * 2)
 	}
 	
 	pub fn contains(&self, pos: Pos) -> bool {

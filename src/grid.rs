@@ -1,43 +1,27 @@
 
-use crate::Pos;
+use crate::pos::{Pos, Area};
 
 #[derive(Debug, Clone)]
 pub struct Grid<T> {
-	size: Pos,
-	offset: Pos,
+	pub area: Area,
 	storage: Vec<T>
 }
 
-	#[allow(dead_code)]
+#[allow(dead_code)]
 impl<T: Clone> Grid<T> {
 	
-	pub fn empty() -> Grid<T> {
-		Self {
-			size: Pos::new(0, 0),
-			offset: Pos::new(0, 0),
-			storage: Vec::new()
-		}
-	}
-	
-	pub fn new(size: Pos, filler: T) -> Grid<T> {
-		Self::with_offset(size, Pos::new(0, 0), filler)
-	}
-	
-	pub fn with_offset(size: Pos, offset: Pos, filler: T) -> Grid<T> {
-		let mut storage = Vec::with_capacity((size.x * size.y) as usize);
-		storage.resize((size.x * size.y) as usize, filler);
-		Self {
-			size,
-			offset,
-			storage,
-		}
+	pub fn new(area: Area, filler: T) -> Grid<T> {
+		let surface = area.surface() as usize;
+		let mut storage = Vec::with_capacity(surface);
+		storage.resize(surface, filler);
+		Self {area, storage}
 	}
 	
 	#[inline]
 	fn index(&self, global_pos: Pos) -> Option<usize> {
-		let pos = global_pos - self.offset;
-		if pos.x >= 0 && pos.y >= 0 && pos.x < self.size.x && pos.y < self.size.y {
-			Some((pos.x + self.size.x * pos.y) as usize)
+		if self.area.contains(global_pos) {
+			let pos = global_pos - self.area.min();
+			Some((pos.x + self.area.size().x * pos.y) as usize)
 		} else {
 			None
 		}
@@ -47,7 +31,7 @@ impl<T: Clone> Grid<T> {
 	pub fn get(&self, pos: Pos) -> Option<&T>{
 		Some(&self.storage[self.index(pos)?])
 	}
-	
+
 	#[inline]
 	pub fn get_mut(&mut self, pos: Pos) -> Option<&mut T>{
 		let index = self.index(pos)?;

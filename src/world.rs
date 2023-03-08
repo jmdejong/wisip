@@ -305,15 +305,14 @@ impl World {
 
 
 fn draw_field(area: Area, tiles: &mut Map, sprites: &HashMap<Pos, Vec<Sprite>>) -> FieldMessage {
-	println!("redrawing field");
+	// println!("redrawing field");
 	let mut values :Vec<usize> = Vec::with_capacity((area.size().x * area.size().y) as usize);
 	let mut mapping: Vec<Vec<Sprite>> = Vec::new();
-	for pos in area.iter() {
+	for (pos, tile) in tiles.load_area(area) {
 		let mut tile_sprites = Vec::new();
 		if let Some(dynamic_sprites) = sprites.get(&pos) {
 			tile_sprites.extend_from_slice(dynamic_sprites);
 		}
-		let tile = tiles.load_cell(pos);
 		tile_sprites.append(&mut tile.sprites());
 		values.push(
 			match mapping.iter().position(|x| x == &tile_sprites) {

@@ -35,12 +35,17 @@ impl Map {
 	pub fn cell(&mut self, pos: Pos) -> Tile {
 		self.changes.get(&pos).map(|change| change.0).unwrap_or_else(|| self.base_cell(pos))
 	}
-	
-	pub fn load_cell(&mut self, pos: Pos) -> Tile {
-		self.tick_one(pos);
-		self.cell(pos)
+
+	pub fn load_area(&mut self, area: Area) -> impl Iterator<Item = (Pos, Tile)> + '_ {
+		// let base_grid = self.basemap.region(area, self.time);
+		self.basemap.region(area, self.time).into_iter().map(|(pos, base_cell)| {
+			// let base_cell = self.base_cell(pos);
+			self.tick_one(pos, base_cell);
+			let cell = self.changes.get(&pos).map(|change| change.0).unwrap_or(base_cell);
+			(pos, cell)
+		})
 	}
-	
+
 	pub fn set(&mut self, pos: Pos, tile: Tile) {
 		if tile == self.base_cell(pos) {
 			self.changes.remove(&pos);
@@ -79,14 +84,14 @@ impl Map {
 			})
 			.collect::<HashSet<Pos>>();
 		for pos in tick_positions {
-			self.tick_one(pos);
+			let base_cell = self.basemap.cell(pos, self.time);
+			self.tick_one(pos, base_cell);
 		}
 	}
 	
-	fn tick_one(&mut self, pos: Pos) {
+	fn tick_one(&mut self, pos: Pos, base_cell: Tile) {
 		self.modifications.insert(pos);
 		let tick_interval = randomtick::CHUNK_AREA as i64;
-		let base_cell = self.basemap.cell(pos, self.time);
 		if let Some((mut built, mut built_time)) = self.changes.get(&pos) {
 			while let Some((nticks, stage, surround)) = built.grow() {
 				let update_time = built_time + Duration(nticks * tick_interval);

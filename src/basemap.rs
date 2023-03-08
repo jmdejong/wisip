@@ -4,10 +4,10 @@ use crate::{
 	pos::{Pos, Area},
 	timestamp::Timestamp,
 	tile::{Tile, Ground, Structure},
-	grid::Grid,
-	random::{WhiteNoise, Fractal, randomize_u32, pick, pick_weighted},
+	random::{WhiteNoise, randomize_u32, pick, pick_weighted},
 	randomtick,
-	util::math
+	util::math,
+	heightmap::{HeightMap, LazyHeightMap}
 };
 
 macro_rules! t {
@@ -21,15 +21,11 @@ const BIOME_SIZE: i32 = 48;
 const EDGE_SIZE: i32 = BIOME_SIZE / 4;
 
 pub trait BaseMap {
+
 	fn cell(&mut self, pos: Pos, time: Timestamp) -> Tile;
 	
-	#[allow(dead_code)]
-	fn region(&mut self, area: Area, time: Timestamp) -> Grid<Tile> {
-		let mut grid = Grid::with_offset(area.size(), area.min(), t!(Dirt));
-		for pos in area.iter() {
-			grid.set(pos, self.cell(pos, time));
-		}
-		grid
+	fn region(&mut self, area: Area, time: Timestamp) -> Vec<(Pos, Tile)> {
+		area.iter().map(|pos| (pos, self.cell(pos, time))).collect()
 	}
 	
 	fn player_spawn(&mut self) -> Pos;
@@ -47,14 +43,19 @@ enum Biome {
 
 pub struct InfiniteMap {
 	seed: u32,
-	height: Fractal
+	heightmaps: HeightMaps<LazyHeightMap>
 }
 
 impl InfiniteMap {
 	pub fn new(seed: u32) -> Self {
 		Self {
 			seed,
-			height: Fractal::new(seed + 344, vec![(3,0.12), (5,0.20), (7,0.26), (11,0.42)]),
+			heightmaps: HeightMaps {
+				lake: LazyHeightMap::new(seed + 344, vec![(3,0.12), (5,0.20), (7,0.26), (11,0.42)]),
+				rock: LazyHeightMap::new(seed + 344, vec![(3,0.12), (5,0.20), (7,0.26), (11,0.42)]),
+				bog: LazyHeightMap::new(seed + 382, vec![(3,0.25), (5,0.35), (7,0.4)]),
+				reed: LazyHeightMap::new(seed+276, vec![(7, 0.5), (11, 0.5)])
+			},
 		}
 	}
 	
@@ -217,8 +218,8 @@ impl InfiniteMap {
 			}
 			Biome::Lake => {
 				let c = ((self.edge_distance(pos) - EDGE_SIZE) as f32 / 12.0).clamp(0.0, 1.0);
-				let reed_density = Fractal::new(self.seed+276, vec![(7, 0.5), (11, 0.5)]).gen_f(pos) * 0.4 - 0.2;
-				let height = 0.4 - self.height.gen_f(pos) + (1.0 - c) * 0.6;
+				let reed_density = self.heightmaps.reed.height(pos) * 0.4 - 0.2;
+				let height = 0.4 - self.heightmaps.lake.height(pos) + (1.0 - c) * 0.6;
 				if height.abs() < reed_density {
 					t!(
 						if height > 0.0 { Ground::Dirt } else { Ground::Water },
@@ -282,7 +283,7 @@ impl InfiniteMap {
 				}
 			}
 			Biome::Bog => {
-				let height = self.height.gen_f(pos*2) + WhiteNoise::new(self.seed+3294).gen_f(pos) * 0.1;
+				let height = self.heightmaps.bog.height(pos) + WhiteNoise::new(self.seed+3294).gen_f(pos) * 0.1;
 				if height < 0.45 {
 					t!(Water)
 				} else {
@@ -307,7 +308,7 @@ impl InfiniteMap {
 	
 	fn rock_height(&self, pos: Pos) -> f32 {
 		let c = ((self.edge_distance(pos) - EDGE_SIZE) as f32 / 4.0).clamp(0.0, 1.0);
-		math::ease_in_out_cubic(self.height.gen_f(pos)) * c
+		math::ease_in_out_cubic(self.heightmaps.rock.height(pos)) * c
 	}
 }
 
@@ -316,6 +317,10 @@ impl BaseMap for InfiniteMap {
 		self.tile(pos, time)
 	}
 	
+
+	fn region(&mut self, area: Area, time: Timestamp) -> Vec<(Pos, Tile)> {
+		area.iter().map(|pos| (pos, self.tile(pos, time))).collect()
+	}
 	
 	fn player_spawn(&mut self) -> Pos {
 		self.start_pos()
@@ -325,6 +330,12 @@ impl BaseMap for InfiniteMap {
 #[derive(Debug, Hash, PartialEq, Eq, Clone, Copy, Default)]
 struct BPos(Pos);
 
+struct HeightMaps<T: HeightMap> {
+	lake: T,
+	bog: T,
+	rock: T,
+	reed: T
+}
 
 
 #[cfg(test)]
@@ -350,8 +361,38 @@ mod tests {
 	
 	#[test]
 	fn start_pos_has_stone_floor() {
-		let map = InfiniteMap::new(9876);
-		assert_eq!(map.tile(map.start_pos(), Timestamp(1)), t!(StoneFloor));
+		let mut map = InfiniteMap::new(9876);
+		assert_eq!(map.cell(map.start_pos(), Timestamp(1)), t!(StoneFloor));
+	}
+
+	#[test]
+	fn generating_region_gives_same_result_as_separate_cells(){
+		let mut map = InfiniteMap::new(9876);
+		let time = Timestamp(3412);
+		let mut failed = Vec::new();
+		let mut total = 0;
+		for cx in -2..=2 {
+			for cy in -2..=2 {
+				let area = Area::centered(Pos::new(221 + cx * 1357 , -873 + cy * 2931), Pos::new(32, 32));
+				let region = map.region(area, time);
+				for (pos, tile) in region {
+					total += 1;
+					let single = map.cell(pos, time);
+					if tile != single {
+						failed.push((pos, tile, single));
+					// assert_eq!(tile,  "unequal tiles on pos {:?}", pos);
+					}
+				}
+				// let region_map: HashMap<Pos, Tile> = region.into_iter().collect();
+				// for pos in area.iter() {
+					// assert_eq(region_map
+				// }
+				// let separate: Vec<(Pos, Tile)> = area.iter().map(|pos| (pos, map.cell(pos, time))).collect();
+				// assert_eq!(region, separate);
+			}
+		}
+		eprintln!("total: {}, failed: {}", total, failed.len());
+		assert_eq!(failed, Vec::new());
 	}
 }
 

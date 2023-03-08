@@ -12,6 +12,7 @@ mod controls;
 mod creature;
 mod crop;
 mod errors;
+mod heightmap;
 mod gameserver;
 mod grid;
 mod inventory;
@@ -58,6 +59,9 @@ fn main(){
 		WorldAction::Load(conf) => {
 			let persistence = FileStorage::new(FileStorage::default_save_dir(conf.name.clone()).unwrap());
 			start_world(World::load(persistence.load_world().expect("Can't load world")), persistence, conf);
+		}
+		WorldAction::Bench{iterations} => {
+			bench_view(iterations)
 		}
 	};
 }
@@ -189,6 +193,23 @@ fn save(world: &World, persistence: &impl PersistentStorage) {
 		persistence.save_player(&player, world.save_player(&player).unwrap()).unwrap();
 	}
 	eprintln!("saved world {} on step {}", world.name, world.time.0);
+}
+
+
+fn bench_view(iterations: usize) {
+	let mut world = World::new("bench".to_string());
+	let mut player_save = world.default_player();
+	let player_id = PlayerId("Player".to_string());
+	let now = Instant::now();
+	for i in 0..iterations {
+		player_save.pos = Pos::new(i as i32 * 121 - 22, i as i32 * 8 - 63);
+		world.add_player(&player_id, player_save.clone()).unwrap();
+		world.update();
+		world.view();
+		world.remove_player(&player_id).unwrap();
+		world.update();
+	}
+	eprintln!("millis: {}", now.elapsed().as_millis());
 }
 
 

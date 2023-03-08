@@ -19,7 +19,14 @@ pub enum WorldAction {
 	/// Load existing world
 	Load(WorldConfig),
 	/// Create new world
-	New(WorldConfig)
+	New(WorldConfig),
+	/// Benchmark world redraw
+	Bench{
+		/// the number of times to run the bench
+		#[arg(long, default_value_t=1000)]
+		iterations: usize,
+	}
+
 }
 
 #[derive(Debug, Args)]

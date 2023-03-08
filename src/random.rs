@@ -15,6 +15,7 @@ pub fn random_float(seed: u32) -> f32 {
 	(randomize_u32(seed) & 0xffff) as f32 / (0x10000 as f32)
 }
 
+#[inline]
 pub fn randomize_pos(pos: Pos) -> u32 {
 	randomize_u32(pos.x as u32 ^ randomize_u32(pos.y as u32))
 }
@@ -58,53 +59,6 @@ impl WhiteNoise {
 	}
 }
 
-
-#[derive(Debug, Clone)]
-pub struct Fractal {
-	seed: u32,
-	depth: Vec<(i32, f32)>,
-}
-
-impl Fractal {
-
-	pub fn new(seed: u32, depth: Vec<(i32, f32)>) -> Self {
-		Self{
-			seed,
-			depth,
-		}
-	}
-
-	pub fn gen_f(&self, pos: Pos) -> f32 {
-		let mut seed = self.seed;
-		let n = self.depth.iter()
-			.map(|(d, weight)| {
-				seed = randomize_u32(seed);
-				let c_n = self.gen_depth(pos, *d, seed);
-				c_n * weight
-			})
-			.sum();
-		n
-	}
-
-	fn gen_depth(&self, pos: Pos, factor: i32, seed: u32) -> f32 {
-		if factor == 1 {
-			return WhiteNoise::new(seed).gen_f(pos);
-		}
-		let pos_base = (pos / factor) * factor;
-		let diff = pos - pos_base;
-		let (u, v) = (diff.x as f32 / factor as f32, diff.y as f32 / factor as f32);
-		[
-				((0, 0), (1.0 - u) * (1.0 - v)),
-				((0, 1), (1.0 - u) * v),
-				((1, 0), u * (1.0 - v)),
-				((1, 1), u * v)
-		].into_iter().map(|((cx, cy), f)| {
-			let c = Pos::new(cx, cy) * factor;
-			WhiteNoise::new(seed).gen_f(pos_base + c) * f
-		})
-		.sum::<f32>()
-	}
-}
 
 #[cfg(test)]
 mod tests {
