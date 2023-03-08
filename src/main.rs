@@ -42,7 +42,7 @@ use self::{
 	world::World,
 	worldmessages::MessageCache,
 	persistence::{PersistentStorage, FileStorage, LoaderError},
-	config::{Config, WorldAction},
+	config::{Config, WorldAction, WorldConfig},
 };
 
 
@@ -51,8 +51,22 @@ fn main(){
 	
 	let config = Config::parse();
 	
-	eprintln!("Server admin(s): {}", config.admins);
+	match config.world_action {
+		WorldAction::New(conf) => {
+			start_world(World::new(conf.name.clone()), FileStorage::new(FileStorage::default_save_dir(conf.name.clone()).unwrap()), conf);
+		}
+		WorldAction::Load(conf) => {
+			let persistence = FileStorage::new(FileStorage::default_save_dir(conf.name.clone()).unwrap());
+			start_world(World::load(persistence.load_world().expect("Can't load world")), persistence, conf);
+		}
+	};
+}
+
+fn start_world(mut world: World, persistence: FileStorage, config: WorldConfig) {
 	
+
+	eprintln!("Server admin(s): {}", config.admins);
+
 	let adresses = config.address
 		.unwrap_or_else(||
 			(if cfg!(target_os = "linux") {
@@ -65,20 +79,15 @@ fn main(){
 			.collect()
 		);
 	eprintln!("adresses: {:?}", adresses);
-	let servers: Vec<ServerEnum> = 
+	let servers: Vec<ServerEnum> =
 		adresses
 		.iter()
 		.map(|a| a.to_server().unwrap())
 		.collect();
-	
+
 	let mut gameserver = GameServer::new(servers);
-	
-	let persistence = FileStorage::new(FileStorage::default_save_dir(config.name.clone()).unwrap());
-	let mut world = match config.world_action {
-		WorldAction::New => World::new(config.name.clone()),
-		WorldAction::Load => World::load(persistence.load_world().expect("Can't load world")),
-	};
-	
+
+
 	let mut message_cache = MessageCache::default();
 	
 	// close handler
@@ -181,6 +190,5 @@ fn save(world: &World, persistence: &impl PersistentStorage) {
 	}
 	eprintln!("saved world {} on step {}", world.name, world.time.0);
 }
-
 
 

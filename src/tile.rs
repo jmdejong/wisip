@@ -414,7 +414,7 @@ impl Tile {
 						format!(
 							"{}  --  {}",
 							self.ground.describe().unwrap_or(""),
-							self.structure.description().unwrap_or("".to_string())
+							self.structure.description().unwrap_or_default()
 						)
 					)),
 					..Default::default()

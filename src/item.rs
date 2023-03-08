@@ -176,7 +176,7 @@ mod tests {
 	use super::*;
 	#[test]
 	fn hands_has_take_action() {
-		assert_eq!(Item::Hands.action(), Some(Action::take()));
+		assert_eq!(Item::Hands.actions(), vec![Action::take()]);
 	}
 	
 }
