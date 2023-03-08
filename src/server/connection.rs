@@ -121,15 +121,15 @@ impl <T: Read+Write>Connection<T> for WebSocketConnection<T> {
 					return Err(ConnectionError::Tungstenite(err))
 				}
 				Ok(Message::Text(text)) => {
-					println!("websocket text: {}", text.clone());
+					// println!("websocket text: {}", text.clone());
 					messages.push(text);
 				}
 				Ok(Message::Close(_)) => {
-					println!("websocket close");
+					// println!("websocket close");
 					is_closed = true;
 				}
 				Ok(_) => {
-					println!("websocket other");
+					// println!("websocket other");
 				}
 			}
 		}

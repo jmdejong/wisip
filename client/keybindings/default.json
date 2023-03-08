@@ -59,7 +59,6 @@
     "Dezl is an experimental terminal mmorpg",
     " ",
     "## Controls",
-    " ",
     "wasd/hjkl/arrows: Move around",
     "WASD/HJKL: interact (neighbour tile)",
     "f/space: interact (current tile)",
@@ -69,6 +68,9 @@
     "t: type chat message",
     "PgUp/PgDn/[]: scroll chat/help",
     "ctrl-c: close client",
-    "? or /help: back to game"
+    "?: back to game",
+    " ",
+    "## Commands",
+    "/where: show current coordinates"
 ]
 }

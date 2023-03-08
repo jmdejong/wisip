@@ -260,14 +260,14 @@ impl InfiniteMap {
 				} else {
 					*pick_weighted((height * 100.0) as u32, &[
 						(*pick_weighted(rind, &[
+							(t!(Grass1), 10),
 							(t!(Grass2), 10),
-							(t!(Grass3), 10),
 							(t!(Dirt), 1),
 							(t!(RockFloor), (height * 10.0) as u32),
 						]), 50),
 						(*pick_weighted(rind, &[
+							(t!(Grass1), 1),
 							(t!(Grass2), 1),
-							(t!(Grass3), 1),
 							(*pick_weighted(rtime, &[
 								(t!(RockFloor, Gravel), 20),
 								(t!(RockFloor), 50),
@@ -290,8 +290,8 @@ impl InfiniteMap {
 						(t!(Grass1), 50),
 						(t!(Grass2), 50),
 						(t!(Grass3), 50),
-						(t!(Dirt, Shrub), 1),
-						(t!(Dirt, Rush), 10),
+						(t!(Grass1, Shrub), 1),
+						(t!(Grass1, Rush), 10),
 						(*pick(
 							rtime / 2,
 							&[

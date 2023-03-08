@@ -94,6 +94,7 @@ fn main(){
 	eprintln!("dezl started world {} on {}", config.name, Utc::now());
 	
 	while running.load(Ordering::SeqCst) {
+		let update_start = Instant::now();
 		let actions = gameserver.update();
 		for action in actions {
 			match action {
@@ -132,9 +133,14 @@ fn main(){
 				}
 			}
 		}
-		let now = Instant::now();
+
+		let read_done = Instant::now();
+		// let start = Instant::now();
 		world.update();
+		let update_done = Instant::now();
+		// let update_time = now.elapsed();
 		let messages = world.view();
+		let view_done = Instant::now();
 		for (player, mut message) in messages {
 			message_cache.trim(&player, &mut message);
 			if message.is_empty(){
@@ -145,12 +151,22 @@ fn main(){
 				eprintln!("Error: failed to send to {:?}: {:?}", player, err);
 			}
 		}
+		let send_done = Instant::now();
 		if world.time.0 % 100 == 1 {
 			save(&world, &persistence);
 		}
-		let elapsed_time = now.elapsed();
+		let save_done = Instant::now();
+		let elapsed_time = update_start.elapsed();
 		if elapsed_time >= Duration::from_millis(5) {
-			eprintln!("Running update() took {} milliseconds.", elapsed_time.as_millis());
+			eprintln!(
+				"Step took {} milliseconds. read: {}, update: {}, view: {}, send: {}, save: {}",
+				elapsed_time.as_millis(),
+				read_done.duration_since(update_start).as_millis(),
+				update_done.duration_since(read_done).as_millis(),
+				view_done.duration_since(update_done).as_millis(),
+				send_done.duration_since(view_done).as_millis(),
+				save_done.duration_since(send_done).as_millis(),
+			);
 		}
 		thread::sleep(Duration::from_millis(config.step_duration));
 	}
