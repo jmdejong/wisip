@@ -5,12 +5,16 @@
 <title>
 	Dezl
 </title>
+<script src="display.js"></script>
 <script src="main.js"></script>
 <style>
 canvas {
 	background-color: black;
 	border: 3px solid #888;
 	float: left;
+	width: 1024px;
+	height: 1024px;
+	image-rendering: pixelated;
 }
 
 .loginform {
@@ -40,12 +44,15 @@ canvas {
 	<input type="submit" value="Connect" />
 </form>
 <div id="game" hidden>
-	<canvas id="canvas" width=512 height=512></canvas>
+	<canvas id="canvas" width=256 height=256></canvas>
 	<ul id="messages" class="chatarea"></ul>
 	<form id="chat" action="javascript:void(0);">
 		<input type="text" name="command" style="width: 50%" />
 		<input type="submit" value="Send" />
 	</form>
+</div>
+<div class="resources" hidden>
+	<img id="spritemap" src="spritemap.png"></img>
 </div>
 </body>
 </html>
