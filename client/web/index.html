@@ -27,6 +27,23 @@ canvas {
 	height: 256px;
 	overflow: scroll;
 }
+.inventory {
+/* 	float: left; */
+	list-style: none;
+	border: 2px solid #AAA;
+	height: 256px;
+	width: 100px;
+	overflow: scroll;
+	font: monospace;
+}
+/*.side {
+	margin-left: 16px;
+}*/
+.inventory-amount {
+	text-align: right;
+}
+.inventory-name {
+}
 </style>
 </head>
 
@@ -45,11 +62,14 @@ canvas {
 </form>
 <div id="game" hidden>
 	<canvas id="canvas" width=256 height=256></canvas>
-	<ul id="messages" class="chatarea"></ul>
-	<form id="chat" action="javascript:void(0);">
-		<input type="text" name="command" style="width: 50%" />
-		<input type="submit" value="Send" />
-	</form>
+	<span class="side">
+		<ul id="inventory" class="inventory"></ul>
+		<ul id="messages" class="chatarea"></ul>
+		<form id="chat" action="javascript:void(0);">
+			<input type="text" name="command" style="width: 50%" />
+			<input type="submit" value="Send" />
+		</form>
+	</span>
 </div>
 <div class="resources" hidden>
 	<img id="spritemap" src="spritemap.png"></img>

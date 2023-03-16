@@ -21,17 +21,22 @@ function start(e) {
 		document.getElementById("spritemap"),
 		{
 			player: {x: 0, y: 0},
+			sage: {x: 1, y: 0},
+			worktable: {x: 6, y: 0},
+			altar: {x: 7, y: 0},
 			grass1: {x: 0, y: 1},
 			grass2: {x: 1, y: 1},
 			grass3: {x: 2, y: 1},
-			dirt: {x: 3, y: 1},
-			rockmid: {x: 4, y: 1},
+			dirt: {x: 3, y: 1, layer: "base"},
+			rockmid: {x: 4, y: 1, border: "#222", layer: "base"},
 			" ": {x: 4, y: 1},
-			rock: {x: 5, y: 1},
-			water: {x: 6, y: 1},
+			rock: {x: 5, y: 1, border: "#222", layer: "base"},
+			water: {x: 6, y: 1, border: "#004", layer: "base"},
 			moss: {x: 7, y: 1},
 			deadleaves: {x: 0, y: 2},
 			densegrass: {x: 1, y: 2},
+			wall: {x: 2, y: 2, border: "#222", layer: "base"},
+			woodwall: {x: 3, y: 2, border: "#220", layer: "base"},
 			rush: {x: 0, y: 3},
 			pitcherplant: {x: 1, y: 3},
 			tree: {x: 2, y: 3},
@@ -118,13 +123,39 @@ class Client {
 		if (type === "field") {
 			this.display.drawField(args.width, args.height, args.offset[0], args.offset[1], args.field, args.mapping);
 		} else if (type === "changecells") {
-			for (let cell of args){
-				this.display.drawTile(cell[0][0], cell[0][1], cell[1]);
-			}
+			this.display.changeTiles(args);
+			// for (let cell of args){
+				// this.display.drawTile(cell[0][0], cell[0][1], cell[1]);
+			// }
 		} else if (type == "playerpos") {
 			this.display.setCenter(args[0], args[1]);
+		} else if (type === "inventory") {
+			this.setInventory(args[0], args[1]);
 		} else {
 			console.log(type, args);
+		}
+	}
+
+	setInventory(items, selecteds) {
+		console.log(items)
+		let list = document.getElementById("inventory");
+		while (list.hasChildNodes()){
+			list.removeChild(list.firstChild);
+		}
+		for (let item of items) {
+			let li = document.createElement("li");
+
+			let nm = document.createElement("span");
+			nm.className = "inventory-name";
+			nm.innerText = item[0];
+			li.appendChild(nm);
+
+			let am = document.createElement("span");
+			am.className = "inventory-amount";
+			am.innerText = item[1];
+			li.appendChild(am);
+
+			list.appendChild(li);
 		}
 	}
 
