@@ -24,28 +24,35 @@ function start(e) {
 			sage: {x: 1, y: 0},
 			worktable: {x: 6, y: 0},
 			altar: {x: 7, y: 0},
-			grass1: {x: 0, y: 1},
-			grass2: {x: 1, y: 1},
-			grass3: {x: 2, y: 1},
+			grass1: {x: 0, y: 1, layer: "base"},
+			grass2: {x: 1, y: 1, layer: "base"},
+			grass3: {x: 2, y: 1, layer: "base"},
 			dirt: {x: 3, y: 1, layer: "base"},
 			rockmid: {x: 4, y: 1, border: "#222", layer: "base"},
 			" ": {x: 4, y: 1},
 			rock: {x: 5, y: 1, border: "#222", layer: "base"},
 			water: {x: 6, y: 1, border: "#004", layer: "base"},
-			moss: {x: 7, y: 1},
-			deadleaves: {x: 0, y: 2},
-			densegrass: {x: 1, y: 2},
+			moss: {x: 7, y: 1, layer: "base"},
+			deadleaves: {x: 0, y: 2, layer: "base"},
+			densegrass: {x: 1, y: 2, layer: "base"},
 			wall: {x: 2, y: 2, border: "#222", layer: "base"},
 			woodwall: {x: 3, y: 2, border: "#220", layer: "base"},
+			stonefloor: {x: 4, y: 2, layer: "base"},
+			rockfloor: {x: 5, y: 2, layer: "base"},
 			rush: {x: 0, y: 3},
 			pitcherplant: {x: 1, y: 3},
 			tree: {x: 2, y: 3},
 			oldtree: {x: 3, y: 3},
+			oldtreetinder: {x: 3, y: 4},
 			youngtree: {x: 4, y: 3},
 			sapling: {x: 5, y: 3},
 			shrub: {x: 6, y: 3},
 			bush: {x: 7, y: 3},
 			reed: {x: 0, y: 4},
+			gravel: {x: 0, y: 5},
+			pebble: {x: 0, y: 6},
+			stone: {x: 1, y: 6},
+			stick: {x: 2, y: 6},
 		},
 		8
 	);
@@ -136,14 +143,23 @@ class Client {
 		}
 	}
 
-	setInventory(items, selecteds) {
-		console.log(items)
+	setInventory(items, selected) {
+		console.log(selected, items)
 		let list = document.getElementById("inventory");
 		while (list.hasChildNodes()){
 			list.removeChild(list.firstChild);
 		}
-		for (let item of items) {
+		for (let i in items) {
+			let item = items[i];
 			let li = document.createElement("li");
+
+			let sel = document.createElement("span");
+			sel.className = "inventory-selected";
+			if (i == selected) {
+				sel.className += " selected";
+				sel.innerText = "*";
+			};
+			li.appendChild(sel);
 
 			let nm = document.createElement("span");
 			nm.className = "inventory-name";

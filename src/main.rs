@@ -181,7 +181,7 @@ fn start_world(mut world: World, persistence: FileStorage, config: WorldConfig) 
 				save_done.duration_since(send_done).as_millis(),
 			);
 		}
-		thread::sleep(Duration::from_millis(config.step_duration));
+		thread::sleep(Duration::from_millis(config.step_duration).saturating_sub(elapsed_time));
 	}
 	save(&world, &persistence);
 	eprintln!("shutting down on {}", Utc::now());

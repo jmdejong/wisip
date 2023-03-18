@@ -63,7 +63,7 @@ pub enum Ground {
 	#[assoc(craft = CraftType::Water)]
 	Water,
 	
-	#[assoc(sprite = Sprite::StoneFloor)]
+	#[assoc(sprite = Sprite::RockFloor)]
 	#[assoc(buildable = true)]
 	#[assoc(describe = "Rock floor")]
 	RockFloor,
@@ -140,7 +140,7 @@ pub enum Structure {
 	#[assoc(interactions = vec![Interactable::harvest(InteractionType::Chop, 1, &[1.0], &[Item::Stick])])]
 	OldTree,
 	
-	#[assoc(sprite = Sprite::OldTree)]
+	#[assoc(sprite = Sprite::OldTreeTinder)]
 	#[assoc(blocking = true)]
 	#[assoc(interactions = vec![Interactable::new(InteractionType::Cut, 1, &[0.5, 1.0], Some(Structure::OldTree), &[Item::Tinder])])]
 	#[assoc(describe = "Dead tree with tinder fungus on it")]

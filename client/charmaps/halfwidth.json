@@ -4,6 +4,7 @@
 		"youngtree": ["t", 0, 2],
 		"tree": ["T", 0, 2],
 		"oldtree": ["T", 3, 0],
+		"oldtreetinder": ["T", 3, 0],
 		"wall": ["#", 7, 8],
 		"woodwall": ["#", 1, 3],
 		"rock": ["#", 8, 8],
@@ -13,6 +14,7 @@
 		"sanctuary": ["+", 7],
 		
 		"ground": [".", 3],
+		"rockfloor": [".", 8],
 		"stonefloor": [".", 8],
 		"dirt": [".", 3],
 		"deadleaves": [",", 3],

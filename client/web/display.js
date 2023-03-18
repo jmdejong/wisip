@@ -130,7 +130,7 @@ class Display {
 			return;
 		}
 		this.ctxs.borders.strokeStyle = border;
-		console.log(border);
+		// console.log(border);
 		// this.ctxs.borders.beginPath();
 		if (this._borderAt(lx - 1, ly) !== border) {
 			this.ctxs.borders.beginPath();
