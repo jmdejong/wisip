@@ -17,12 +17,20 @@ pub enum LoaderError {
 	InvalidResource(AnyError)
 }
 
+
+#[derive(Debug)]
+pub enum InitializeError {
+	NoDataHome
+}
+
 macro_rules! inv {
 	($code:expr) => {($code).map_err(|err| LoaderError::InvalidResource(Box::new(err)))}
 }
 
 
 pub trait PersistentStorage {
+
+	fn initialize(world_name: &str) -> Result<Self, InitializeError> where Self: Sized;
 	
 	fn load_world(&self) -> Result<WorldSave, LoaderError>;
 	fn load_player(&self, id: &PlayerId) -> Result<PlayerSave, LoaderError>;
@@ -37,13 +45,9 @@ pub struct FileStorage {
 }
 
 impl FileStorage {
-	pub fn new(path: PathBuf) -> Self {
-		Self {
-			directory: path
-		}
-	}
+
 	
-	pub fn default_save_dir(world_name: String) -> Option<PathBuf> {
+	fn default_save_dir(world_name: &str) -> Option<PathBuf> {
 		if let Some(pathname) = env::var_os("XDG_DATA_HOME") {
 			let mut path = PathBuf::from(pathname);
 			path.push("dezl");
@@ -63,6 +67,13 @@ impl FileStorage {
 }
 
 impl PersistentStorage for FileStorage {
+
+	fn initialize(world_name: &str) -> Result<Self, InitializeError> {
+		let path = Self::default_save_dir(world_name).ok_or(InitializeError::NoDataHome)?;
+		Ok(Self {
+			directory: path
+		})
+	}
 	
 	fn load_world(&self) -> Result<WorldSave, LoaderError> {
 		let mut path = self.directory.clone();

@@ -19,7 +19,13 @@ pub enum WorldAction {
 	/// Load existing world
 	Load(WorldConfig),
 	/// Create new world
-	New(WorldConfig),
+	New{
+		#[command(flatten)]
+		conf: WorldConfig,
+
+		#[arg(long)]
+		seed: u32,
+	},
 	/// Benchmark world redraw
 	Bench{
 		/// the number of times to run the bench

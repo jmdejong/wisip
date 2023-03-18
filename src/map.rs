@@ -8,8 +8,6 @@ use crate::{
 	randomtick
 };
 
-const SEED: u32 = 9876;
-
 pub struct Map {
 	basemap: InfiniteMap,
 	changes: HashMap<Pos, (Tile, Timestamp)>,
@@ -19,9 +17,9 @@ pub struct Map {
 
 impl Map {
 	
-	pub fn new(time: Timestamp) -> Self {
+	pub fn new(seed: u32, time: Timestamp) -> Self {
 		Self {
-			basemap: InfiniteMap::new(SEED),
+			basemap: InfiniteMap::new(seed),
 			changes: HashMap::new(),
 			time,
 			modifications: HashSet::new()
@@ -138,9 +136,9 @@ impl Map {
 		self.changes.clone().into_iter().collect()
 	}
 	
-	pub fn load(changes: MapSave, time: Timestamp) -> Self {
+	pub fn load(changes: MapSave, time: Timestamp, seed: u32) -> Self {
 		Self {
-			basemap: InfiniteMap::new(SEED),
+			basemap: InfiniteMap::new(seed),
 			changes: changes.into_iter().collect(),
 			time,
 			modifications: HashSet::new()

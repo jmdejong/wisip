@@ -23,20 +23,22 @@ pub struct World {
 	creatures: Holder<CreatureId, Creature>,
 	drawing: Option<HashMap<Pos, Vec<Sprite>>>,
 	claims: HashMap<PlayerId, Pos>,
+	seed: u32
 }
 
 impl World {
 	
-	pub fn new(name: String) -> Self {
+	pub fn new(name: String, seed: u32) -> Self {
 		let time = Timestamp(0);
 		Self {
 			name,
-			ground: Map::new(time),
+			ground: Map::new(seed, time),
 			players: HashMap::new(),
 			creatures: Holder::new(),
 			time,
 			drawing: None,
 			claims: HashMap::new(),
+			seed
 		}
 	}
 	
@@ -287,18 +289,20 @@ impl World {
 			time: self.time,
 			ground: self.ground.save(),
 			claims: self.claims.clone(),
+			seed: self.seed,
 		}
 	}
 	
 	pub fn load(save: WorldSave) -> World {
 		World {
 			name: save.name,
-			ground: Map::load(save.ground, save.time),
+			ground: Map::load(save.ground, save.time, save.seed),
 			players: HashMap::new(),
 			creatures: Holder::new(),
 			time: save.time,
 			drawing: None,
 			claims: save.claims,
+			seed: save.seed,
 		}
 	}
 }
@@ -349,5 +353,6 @@ pub struct WorldSave {
 	time: Timestamp,
 	ground: MapSave,
 	claims: HashMap<PlayerId, Pos>,
+	seed: u32
 }
 

@@ -53,17 +53,22 @@ fn main(){
 	let config = Config::parse();
 	
 	match config.world_action {
-		WorldAction::New(conf) => {
-			start_world(World::new(conf.name.clone()), FileStorage::new(FileStorage::default_save_dir(conf.name.clone()).unwrap()), conf);
+		WorldAction::New{conf, seed} => {
+			let persistence = FileStorage::initialize(&conf.name).unwrap();
+			if let Err(LoaderError::MissingResource(_)) = persistence.load_world() {
+				start_world(World::new(conf.name.clone(), seed), persistence, conf);
+			} else {
+				panic!("World '{}' already exists", &conf.name);
+			}
 		}
 		WorldAction::Load(conf) => {
-			let persistence = FileStorage::new(FileStorage::default_save_dir(conf.name.clone()).unwrap());
+			let persistence = FileStorage::initialize(&conf.name).unwrap();
 			start_world(World::load(persistence.load_world().expect("Can't load world")), persistence, conf);
 		}
 		WorldAction::Bench{iterations} => {
-			bench_view(iterations)
+			bench_view(iterations);
 		}
-	};
+	}
 }
 
 fn start_world(mut world: World, persistence: FileStorage, config: WorldConfig) {
@@ -197,7 +202,7 @@ fn save(world: &World, persistence: &impl PersistentStorage) {
 
 
 fn bench_view(iterations: usize) {
-	let mut world = World::new("bench".to_string());
+	let mut world = World::new("bench".to_string(), 9876);
 	let mut player_save = world.default_player();
 	let player_id = PlayerId("Player".to_string());
 	let now = Instant::now();
