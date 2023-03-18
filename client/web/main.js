@@ -85,16 +85,31 @@ class Client {
 			KeyA: {move: "west"},
 			ArrowLeft: {move: "west"},
 			KeyD: {move: "east"},
-			ArrowRight: {move: "east"}
+			ArrowRight: {move: "east"},
+			Period: {select: "next"},
+			Comma: {select: "previous"},
+			NumpadAdd: {select: "next"},
+			NumpadSubtract: {select: "previous"},
+			Equal: {select: "next"},
+			Minus: {select: "previous"},
 		};
+		let shiftKeymap = {
+			KeyW: {interact: "north"},
+			ArrowUp: {interact: "north"},
+			KeyS: {interact: "south"},
+			ArrowDown: {interact: "south"},
+			KeyA: {interact: "west"},
+			ArrowLeft: {interact: "west"},
+			KeyD: {interact: "east"},
+		}
 		document.addEventListener("keydown", e => {
-			if (keymap[e.code]){
+			// console.log(e, e.shiftKey)
+			let action = (e.shiftKey && shiftKeymap[e.code]) || keymap[e.code];
+			// console.log(action);
+			if (action){
 				e.preventDefault();
-				this.sendInput(keymap[e.code]);
+				this.sendInput(action);
 			}
-			// if (c === "KeyW" || e.co)
-			// console.log(e)
-			// console.log(e.code);
 		});
 		this.websocket.addEventListener("error", console.error);
 		this.websocket.addEventListener("message", msg => this.handleMessage(msg));
@@ -138,13 +153,16 @@ class Client {
 			this.display.setCenter(args[0], args[1]);
 		} else if (type === "inventory") {
 			this.setInventory(args[0], args[1]);
+		} else if (type === "messages") {
+			for (let message of args) {
+				this.print(message[1], message[0]);
+			}
 		} else {
 			console.log(type, args);
 		}
 	}
 
 	setInventory(items, selected) {
-		console.log(selected, items)
 		let list = document.getElementById("inventory");
 		while (list.hasChildNodes()){
 			list.removeChild(list.firstChild);
@@ -152,6 +170,9 @@ class Client {
 		for (let i in items) {
 			let item = items[i];
 			let li = document.createElement("li");
+			li.onclick = e => {
+				this.sendInput({select: {idx: i | 0}});
+			}
 
 			let sel = document.createElement("span");
 			sel.className = "inventory-selected";
