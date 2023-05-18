@@ -79,7 +79,7 @@ fn start_world(mut world: World, persistence: FileStorage, config: WorldConfig) 
 	let adresses = config.address
 		.unwrap_or_else(||
 			(if cfg!(target_os = "linux") {
-				vec!["abstract:dezl", "inet:127.0.0.1:9231"]
+				vec!["abstract:dezl", "inet:0.0.0.0:9231"]
 			} else {
 				vec!["inet:127.0.0.1:9231"]
 			})

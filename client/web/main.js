@@ -7,6 +7,10 @@ function main(){
 	let loginForm = document.getElementById("login");
 	loginForm.hidden = false;
 	loginForm.addEventListener("submit", start);
+	let hostInput = document.getElementById("hostinput");
+	if (hostInput.value === hostInput.defaultValue) {
+		hostInput.value = `ws://${window.location.hostname}:9231`;
+	}
 }
 
 function start(e) {
@@ -101,6 +105,7 @@ class Client {
 			KeyA: {interact: "west"},
 			ArrowLeft: {interact: "west"},
 			KeyD: {interact: "east"},
+			ArrowRight: {interact: "east"},
 		}
 		document.addEventListener("keydown", e => {
 			// console.log(e, e.shiftKey)
