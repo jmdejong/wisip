@@ -1,7 +1,7 @@
 "use strict";
 
 class Sprite {
-	constructor(image, x, y, width, height, layer, border) {
+	constructor(image, x, y, width, height, layer, border, ho) {
 		this.image = image;
 		this.x = x;
 		this.y = y;
@@ -9,6 +9,11 @@ class Sprite {
 		this.height = height;
 		this.layer = layer || "main";
 		this.border = border
+		this.ho = ho;
+	}
+
+	hoY(){
+		return this.y - this.height;
 	}
 }
 
@@ -17,7 +22,7 @@ class SpriteMap {
 		this.sprites = {};
 		for (let name in mapping) {
 			let entry = mapping[name];
-			this.sprites[name] = new Sprite(image, entry.x * size, entry.y * size, size, size, entry.layer, entry.border);
+			this.sprites[name] = new Sprite(image, entry.x * size, entry.y * size, size, size, entry.layer, entry.border, entry.ho);
 		}
 	}
 
@@ -35,7 +40,7 @@ class Display {
 	constructor(canvas, spritemap) {
 		this.canvas = canvas;
 		this.outerCtx = canvas.getContext("2d");
-		this.layers = ["base", "borders", "main"];
+		this.layers = ["base", "borders", "main", "ho"];
 		this.buffers = {};//base: null, borders: null, main: null};
 		this.ctxs = {};//base: null, borders: null, main: null};
 		this.spritemap = spritemap;
@@ -104,13 +109,18 @@ class Display {
 		// console.log(tileX, tileY, sprites)
 		let x = (tileX - this.offsetX) * this.tileSize;
 		let y = (tileY - this.offsetY) * this.tileSize;
+		let hoY = y - this.tileSize;
 		this.ctxs.base.clearRect(x, y, this.tileSize, this.tileSize);
 		this.ctxs.main.clearRect(x, y, this.tileSize, this.tileSize);
+		this.ctxs.ho.clearRect(x, hoY, this.tileSize, this.tileSize);
 		for (let i=sprites.length; i --> 0;) {
 			let name = sprites[i];
 			let sprite = this.spritemap.sprite(name);
 			if (sprite) {
 				this.ctxs[sprite.layer].drawImage(sprite.image, sprite.x, sprite.y, sprite.width, sprite.height, x, y, this.tileSize, this.tileSize);
+				if (sprite.ho) {
+					this.ctxs.ho.drawImage(sprite.image, sprite.x, sprite.hoY(), sprite.width, sprite.height, x, hoY, this.tileSize, this.tileSize);
+				}
 			} else {
 				this.ctxs.base.fillStyle = this._getColor(name);
 				// if (Math.abs(tileX - this.centerX) < 2 && Math.abs(tileY - this.centerY) < 2) {
