@@ -213,7 +213,12 @@ class Client {
 		console.log("msg", msg);
 		let li = document.createElement("li");
 		li.innerText = msg;
-		document.getElementById("messages").appendChild(li);
+		let messages = document.getElementById("messages");
+		let isAtBottom = messages.lastElementChild && messages.scrollTop + messages.clientHeight >= messages.scrollHeight - messages.lastElementChild.scrollHeight;
+		messages.appendChild(li);
+		if (isAtBottom){
+			li.scrollIntoView();
+		}
 	}
 	
 	onCommand(command) {
