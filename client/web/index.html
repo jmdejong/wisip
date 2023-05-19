@@ -28,24 +28,15 @@ canvas {
 	overflow: scroll;
 }
 .inventory {
-/* 	float: left; */
-	list-style: none;
 	border: 2px solid #AAA;
-	height: 400px;
+	height: 240px;
 	width: 200px;
-	overflow: scroll;
+	overflow-y: scroll;
 	font: monospace;
+	display: block;
 }
-/*.side {
-	margin-left: 16px;
-}*/
 .inventory-amount {
 	text-align: right;
-}
-.inventory-name {
-}
-.inventory-selected {
-	width: 20px;
 }
 </style>
 </head>
@@ -66,7 +57,7 @@ canvas {
 <div id="game" hidden>
 	<canvas id="canvas" width=256 height=256></canvas>
 	<span class="side">
-		<ul id="inventory" class="inventory"></ul>
+		<table id="inventory" class="inventory"></table>
 		<ul id="messages" class="chatarea"></ul>
 		<form id="chat" action="javascript:void(0);">
 			<input type="text" name="command" style="width: 50%" />

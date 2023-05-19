@@ -174,12 +174,12 @@ class Client {
 		}
 		for (let i in items) {
 			let item = items[i];
-			let li = document.createElement("li");
+			let li = document.createElement("tr");
 			li.onclick = e => {
 				this.sendInput({select: {idx: i | 0}});
 			}
 
-			let sel = document.createElement("span");
+			let sel = document.createElement("td");
 			sel.className = "inventory-selected";
 			if (i == selected) {
 				sel.className += " selected";
@@ -187,12 +187,12 @@ class Client {
 			};
 			li.appendChild(sel);
 
-			let nm = document.createElement("span");
+			let nm = document.createElement("td");
 			nm.className = "inventory-name";
 			nm.innerText = item[0];
 			li.appendChild(nm);
 
-			let am = document.createElement("span");
+			let am = document.createElement("td");
 			am.className = "inventory-amount";
 			am.innerText = item[1];
 			li.appendChild(am);
