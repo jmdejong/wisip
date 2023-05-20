@@ -204,15 +204,13 @@ class Display {
 		this.outerCtx.imageSmoothingEnabled = false;
 		for (let layer of this.layers) {
 			let buffer = this.buffers[layer];
-			console.log(layer, buffer);
 			this.outerCtx.drawImage(buffer, this.canvas.width / 2 - centerX * this.scale, this.canvas.height / 2 - centerY * this.scale, buffer.width * this.scale, buffer.height * this.scale);
 		}
 	}
 
 	resize(width, height) {
-		// console.log(width, height);
-		this.canvas.width = width;// / this.scale;
-		this.canvas.height = height;// / this.scale;
+		this.canvas.width = width;;
+		this.canvas.height = height;
 		if (this.buffers.base) {
 			this.redraw();
 		}

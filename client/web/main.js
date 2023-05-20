@@ -108,9 +108,10 @@ class Client {
 			ArrowRight: {interact: "east"},
 		}
 		document.addEventListener("keydown", e => {
-			// console.log(e, e.shiftKey)
+			if (document.activeElement.classList.contains("captureinput")){
+				return;
+			}
 			let action = (e.shiftKey && shiftKeymap[e.code]) || keymap[e.code];
-			// console.log(action);
 			if (action){
 				e.preventDefault();
 				this.sendInput(action);
