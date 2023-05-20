@@ -171,36 +171,42 @@ class Client {
 	}
 
 	setInventory(items, selected) {
-		let list = document.getElementById("inventory");
-		while (list.hasChildNodes()){
-			list.removeChild(list.firstChild);
-		}
-		for (let i in items) {
+		let table = document.getElementById("inventory");
+
+		let rows = table.querySelectorAll("tr");
+		rows.forEach(function(row) {
+			row.remove();
+		});
+
+		for (let i=0; i<items.length; ++i) {
 			let item = items[i];
-			let li = document.createElement("tr");
-			li.onclick = e => {
+			let row = document.createElement("tr");
+			row.onclick = e => {
 				this.sendInput({select: {idx: i | 0}});
 			}
 
 			let sel = document.createElement("td");
 			sel.className = "inventory-selected";
-			if (i == selected) {
+			if (i === selected) {
 				sel.className += " selected";
 				sel.innerText = "*";
 			};
-			li.appendChild(sel);
+			row.appendChild(sel);
 
 			let nm = document.createElement("td");
 			nm.className = "inventory-name";
 			nm.innerText = item[0];
-			li.appendChild(nm);
+			row.appendChild(nm);
 
 			let am = document.createElement("td");
 			am.className = "inventory-amount";
 			am.innerText = item[1];
-			li.appendChild(am);
+			row.appendChild(am);
 
-			list.appendChild(li);
+			table.appendChild(row);
+			if (Math.abs(i - selected) <= 1) {
+				row.scrollIntoView();
+			}
 		}
 	}
 

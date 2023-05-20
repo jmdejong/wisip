@@ -68,10 +68,16 @@ canvas {
 	top: 5px;
 	right: 5px;
 	background-color: #fffc;
+	table-layout: fixed;
 }
 .inventory-amount {
 	text-align: right;
+	width: 10%;
 }
+.inventory-name {
+	width: 90%;
+}
+
 </style>
 </head>
 
@@ -91,7 +97,8 @@ canvas {
 <span id="game" class="main" hidden>
 	<canvas id="canvas" width=256 height=256></canvas>
 	<span class="side">
-		<table id="inventory" class="inventory"></table>
+		<table id="inventory" class="inventory">
+		</table>
 		<span class="chat">
 			<ul id="messages" class="messages"></ul>
 			<form id="chatinput" class="chatinput" action="javascript:void(0);">
