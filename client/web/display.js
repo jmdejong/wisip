@@ -41,8 +41,8 @@ class Display {
 		this.canvas = canvas;
 		this.outerCtx = canvas.getContext("2d");
 		this.layers = ["base", "borders", "main", "ho"];
-		this.buffers = {};//base: null, borders: null, main: null};
-		this.ctxs = {};//base: null, borders: null, main: null};
+		this.buffers = {};
+		this.ctxs = {};
 		this.spritemap = spritemap;
 		this.offsetX = 0;
 		this.offsetY = 0;
@@ -51,6 +51,7 @@ class Display {
 		this.borders = [];
 		this.width = 0;
 		this.height = 0;
+		this.scale = 4;
 	}
 
 	drawField(width, height, offsetX, offsetY, cells, mapping){
@@ -106,7 +107,6 @@ class Display {
 	}
 
 	_drawTile(tileX, tileY, sprites) {
-		// console.log(tileX, tileY, sprites)
 		let x = (tileX - this.offsetX) * this.tileSize;
 		let y = (tileY - this.offsetY) * this.tileSize;
 		let hoY = y - this.tileSize;
@@ -123,9 +123,6 @@ class Display {
 				}
 			} else {
 				this.ctxs.base.fillStyle = this._getColor(name);
-				// if (Math.abs(tileX - this.centerX) < 2 && Math.abs(tileY - this.centerY) < 2) {
-					// console.log(name, this.ctx.fillStyle)
-				// }
 				this.ctxs.base.fillRect(x, y, this.tileSize, this.tileSize);
 			}
 		}
@@ -140,8 +137,6 @@ class Display {
 			return;
 		}
 		this.ctxs.borders.strokeStyle = border;
-		// console.log(border);
-		// this.ctxs.borders.beginPath();
 		if (this._borderAt(lx - 1, ly) !== border) {
 			this.ctxs.borders.beginPath();
 			this.ctxs.borders.moveTo(x+0.5, y);
@@ -206,8 +201,20 @@ class Display {
 		let centerX = (this.centerX - this.offsetX) * this.tileSize;
 		let centerY = (this.centerY - this.offsetY) * this.tileSize;
 		// let srcX = Math.max(0, Math.min(this.buffer.width, this.
+		this.outerCtx.imageSmoothingEnabled = false;
 		for (let layer of this.layers) {
-			this.outerCtx.drawImage(this.buffers[layer], this.canvas.width / 2 - centerX, this.canvas.height / 2 - centerY);
+			let buffer = this.buffers[layer];
+			console.log(layer, buffer);
+			this.outerCtx.drawImage(buffer, this.canvas.width / 2 - centerX * this.scale, this.canvas.height / 2 - centerY * this.scale, buffer.width * this.scale, buffer.height * this.scale);
+		}
+	}
+
+	resize(width, height) {
+		// console.log(width, height);
+		this.canvas.width = width;// / this.scale;
+		this.canvas.height = height;// / this.scale;
+		if (this.buffers.base) {
+			this.redraw();
 		}
 	}
 }

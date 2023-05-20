@@ -9,7 +9,7 @@ function main(){
 	loginForm.addEventListener("submit", start);
 	let hostInput = document.getElementById("hostinput");
 	if (hostInput.value === hostInput.defaultValue) {
-		hostInput.value = `ws://${window.location.hostname}:9231`;
+		hostInput.value = `ws://${window.location.hostname || "localhost"}:9231`;
 	}
 }
 
@@ -118,11 +118,13 @@ class Client {
 		});
 		this.websocket.addEventListener("error", console.error);
 		this.websocket.addEventListener("message", msg => this.handleMessage(msg));
-		document.getElementById("chat").addEventListener("submit", e => {
+		document.getElementById("chatinput").addEventListener("submit", e => {
 			let inp = e.target.command;
 			this.onCommand(inp.value)
 			inp.value = "";
 		});
+		this.resize();
+		window.addEventListener('resize', e => this.resize());
 	}
 	
 	handleMessage(msg) {
@@ -223,5 +225,9 @@ class Client {
 	
 	onCommand(command) {
 		this.websocket.send(JSON.stringify({chat: command}));
+	}
+
+	resize() {
+		this.display.resize(window.innerWidth, window.innerHeight);
 	}
 }

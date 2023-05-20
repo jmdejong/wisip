@@ -8,12 +8,19 @@
 <script src="display.js"></script>
 <script src="main.js"></script>
 <style>
+html, body {
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+}
+
+.main {
+
+}
+
 canvas {
 	background-color: black;
-	border: 3px solid #888;
-	float: left;
-	width: 1024px;
-	height: 1024px;
+	display: block;
 	image-rendering: pixelated;
 }
 
@@ -21,12 +28,35 @@ canvas {
 	border: 1px solid black;
 	padding: 5px;
 }
-.chatarea {
-	list-style: none;
+
+.chat {
+	position: absolute;
+	bottom: 5px;
+	left: 5px;
+	background-color: #fffc;
 	border: 2px solid #AAA;
-	height: 256px;
-	overflow: scroll;
+	height: 240px;
+	width: 360px;
+	display: flex;
+	flex-direction: column;
 }
+
+.messages {
+	margin: 0;
+	padding: 5px;
+	list-style: none;
+	overflow: scroll;
+	flex: 1;
+}
+
+.chatinput {
+	display: flex;
+}
+
+.textfield {
+	flex: 1;
+}
+
 .inventory {
 	border: 2px solid #AAA;
 	height: 240px;
@@ -34,6 +64,10 @@ canvas {
 	overflow-y: scroll;
 	font: monospace;
 	display: block;
+	position: absolute;
+	top: 5px;
+	right: 5px;
+	background-color: #fffc;
 }
 .inventory-amount {
 	text-align: right;
@@ -54,17 +88,19 @@ canvas {
 	</label>
 	<input type="submit" value="Connect" />
 </form>
-<div id="game" hidden>
+<span id="game" class="main" hidden>
 	<canvas id="canvas" width=256 height=256></canvas>
 	<span class="side">
 		<table id="inventory" class="inventory"></table>
-		<ul id="messages" class="chatarea"></ul>
-		<form id="chat" action="javascript:void(0);">
-			<input type="text" name="command" style="width: 50%" />
-			<input type="submit" value="Send" />
-		</form>
+		<span class="chat">
+			<ul id="messages" class="messages"></ul>
+			<form id="chatinput" class="chatinput" action="javascript:void(0);">
+				<input type="text" class="textfield" name="command" />
+				<input type="submit" value="Send" />
+			</form>
+		</span>
 	</span>
-</div>
+</span>
 <div class="resources" hidden>
 	<img id="spritemap" src="spritemap.png"></img>
 </div>
