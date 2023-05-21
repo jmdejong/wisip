@@ -1,9 +1,8 @@
-// #![recursion_limit="512"]
 use std::thread;
 use std::time::{Instant, Duration};
 use std::sync::{Arc, atomic::{AtomicBool, Ordering}};
-use chrono::Utc;
 use clap::Parser;
+use time::OffsetDateTime;
 
 mod action;
 mod basemap;
@@ -109,7 +108,7 @@ fn start_world(mut world: World, persistence: FileStorage, config: WorldConfig) 
 	}).expect("can't set close handler");
 	
 	
-	eprintln!("dezl started world {} on {}", config.name, Utc::now());
+	eprintln!("dezl started world {} on {}", config.name, OffsetDateTime::now_utc());
 	
 	while running.load(Ordering::SeqCst) {
 		let update_start = Instant::now();
@@ -189,7 +188,7 @@ fn start_world(mut world: World, persistence: FileStorage, config: WorldConfig) 
 		thread::sleep(Duration::from_millis(config.step_duration).saturating_sub(elapsed_time));
 	}
 	save(&world, &persistence);
-	eprintln!("shutting down on {}", Utc::now());
+	eprintln!("shutting down on {}", OffsetDateTime::now_utc());
 }
 
 fn save(world: &World, persistence: &impl PersistentStorage) {

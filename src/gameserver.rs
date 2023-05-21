@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use serde_json::{Value, json};
 use serde::{Serialize, Deserialize};
 use unicode_categories::UnicodeCategories;
-use chrono::Utc;
+use time::OffsetDateTime;
 use crate::util::{HolderId, Holder};
 
 use crate::{
@@ -127,7 +127,7 @@ impl GameServer {
 	}
 	
 	pub fn broadcast_message(&mut self, text: &str){
-		println!("m {}      {}", text, Utc::now());
+		println!("m {}      {}", text, OffsetDateTime::now_utc());
 		self.broadcast_json(json!(["message", text, ""]));
 	}
 	
