@@ -109,7 +109,7 @@ class Display {
 	_drawTile(tileX, tileY, sprites) {
 		let x = (tileX - this.offsetX) * this.tileSize;
 		let y = (tileY - this.offsetY) * this.tileSize;
-		let hoY = y - this.tileSize;
+		let hoY = y;// - this.tileSize;
 		this.ctxs.base.clearRect(x, y, this.tileSize, this.tileSize);
 		this.ctxs.main.clearRect(x, y, this.tileSize, this.tileSize);
 		this.ctxs.ho.clearRect(x, hoY, this.tileSize, this.tileSize);
@@ -198,13 +198,20 @@ class Display {
 	}
 
 	redraw(){
-		let centerX = (this.centerX - this.offsetX) * this.tileSize;
-		let centerY = (this.centerY - this.offsetY) * this.tileSize;
+		let tileSize = this.tileSize * this.scale;
+		let centerX = (this.centerX - this.offsetX) * tileSize;
+		let centerY = (this.centerY - this.offsetY) * tileSize;
 		// let srcX = Math.max(0, Math.min(this.buffer.width, this.
 		this.outerCtx.imageSmoothingEnabled = false;
 		for (let layer of this.layers) {
 			let buffer = this.buffers[layer];
-			this.outerCtx.drawImage(buffer, this.canvas.width / 2 - centerX * this.scale, this.canvas.height / 2 - centerY * this.scale, buffer.width * this.scale, buffer.height * this.scale);
+			this.outerCtx.drawImage(
+				buffer,
+				this.canvas.width / 2 - centerX,
+				this.canvas.height / 2 - centerY - (layer === "ho" ? tileSize : 0),
+				buffer.width * this.scale,
+				buffer.height * this.scale
+			);
 		}
 	}
 
