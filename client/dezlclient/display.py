@@ -38,7 +38,17 @@ class Display:
 		brushes = [self.brush(spriteNames) for spriteNames in mapping]
 		
 		field.draw_all(fieldCells, brushes)
-		
+
+
+	def setViewArea(self, x, y, w, h):
+		field = self.getWidget("field")
+		field.set_dimensions((x, y), w, h, keep=True)
+
+
+	def drawSection(self, area, fieldCells, mapping):
+		field = self.getWidget("field")
+		brushes = [self.brush(spriteNames) for spriteNames in mapping]
+		field.draw_all(fieldCells, brushes, area)
 	
 	def drawFieldCells(self, cells):
 		field = self.getWidget("field")

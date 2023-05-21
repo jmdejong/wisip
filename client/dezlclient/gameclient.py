@@ -123,6 +123,16 @@ class Client:
 				field["mapping"],
 				field["offset"]
 			)
+
+		if msgType == 'viewarea':
+			area = msg[1]["area"]
+			self.display.setViewArea(**area)
+
+		if msgType == 'section':
+			section = msg[1]
+			rawarea = section["area"]
+			area = ((rawarea["x"], rawarea["y"]), (rawarea["w"], rawarea["h"]))
+			self.display.drawSection(area, section["field"], section["mapping"])
 		
 		if msgType == 'changecells' and len(msg[1]):
 			self.display.drawFieldCells(msg[1])

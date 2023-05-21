@@ -4,6 +4,7 @@ use serde_json::{Value, json};
 use serde::Serialize;
 use crate::{
 	Pos,
+	pos::Area,
 	Sprite,
 	PlayerId,
 };
@@ -60,6 +61,8 @@ worldmessages!(
 	inventory, InventoryMessage, "inventory", true;
 	ground, GroundMessage, "ground", true;
 	sounds, SoundMessage, "messages", false;
+	viewarea, ViewAreaMessage, "viewarea", true;
+	section, SectionMessage, "section", true;
 );
 
 
@@ -75,6 +78,18 @@ pub struct FieldMessage {
 	pub field: Vec<usize>,
 	pub mapping: Vec<Vec<Sprite>>,
 	pub offset: Pos
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
+pub struct ViewAreaMessage {
+	pub area: Area
+}
+
+#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
+pub struct SectionMessage {
+	pub field: Vec<usize>,
+	pub mapping: Vec<Vec<Sprite>>,
+	pub area: Area
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]

@@ -37,15 +37,24 @@ class Field(Widget):
 		self.pad.write(x * self.char_size, y, char, style)
 		self.change()
 	
-	def draw_all(self, values, mapping):
+	def draw_all(self, values, mapping, area=None):
+		if area is None:
+			xmin = 0
+			ymin = 0
+			w = self.width
+			h = self.height
+		else:
+			((xmin, ymin), (w, h)) = area
+		xmin -= self.offset[0]
+		ymin -= self.offset[1]
 		# This code is hot. Performance gains can be worth the price of code quality
 		brushes = [(char, self.pad.get_raw_style(style)) for (char, style) in mapping]
-		for x in range(0, self.width):
-			sized_x = x * self.char_size
-			for y in range(0, self.height):
-				value = values[x+self.width*y]
+		for x in range(0, w):
+			sized_x = (x + xmin) * self.char_size
+			for y in range(0, h):
+				value = values[x+w*y]
 				brush = brushes[value]
-				self.pad.set_char(sized_x, y, brush[0], brush[1])
+				self.pad.set_char(sized_x, y + ymin, brush[0], brush[1])
 		self.change()
 	
 	def set_center(self, x, y):

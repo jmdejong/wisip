@@ -1,8 +1,7 @@
 
 use crate::{
-	pos::{Pos, Area},
-	random::{WhiteNoise, randomize_u32},
-	grid::Grid
+	pos::{Pos},
+	random::{WhiteNoise, randomize_u32}
 };
 
 

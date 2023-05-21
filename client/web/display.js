@@ -52,26 +52,30 @@ class Display {
 		this.width = 0;
 		this.height = 0;
 		this.scale = 4;
+		this.init = false;
 	}
 
-	drawField(width, height, offsetX, offsetY, cells, mapping){
+	setViewArea(area){
 		for (let layer of this.layers) {
 			let buffer = document.createElement("canvas");
-			buffer.width = width * this.tileSize;
-			buffer.height = height * this.tileSize;
+			buffer.width = area.w * this.tileSize;
+			buffer.height = area.h * this.tileSize;
 			this.buffers[layer] = buffer;
 			let ctx = buffer.getContext("2d");
 			this.ctxs[layer] = ctx;
 		}
+		this.borders = [];
+		this.offsetX = area.x;
+		this.offsetY = area.y;
+		this.width = area.w;
+		this.height = area.h;
+	}
+
+	drawSection(width, height, offsetX, offsetY, cells, mapping){
 		let borderMap = {};
 		for (let key in mapping) {
 			borderMap[key] = this._border(mapping[key]);
 		}
-		this.borders = [];
-		this.offsetX = offsetX;
-		this.offsetY = offsetY;
-		this.width = width;
-		this.height = height;
 		for (let i=0; i<width * height; ++i){
 			let x = i % width;
 			let y = i / width | 0;
@@ -83,9 +87,13 @@ class Display {
 				this._drawBorder(lx, ly);
 			}
 		}
+		this.init = true
 	}
 
 	changeTiles(tiles) {
+		if (!this.init) {
+			return;
+		}
 		for (let tile of tiles){
 			let x = tile[0][0];
 			let y = tile[0][1];
@@ -198,6 +206,9 @@ class Display {
 	}
 
 	redraw(){
+		if (!this.init) {
+			return;
+		}
 		let tileSize = this.tileSize * this.scale;
 		let centerX = (this.centerX - this.offsetX) * tileSize;
 		let centerY = (this.centerY - this.offsetY) * tileSize;
@@ -218,8 +229,6 @@ class Display {
 	resize(width, height) {
 		this.canvas.width = width;;
 		this.canvas.height = height;
-		if (this.buffers.base) {
-			this.redraw();
-		}
+		this.redraw();
 	}
 }

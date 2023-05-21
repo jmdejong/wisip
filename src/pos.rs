@@ -272,6 +272,26 @@ impl Area {
 	}
 }
 
+
+impl Serialize for Area {
+	fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+	where S: Serializer {
+		AreaSave {
+			x: self.min.x,
+			y: self.min.y,
+			w: self.size.x,
+			h: self.size.y
+		}.serialize(serializer)
+	}
+}
+impl<'de> Deserialize<'de> for Area {
+	fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+	where D: Deserializer<'de> {
+		let s = AreaSave::deserialize(deserializer)?;
+		Ok(Self::new(Pos::new(s.x, s.y), Pos::new(s.w, s.h)))
+	}
+}
+
 pub struct AreaIter{
 	area: Area,
 	x: i32,
@@ -295,6 +315,14 @@ impl Iterator for AreaIter {
 			Some(Pos::new(self.x-1, self.y))
 		}
 	}
+}
+
+#[derive(Serialize, Deserialize)]
+pub struct AreaSave {
+	x: i32,
+	y: i32,
+	w: i32,
+	h: i32
 }
 
 #[cfg(test)]

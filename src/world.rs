@@ -8,7 +8,7 @@ use crate::{
 	pos::{Pos, Area},
 	util::Holder,
 	sprite::Sprite,
-	worldmessages::{WorldMessage, FieldMessage, ChangeMessage, SoundType::{BuildError}},
+	worldmessages::{WorldMessage, SectionMessage, ViewAreaMessage, ChangeMessage, SoundType::{BuildError}},
 	timestamp::{Timestamp},
 	creature::{Creature, Mind, CreatureId, PlayerSave},
 	player::Player,
@@ -268,7 +268,10 @@ impl World {
 				} else {
 					player.is_new = false;
 					player.view_center = Some(body.pos);
-					wm.field = Some(draw_field(player.view_area().unwrap(), &mut self.ground, &dynamic_sprites));
+					let area = player.view_area().unwrap();
+					wm.viewarea = Some(ViewAreaMessage{area});
+					wm.section = Some(draw_field(area, &mut self.ground, &dynamic_sprites));
+
 				}
 				wm.pos = Some(body.pos);
 				wm.inventory = Some(body.inventory.view());
@@ -308,7 +311,7 @@ impl World {
 }
 
 
-fn draw_field(area: Area, tiles: &mut Map, sprites: &HashMap<Pos, Vec<Sprite>>) -> FieldMessage {
+fn draw_field(area: Area, tiles: &mut Map, sprites: &HashMap<Pos, Vec<Sprite>>) -> SectionMessage {
 	// println!("redrawing field");
 	let mut values :Vec<usize> = Vec::with_capacity((area.size().x * area.size().y) as usize);
 	let mut mapping: Vec<Vec<Sprite>> = Vec::new();
@@ -330,12 +333,10 @@ fn draw_field(area: Area, tiles: &mut Map, sprites: &HashMap<Pos, Vec<Sprite>>) 
 			}
 		)
 	}
-	FieldMessage {
-		width: area.size().x,
-		height: area.size().y,
+	SectionMessage {
+		area,
 		field: values,
-		mapping,
-		offset: area.min()
+		mapping
 	}
 }
 
