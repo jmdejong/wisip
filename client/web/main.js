@@ -115,6 +115,10 @@ class Client {
 			if (action){
 				e.preventDefault();
 				this.sendInput(action);
+			} else {
+				if (e.code == "Enter" || e.code == "KeyT") {
+					document.getElementById("textinput").focus()
+				}
 			}
 		});
 		this.websocket.addEventListener("error", console.error);
