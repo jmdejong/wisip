@@ -1,7 +1,7 @@
 "use strict";
 
 class Sprite {
-	constructor(image, x, y, width, height, layer, border, ho) {
+	constructor(image, x, y, width, height, layer, border, ho, originX, originY) {
 		this.image = image;
 		this.x = x;
 		this.y = y;
@@ -10,6 +10,8 @@ class Sprite {
 		this.layer = layer || "main";
 		this.border = border
 		this.ho = ho;
+		this.originX = originX;
+		this.originY = originY;
 	}
 
 	hoY(){
@@ -18,11 +20,25 @@ class Sprite {
 }
 
 class SpriteMap {
-	constructor(image, mapping, size) {
+	constructor() {
 		this.sprites = {};
+	}
+	
+	addSprites(image, mapping, size, margin) {
 		for (let name in mapping) {
 			let entry = mapping[name];
-			this.sprites[name] = new Sprite(image, entry.x * size, entry.y * size, size, size, entry.layer, entry.border, entry.ho);
+			this.sprites[name] = new Sprite(
+				image,
+				entry.x * size,
+				entry.y * size,
+				size,
+				size,
+				entry.layer,
+				entry.border,
+				entry.ho,
+				margin,
+				margin
+			);
 		}
 	}
 
@@ -40,7 +56,7 @@ class Display {
 	constructor(canvas, spritemap) {
 		this.canvas = canvas;
 		this.outerCtx = canvas.getContext("2d");
-		this.layers = ["base", "borders", "main", "ho"];
+		this.layers = ["ground", "base", "borders", "main", "ho"];
 		this.buffers = {};
 		this.ctxs = {};
 		this.spritemap = spritemap;
@@ -118,6 +134,7 @@ class Display {
 		let x = (tileX - this.offsetX) * this.tileSize;
 		let y = (tileY - this.offsetY) * this.tileSize;
 		let hoY = y;// - this.tileSize;
+		// this.ctxs.ground.clearRect(x, y, this.tileSize, this.tileSize);
 		this.ctxs.base.clearRect(x, y, this.tileSize, this.tileSize);
 		this.ctxs.main.clearRect(x, y, this.tileSize, this.tileSize);
 		this.ctxs.ho.clearRect(x, hoY, this.tileSize, this.tileSize);
@@ -125,9 +142,9 @@ class Display {
 			let name = sprites[i];
 			let sprite = this.spritemap.sprite(name);
 			if (sprite) {
-				this.ctxs[sprite.layer].drawImage(sprite.image, sprite.x, sprite.y, sprite.width, sprite.height, x, y, this.tileSize, this.tileSize);
+				this.ctxs[sprite.layer].drawImage(sprite.image, sprite.x, sprite.y, sprite.width, sprite.height, x - sprite.originX, y - sprite.originY, sprite.width, sprite.height);
 				if (sprite.ho) {
-					this.ctxs.ho.drawImage(sprite.image, sprite.x, sprite.hoY(), sprite.width, sprite.height, x, hoY, this.tileSize, this.tileSize);
+					this.ctxs.ho.drawImage(sprite.image, sprite.x, sprite.hoY(), sprite.width, sprite.height, x - sprite.originX, hoY - sprite.originY, this.tileSize, this.tileSize);
 				}
 			} else {
 				this.ctxs.base.fillStyle = this._getColor(name);
