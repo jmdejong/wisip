@@ -57,7 +57,7 @@ class SpriteMap {
 class Display {
 	tileSize = 8;
 
-	constructor(canvas, spritemap) {
+	constructor(canvas, spritemap, fuzzSprite) {
 		this.canvas = canvas;
 		this.outerCtx = canvas.getContext("2d");
 		this.layers = ["ground", "fuzz", "base", "borders", "main", "ho"];
@@ -73,6 +73,7 @@ class Display {
 		this.height = 0;
 		this.scale = 4;
 		this.init = false;
+		this.fuzzSprite = fuzzSprite;
 	}
 
 	setViewArea(area){
@@ -139,6 +140,10 @@ class Display {
 		let y = (tileY - this.offsetY) * this.tileSize;
 		let hoY = y;// - this.tileSize;
 		// this.ctxs.ground.clearRect(x, y, this.tileSize, this.tileSize);
+		this.ctxs.ground.clearRect(x, y, this.tileSize, this.tileSize);
+		this.ctxs.fuzz.globalCompositeOperation = "destination-out";
+		this.fuzzSprite.drawOn(this.ctxs.fuzz, x, y);
+		this.ctxs.fuzz.globalCompositeOperation = "source-over";
 		this.ctxs.base.clearRect(x, y, this.tileSize, this.tileSize);
 		this.ctxs.main.clearRect(x, y, this.tileSize, this.tileSize);
 		this.ctxs.ho.clearRect(x, hoY, this.tileSize, this.tileSize);

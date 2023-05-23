@@ -20,7 +20,6 @@ function start(e) {
 	
 	let canvas = document.getElementById("canvas");
 
-	// var input = new Input();
 	let fuzzTemplate = new FuzzTemplate(document.getElementById("fuzz-template"), 1, 1);
 
 	let spritemap = new SpriteMap();
@@ -64,24 +63,7 @@ function start(e) {
 		8,
 		fuzzTemplate
 	);
-	// spritemap.addSprites(
-	// 	document.getElementById("ground-tiles"),
-	// 	{
-	// 		grass1: {x: 0, y: 0, layer: "ground"},
-	// 		grass2: {x: 1, y: 0, layer: "ground"},
-	// 		grass3: {x: 2, y: 0, layer: "ground"},
-	// 		dirt: {x: 3, y: 0, layer: "ground"},
-	// 		deadleaves: {x: 0, y: 1, layer: "ground"},
-	// 		densegrass: {x: 1, y: 1, layer: "ground"},
-	// 		water: {x: 2, y: 1, border: "#004", layer: "ground"},
-	// 		moss: {x: 3, y: 1, layer: "ground"},
-	// 		stonefloor: {x: 0, y: 2, layer: "ground"},
-	// 		rockfloor: {x: 1, y: 2, layer: "ground"},
-	// 	},
-	// 	10,
-	// 	1
-	// );
-	let client = new Client(username, host, new Display(canvas, spritemap));
+	let client = new Client(username, host, new Display(canvas, spritemap, fuzzTemplate.asSprite()));
 	client.start()
 	form.hidden = true;
 }

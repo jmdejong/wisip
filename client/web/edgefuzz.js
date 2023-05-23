@@ -24,4 +24,8 @@ class FuzzTemplate {
 		ctx.drawImage(this.image, 0, 0);
 		return new Sprite(outImg, 0, 0, outImg.width, outImg.height, this.marginX, this.marginY);
 	}
+
+	asSprite() {
+		return new Sprite(this.image, 0, 0, this.image.width, this.image.height, this.marginX, this.marginY);
+	}
 }
