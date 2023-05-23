@@ -1,44 +1,48 @@
 "use strict";
 
 class Sprite {
-	constructor(image, x, y, width, height, layer, border, ho, originX, originY) {
+	constructor(image, x, y, width, height, originX, originY) {
 		this.image = image;
-		this.x = x;
-		this.y = y;
-		this.width = width;
-		this.height = height;
-		this.layer = layer || "main";
-		this.border = border
-		this.ho = ho;
-		this.originX = originX;
-		this.originY = originY;
+		this.x = x || 0;
+		this.y = y || 0;
+		this.width = width || image.width;
+		this.height = height || image.height;
+		this.originX = originX || 0;
+		this.originY = originY || 0;
 	}
 
-	hoY(){
-		return this.y - this.height;
+	drawOn(ctx, x, y) {
+		ctx.drawImage(this.image, this.x, this.y, this.width, this.height, x - this.originX, y - this.originY, this.width, this.height);
 	}
 }
+
+class LayeredSprite {
+	constructor(layers, border) {
+		this.layers = layers;
+		this.border = border;
+	}
+}
+
 
 class SpriteMap {
 	constructor() {
 		this.sprites = {};
 	}
 	
-	addSprites(image, mapping, size, margin) {
+	addSprites(image, mapping, size, fuzzTemplate) {
 		for (let name in mapping) {
 			let entry = mapping[name];
-			this.sprites[name] = new Sprite(
-				image,
-				entry.x * size,
-				entry.y * size,
-				size,
-				size,
-				entry.layer,
-				entry.border,
-				entry.ho,
-				margin,
-				margin
-			);
+			let layers = {};
+			let mainSprite = new Sprite(image, entry.x * size, entry.y * size, size, size)
+			layers[entry.layer || "main"] = mainSprite;
+			if (entry.ho) {
+				layers.ho = new Sprite(image, entry.x * size, (entry.y - 1) * size, size, size);
+			}
+			if (entry.layer == "ground") {
+				layers.fuzz = fuzzTemplate.fuzz(mainSprite);
+			}
+
+			this.sprites[name] = new LayeredSprite(layers, entry.border);
 		}
 	}
 
@@ -56,7 +60,7 @@ class Display {
 	constructor(canvas, spritemap) {
 		this.canvas = canvas;
 		this.outerCtx = canvas.getContext("2d");
-		this.layers = ["ground", "base", "borders", "main", "ho"];
+		this.layers = ["ground", "fuzz", "base", "borders", "main", "ho"];
 		this.buffers = {};
 		this.ctxs = {};
 		this.spritemap = spritemap;
@@ -142,9 +146,8 @@ class Display {
 			let name = sprites[i];
 			let sprite = this.spritemap.sprite(name);
 			if (sprite) {
-				this.ctxs[sprite.layer].drawImage(sprite.image, sprite.x, sprite.y, sprite.width, sprite.height, x - sprite.originX, y - sprite.originY, sprite.width, sprite.height);
-				if (sprite.ho) {
-					this.ctxs.ho.drawImage(sprite.image, sprite.x, sprite.hoY(), sprite.width, sprite.height, x - sprite.originX, hoY - sprite.originY, this.tileSize, this.tileSize);
+				for (let layer in sprite.layers) {
+					sprite.layers[layer].drawOn(this.ctxs[layer], x, y);
 				}
 			} else {
 				this.ctxs.base.fillStyle = this._getColor(name);

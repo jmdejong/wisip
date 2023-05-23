@@ -21,6 +21,8 @@ function start(e) {
 	let canvas = document.getElementById("canvas");
 
 	// var input = new Input();
+	let fuzzTemplate = new FuzzTemplate(document.getElementById("fuzz-template"), 1, 1);
+
 	let spritemap = new SpriteMap();
 	spritemap.addSprites(
 		document.getElementById("spritemap"),
@@ -29,21 +31,21 @@ function start(e) {
 			sage: {x: 1, y: 0},
 			worktable: {x: 6, y: 0},
 			altar: {x: 7, y: 0},
-			// grass1: {x: 0, y: 1, layer: "ground"},
-			// grass2: {x: 1, y: 1, layer: "ground"},
-			// grass3: {x: 2, y: 1, layer: "ground"},
-			// dirt: {x: 3, y: 1, layer: "ground"},
+			grass1: {x: 0, y: 1, layer: "ground"},
+			grass2: {x: 1, y: 1, layer: "ground"},
+			grass3: {x: 2, y: 1, layer: "ground"},
+			dirt: {x: 3, y: 1, layer: "ground"},
 			rockmid: {x: 4, y: 1, border: "#222", layer: "base"},
 			" ": {x: 4, y: 1},
 			rock: {x: 5, y: 1, border: "#222", layer: "base"},
-			// water: {x: 6, y: 1, border: "#004", layer: "ground"},
-			// moss: {x: 7, y: 1, layer: "ground"},
-			// deadleaves: {x: 0, y: 2, layer: "ground"},
-			// densegrass: {x: 1, y: 2, layer: "ground"},
+			water: {x: 6, y: 1, border: "#004", layer: "base"},
+			moss: {x: 7, y: 1, layer: "ground"},
+			deadleaves: {x: 0, y: 2, layer: "ground"},
+			densegrass: {x: 1, y: 2, layer: "ground"},
 			wall: {x: 2, y: 2, border: "#222", layer: "base"},
 			woodwall: {x: 3, y: 2, border: "#220", layer: "base"},
-			// stonefloor: {x: 4, y: 2, layer: "ground"},
-			// rockfloor: {x: 5, y: 2, layer: "ground"},
+			stonefloor: {x: 4, y: 2, layer: "base"},
+			rockfloor: {x: 5, y: 2, layer: "ground"},
 			rush: {x: 0, y: 3},
 			pitcherplant: {x: 1, y: 3},
 			tree: {x: 2, y: 5, ho: true},
@@ -60,25 +62,25 @@ function start(e) {
 			stick: {x: 2, y: 6},
 		},
 		8,
-		0
+		fuzzTemplate
 	);
-	spritemap.addSprites(
-		document.getElementById("ground-tiles"),
-		{
-			grass1: {x: 0, y: 0, layer: "ground"},
-			grass2: {x: 1, y: 0, layer: "ground"},
-			grass3: {x: 2, y: 0, layer: "ground"},
-			dirt: {x: 3, y: 0, layer: "ground"},
-			deadleaves: {x: 0, y: 1, layer: "ground"},
-			densegrass: {x: 1, y: 1, layer: "ground"},
-			water: {x: 2, y: 1, border: "#004", layer: "ground"},
-			moss: {x: 3, y: 1, layer: "ground"},
-			stonefloor: {x: 0, y: 2, layer: "ground"},
-			rockfloor: {x: 1, y: 2, layer: "ground"},
-		},
-		10,
-		1
-	);
+	// spritemap.addSprites(
+	// 	document.getElementById("ground-tiles"),
+	// 	{
+	// 		grass1: {x: 0, y: 0, layer: "ground"},
+	// 		grass2: {x: 1, y: 0, layer: "ground"},
+	// 		grass3: {x: 2, y: 0, layer: "ground"},
+	// 		dirt: {x: 3, y: 0, layer: "ground"},
+	// 		deadleaves: {x: 0, y: 1, layer: "ground"},
+	// 		densegrass: {x: 1, y: 1, layer: "ground"},
+	// 		water: {x: 2, y: 1, border: "#004", layer: "ground"},
+	// 		moss: {x: 3, y: 1, layer: "ground"},
+	// 		stonefloor: {x: 0, y: 2, layer: "ground"},
+	// 		rockfloor: {x: 1, y: 2, layer: "ground"},
+	// 	},
+	// 	10,
+	// 	1
+	// );
 	let client = new Client(username, host, new Display(canvas, spritemap));
 	client.start()
 	form.hidden = true;
