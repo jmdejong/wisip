@@ -112,6 +112,9 @@ class Client {
 		}
 		document.addEventListener("keydown", e => {
 			if (document.activeElement.classList.contains("captureinput")){
+				if (e.code == "Escape") {
+					document.activeElement.blur();
+				}
 				return;
 			}
 			let action = (e.shiftKey && shiftKeymap[e.code]) || keymap[e.code];
@@ -120,6 +123,7 @@ class Client {
 				this.sendInput(action);
 			} else {
 				if (e.code == "Enter" || e.code == "KeyT") {
+					e.preventDefault();
 					document.getElementById("textinput").focus()
 				}
 			}
@@ -130,6 +134,7 @@ class Client {
 			let inp = e.target.command;
 			this.onCommand(inp.value)
 			inp.value = "";
+			document.activeElement.blur();
 		});
 		this.resize();
 		window.addEventListener('resize', e => this.resize());
