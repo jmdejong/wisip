@@ -170,6 +170,7 @@ class Client {
 			// }
 		} else if (type == "playerpos") {
 			this.display.setCenter(args[0], args[1]);
+			document.getElementById("coordinates").textContent = `${args[0]}, ${args[1]}`;
 		} else if (type === "inventory") {
 			this.setInventory(args[0], args[1]);
 		} else if (type === "messages") {
