@@ -15,6 +15,9 @@ use crate::{
 	map::{Map, MapSave}
 };
 
+const EDGE_OFFSET: i32 = 32;
+const VIEW_AREA_SIZE: i32 = 128;
+
 pub struct World {
 	pub name: String,
 	pub time: Timestamp,
@@ -256,21 +259,23 @@ impl World {
 		for (playerid, player) in self.players.iter_mut() {
 			let mut wm = WorldMessage::default();
 			if let Some(body) = self.creatures.get(&player.body) {
-				let in_view_range = player.view_center
+				let in_view_range = player.view_area()
 					.map_or(
 						false,
-						|view_center|
-							(view_center.x - body.pos.x).abs() < 32 && 
-							(view_center.y - body.pos.y).abs() < 32
-					);
+						|area|
+							body.pos.x > area.min().x + EDGE_OFFSET &&
+							body.pos.x < area.max().x - EDGE_OFFSET &&
+							body.pos.y > area.min().y + EDGE_OFFSET &&
+							body.pos.y < area.max().y - EDGE_OFFSET
+					 );
 				if changes.is_some() && !player.is_new && in_view_range {
 					wm.change = changes.clone();
 				} else {
-					player.is_new = false;
-					player.view_center = Some(body.pos);
-					let area = player.view_area().unwrap();
+					let area = Area::centered(body.pos, Pos::new(VIEW_AREA_SIZE, VIEW_AREA_SIZE));
+					player.view_area = Some(area);
 					wm.viewarea = Some(ViewAreaMessage{area});
 					wm.section = Some(draw_field(area, &mut self.ground, &dynamic_sprites));
+					player.is_new = false;
 
 				}
 				wm.pos = Some(body.pos);

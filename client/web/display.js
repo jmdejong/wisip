@@ -81,8 +81,11 @@ class Display {
 			let buffer = document.createElement("canvas");
 			buffer.width = area.w * this.tileSize;
 			buffer.height = area.h * this.tileSize;
-			this.buffers[layer] = buffer;
 			let ctx = buffer.getContext("2d");
+			if (this.buffers[layer]) {
+				ctx.drawImage(this.buffers[layer], (this.offsetX - area.x) * this.tileSize, (this.offsetY - area.y) * this.tileSize);
+			}
+			this.buffers[layer] = buffer;
 			this.ctxs[layer] = ctx;
 		}
 		this.borders = [];

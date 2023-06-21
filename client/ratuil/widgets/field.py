@@ -22,7 +22,10 @@ class Field(Widget):
 		self.pad = self.backend.create_pad(self.width * self.char_size, self.height)
 	
 	def set_dimensions(self, offset, width, height, keep=False):
-		self.pad.resize(width * self.char_size, height)
+		new_pad = self.backend.create_pad(width * self.char_size, height)
+		if self.width > 0 and self.height > 0:
+			new_pad.draw_pad(self.pad, (self.offset[0] - offset[0]) * self.char_size, self.offset[1] - offset[1], self.width * self.char_size, self.height, 0, 0)
+		self.pad = new_pad
 		self.offset = offset
 		self.width = width
 		self.height = height

@@ -3,7 +3,7 @@ use std::fmt;
 use serde::{Serialize, Deserialize};
 
 use crate::{
-	pos::{Pos, Area},
+	pos::Area,
 	controls::Control,
 	creature::CreatureId
 };
@@ -22,7 +22,7 @@ pub struct Player {
 	pub plan: Option<Control>,
 	pub body: CreatureId,
 	pub is_new: bool,
-	pub view_center: Option<Pos>,
+	pub view_area: Option<Area>
 }
 
 
@@ -33,12 +33,12 @@ impl Player {
 			plan: None,
 			body,
 			is_new: true,
-			view_center: None
+			view_area: None
 		}
 	}
 
 	pub fn view_area(&self) -> Option<Area>{
-		Some(Area::centered(self.view_center?, Pos::new(128, 128)))
+		self.view_area
 	}
 }
 

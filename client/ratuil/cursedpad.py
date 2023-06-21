@@ -55,4 +55,6 @@ class CursedPad(DrawTarget):
 		return self.colours.attrs(style)
 	
 	def draw_pad(self, src, dest_x=0, dest_y=0, width=INT_INFINITY, height=INT_INFINITY, src_x=0, src_y=0):
-		raise NotImplementedError()
+		width = min(width, self.width - dest_x, src.width - src_x)
+		height = min(height, self.height - dest_y, src.height - src_y)
+		src.pad.overlay(self.pad, src_y, src_x, dest_y, dest_x, dest_y + height-1, dest_x + width-1)
