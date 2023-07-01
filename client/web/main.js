@@ -129,6 +129,18 @@ class Client {
 				}
 			}
 		});
+		document.getElementById("control-up").addEventListener("click", e => {
+			this.sendInput({move: "north"});
+		});
+		document.getElementById("control-left").addEventListener("click", e => {
+			this.sendInput({move: "west"});
+		});
+		document.getElementById("control-right").addEventListener("click", e => {
+			this.sendInput({move: "east"});
+		});
+		document.getElementById("control-down").addEventListener("click", e => {
+			this.sendInput({move: "south"});
+		});
 		this.websocket.addEventListener("error", console.error);
 		this.websocket.addEventListener("message", msg => this.handleMessage(msg));
 		document.getElementById("chatinput").addEventListener("submit", e => {
@@ -191,36 +203,34 @@ class Client {
 	setInventory(items, selected) {
 		let table = document.getElementById("inventory");
 
-		let rows = table.querySelectorAll("tr");
+		let rows = table.querySelectorAll("li");
 		rows.forEach(function(row) {
 			row.remove();
 		});
 
 		for (let i=0; i<items.length; ++i) {
 			let item = items[i];
-			let row = document.createElement("tr");
+			let row = document.createElement("li");
 			row.onclick = e => {
 				this.sendInput({select: {idx: i | 0}});
 			}
+			row.className = "inv-row";
 
-			let sel = document.createElement("td");
-			sel.className = "inventory-selected";
-			if (i === selected) {
-				sel.className += " selected";
-				sel.innerText = "*";
-			};
-			row.appendChild(sel);
-
-			let nm = document.createElement("td");
+			let nm = document.createElement("span");
 			nm.className = "inventory-name";
 			nm.innerText = item[0];
 			row.appendChild(nm);
 
-			let am = document.createElement("td");
+			let am = document.createElement("span");
 			am.className = "inventory-amount";
 			am.innerText = item[1];
 			row.appendChild(am);
 
+			if (i === selected) {
+				// nm.className += " inv-selected";
+				// am.className += " inv-selected";
+				row.className += " inv-selected";
+			};
 			table.appendChild(row);
 			if (Math.abs(i - selected) <= 1) {
 				row.scrollIntoView();
@@ -253,6 +263,9 @@ class Client {
 	}
 
 	resize() {
+		this.zooms = this.zooms || 0
+		this.zooms += 1
+		this.print("zoom " + this.zooms);
 		this.display.resize(window.innerWidth, window.innerHeight);
 	}
 }
