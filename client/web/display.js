@@ -52,6 +52,9 @@ class SpriteMap {
 }
 
 
+function hashpos(x, y) {
+	return x + "," + y;
+}
 
 
 class Display {
@@ -68,7 +71,7 @@ class Display {
 		this.offsetY = 0;
 		this.centerX = 0;
 		this.centerY = 0;
-		this.borders = [];
+		this.borders = new Map();
 		this.width = 0;
 		this.height = 0;
 		this.scale = 4;
@@ -88,11 +91,20 @@ class Display {
 			this.buffers[layer] = buffer;
 			this.ctxs[layer] = ctx;
 		}
-		this.borders = [];
 		this.offsetX = area.x;
 		this.offsetY = area.y;
 		this.width = area.w;
 		this.height = area.h;
+		let minX = area.x - 1;
+		let minY = area.y - 1;
+		let maxX = area.x + area.w;
+		let maxY = area.y + area.h;
+		this.borders.forEach((border, key, map) => {
+			let [x, y] = key.split(",").map(v => v|0)
+			if (x < minX || y < minY || x > maxX || y > maxY) {
+				map.delete(key);
+			}
+		});
 	}
 
 	drawSection(width, height, offsetX, offsetY, cells, mapping){
@@ -101,14 +113,14 @@ class Display {
 			borderMap[key] = this._border(mapping[key]);
 		}
 		for (let i=0; i<width * height; ++i){
-			let x = i % width;
-			let y = i / width | 0;
-			this._drawTile(x + offsetX, y + offsetY, mapping[cells[i]]);
-			this.borders[i] = borderMap[cells[i]];
+			let x = (i % width) + offsetX;
+			let y = (i / width | 0) + offsetY;
+			this._drawTile(x, y, mapping[cells[i]]);
+			this.borders.set(hashpos(x, y), borderMap[cells[i]]);
 		}
-		for (let lx=0; lx<width; ++lx) {
-			for (let ly=0; ly<height; ++ly) {
-				this._drawBorder(lx, ly);
+		for (let x=offsetX-1; x<width+offsetX+1; ++x) {
+			for (let y=offsetY-1; y<height+offsetY+1; ++y) {
+				this._drawBorder(x, y);
 			}
 		}
 		this.init = true
@@ -123,17 +135,15 @@ class Display {
 			let y = tile[0][1];
 			let sprites = tile[1];
 			this._drawTile(x, y, sprites);
-			let lx = x - this.offsetX;
-			let ly = y - this.offsetY;
-			let i = lx + ly * this.width;
 			let border = this._border(sprites);
-			if (border !== this.borders[i]) {
-				this.borders[i] = this._border(sprites);
-				this._drawBorder(lx, ly);
-				this._drawBorder(lx+1, ly);
-				this._drawBorder(lx-1, ly);
-				this._drawBorder(lx, ly+1);
-				this._drawBorder(lx, ly-1);
+			let p = hashpos(x, y);
+			if (border !== this.borders.get(p)) {
+				this.borders.set(p, border);
+				this._drawBorder(x, y);
+				this._drawBorder(x+1, y);
+				this._drawBorder(x-1, y);
+				this._drawBorder(x, y+1);
+				this._drawBorder(x, y-1);
 			}
 		}
 	}
@@ -164,48 +174,47 @@ class Display {
 		}
 	}
 
-	_drawBorder(lx, ly) {
-		let x = lx * this.tileSize;
-		let y = ly * this.tileSize;
-		this.ctxs.borders.clearRect(x, y, this.tileSize, this.tileSize);
-		let border = this._borderAt(lx, ly);
+	_drawBorder(x, y) {
+		let lx = x - this.offsetX;
+		let ly = y - this.offsetY;
+		let px = lx * this.tileSize;
+		let py = ly * this.tileSize;
+		this.ctxs.borders.clearRect(px, py, this.tileSize, this.tileSize);
+		let border = this._borderAt(x, y);
 		if (!border) {
 			return;
 		}
 		this.ctxs.borders.strokeStyle = border;
-		if (this._borderAt(lx - 1, ly) !== border) {
+		if (this._borderAt(x - 1, y) !== border) {
 			this.ctxs.borders.beginPath();
-			this.ctxs.borders.moveTo(x+0.5, y);
-			this.ctxs.borders.lineTo(x+0.5, y + this.tileSize);
+			this.ctxs.borders.moveTo(px+0.5, py);
+			this.ctxs.borders.lineTo(px+0.5, py + this.tileSize);
+			this.ctxs.borders.stroke();
+			// console.log("drawing border", lx, ly, border);
+		}
+		if (this._borderAt(x, y - 1) !== border) {
+			this.ctxs.borders.beginPath();
+			this.ctxs.borders.moveTo(px, py+0.5);
+			this.ctxs.borders.lineTo(px + this.tileSize, py+0.5);
 			this.ctxs.borders.stroke();
 		}
-		if (this._borderAt(lx, ly - 1) !== border) {
+		if (this._borderAt(x + 1, y) !== border) {
 			this.ctxs.borders.beginPath();
-			this.ctxs.borders.moveTo(x, y+0.5);
-			this.ctxs.borders.lineTo(x + this.tileSize, y+0.5);
+			this.ctxs.borders.moveTo(px + this.tileSize-0.5, py);
+			this.ctxs.borders.lineTo(px + this.tileSize-0.5, py + this.tileSize);
 			this.ctxs.borders.stroke();
 		}
-		if (this._borderAt(lx + 1, ly) !== border) {
+		if (this._borderAt(x, y + 1) !== border) {
 			this.ctxs.borders.beginPath();
-			this.ctxs.borders.moveTo(x + this.tileSize-0.5, y);
-			this.ctxs.borders.lineTo(x + this.tileSize-0.5, y + this.tileSize);
-			this.ctxs.borders.stroke();
-		}
-		if (this._borderAt(lx, ly + 1) !== border) {
-			this.ctxs.borders.beginPath();
-			this.ctxs.borders.moveTo(x, y + this.tileSize-0.5);
-			this.ctxs.borders.lineTo(x + this.tileSize, y + this.tileSize-0.5);
+			this.ctxs.borders.moveTo(px, py + this.tileSize-0.5);
+			this.ctxs.borders.lineTo(px + this.tileSize, py + this.tileSize-0.5);
 			this.ctxs.borders.stroke();
 		}
 		this.ctxs.borders.stroke();
 	}
 
 	_borderAt(x, y) {
-		if (x < 0 || y < 0 || x >= this.width || y >= this.height) {
-			return null;
-		} else {
-			return this.borders[x + y * this.width];
-		}
+		return this.borders.get(hashpos(x, y));
 	}
 
 	setCenter(x, y) {

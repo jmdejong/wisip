@@ -38,7 +38,7 @@ pub struct Pos {
 
 impl Pos {
 	
-	pub fn new(x: i32, y: i32) -> Pos {
+	pub const fn new(x: i32, y: i32) -> Pos {
 		Pos {x, y}
 	}
 	
@@ -226,6 +226,10 @@ impl Area {
 	pub fn centered(center: Pos, size: Pos) -> Self {
 		Self::new(center - size / 2, size)
 	}
+
+	pub fn between(min: Pos, max: Pos) -> Self {
+		Self::new(min, max - min)
+	}
 	
 	pub fn min(&self) -> Pos {
 		self.min
@@ -269,6 +273,10 @@ impl Area {
 			&& pos.x < self.max().x
 			&& pos.y >= self.min().y
 			&& pos.y < self.max().y
+	}
+
+	pub fn overlaps(&self, other: &Area) -> bool {
+		! (self.min().x >= other.max().x || self.max().x <= other.min().x || self.min().y >= other.max().y || self.max().y <= other.min().y)
 	}
 }
 

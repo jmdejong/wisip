@@ -66,6 +66,7 @@ function start(e) {
 	let client = new Client(username, host, new Display(canvas, spritemap, fuzzTemplate.asSprite()));
 	client.start()
 	form.hidden = true;
+	window.game_client_debug = client;
 }
 
 

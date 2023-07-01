@@ -16,7 +16,7 @@ use crate::{
 };
 
 const EDGE_OFFSET: i32 = 32;
-const VIEW_AREA_SIZE: i32 = 128;
+const VIEW_AREA_SIZE: Pos = Pos::new(128, 128);
 
 pub struct World {
 	pub name: String,
@@ -268,15 +268,14 @@ impl World {
 							body.pos.y > area.min().y + EDGE_OFFSET &&
 							body.pos.y < area.max().y - EDGE_OFFSET
 					 );
-				if changes.is_some() && !player.is_new && in_view_range {
+				if !in_view_range {
+					let (total_area, redraw_area) = Self::new_view_area(body.pos, &player.view_area);
+					player.view_area = Some(total_area);
+					wm.viewarea = Some(ViewAreaMessage{area: total_area});
+					wm.section = Some(draw_field(redraw_area, &mut self.ground, &dynamic_sprites));
+				}
+				if changes.is_some() {
 					wm.change = changes.clone();
-				} else {
-					let area = Area::centered(body.pos, Pos::new(VIEW_AREA_SIZE, VIEW_AREA_SIZE));
-					player.view_area = Some(area);
-					wm.viewarea = Some(ViewAreaMessage{area});
-					wm.section = Some(draw_field(area, &mut self.ground, &dynamic_sprites));
-					player.is_new = false;
-
 				}
 				wm.pos = Some(body.pos);
 				wm.inventory = Some(body.inventory.view());
@@ -290,6 +289,36 @@ impl World {
 		self.ground.flush();
 		views
 	}
+
+	fn new_view_area(body_pos: Pos, view_area: &Option<Area>) -> (Area, Area) {
+		let core_area = Area::centered(body_pos, VIEW_AREA_SIZE);
+		let Some(old_area) = view_area else {
+			return (core_area, core_area);
+		};
+		if !core_area.overlaps(old_area) {
+			return (core_area, core_area);
+		}
+		if body_pos.x <= old_area.min().x + EDGE_OFFSET {
+			let new_min = Pos::new(body_pos.x - VIEW_AREA_SIZE.x / 2, old_area.min().y);
+			return (Area::new(new_min, VIEW_AREA_SIZE), Area::between(new_min, Pos::new(old_area.min().x, old_area.max().y)));
+		} else if body_pos.y <= old_area.min().y + EDGE_OFFSET {
+			let new_min = Pos::new(old_area.min().x, body_pos.y - VIEW_AREA_SIZE.y / 2);
+			return (Area::new(new_min, VIEW_AREA_SIZE), Area::between(new_min, Pos::new(old_area.max().x, old_area.min().y)));
+		} else if body_pos.x >= old_area.max().x - EDGE_OFFSET {
+			let new_min = Pos::new(body_pos.x - VIEW_AREA_SIZE.x / 2, old_area.min().y);
+			let new_area = Area::new(new_min, VIEW_AREA_SIZE);
+			return (new_area, Area::between(Pos::new(old_area.max().x, old_area.min().y), new_area.max()))
+		} else if body_pos.y >= old_area.max().y - EDGE_OFFSET {
+			let new_min = Pos::new(old_area.min().x, body_pos.y - VIEW_AREA_SIZE.y / 2);
+			let new_area = Area::new(new_min, VIEW_AREA_SIZE);
+			return (new_area, Area::between(Pos::new(old_area.min().x, old_area.max().y), new_area.max()))
+		} else {
+			// this function shouldn't get called when this is the case, but let's do something somewhat sensible anyways
+			return (core_area, core_area);
+		}
+	}
+
+
 	
 	pub fn save(&self) -> WorldSave {
 		WorldSave {
