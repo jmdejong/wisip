@@ -15,15 +15,18 @@ use crate::{
 #[func(pub fn actions(&self) -> Vec<Action> {Vec::new()})]
 #[func(pub fn description(&self) -> Option<&str>)]
 #[func(pub fn name(&self) -> &str)]
+#[func(pub fn quantified(&self) -> bool {true})]
 pub enum Item {
-	#[assoc(name="<eyes>")]
+	#[assoc(name="<inspect>")]
 	#[assoc(actions=vec![Action::Inspect])]
 	#[assoc(description="Inspect things around you")]
+	#[assoc(quantified=false)]
 	Eyes,
 	
-	#[assoc(name="<hands>")]
+	#[assoc(name="<take>")]
 	#[assoc(actions=vec![Action::take()])]
 	#[assoc(description="Take items that are laying loose")]
+	#[assoc(quantified=false)]
 	Hands,
 	
 	#[assoc(name="reed")]

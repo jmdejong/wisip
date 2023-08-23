@@ -210,6 +210,8 @@ class Client {
 
 		for (let i=0; i<items.length; ++i) {
 			let item = items[i];
+			let name = item[0];
+			let quantity = item[1];
 			let row = document.createElement("li");
 			row.onclick = e => {
 				this.sendInput({select: {idx: i | 0}});
@@ -218,12 +220,14 @@ class Client {
 
 			let nm = document.createElement("span");
 			nm.className = "inventory-name";
-			nm.innerText = item[0];
+			nm.innerText = name;
 			row.appendChild(nm);
 
 			let am = document.createElement("span");
 			am.className = "inventory-amount";
-			am.innerText = item[1];
+			if (quantity !== null && quantity !== undefined) {
+				am.innerText = quantity;
+			}
 			row.appendChild(am);
 
 			if (i === selected) {

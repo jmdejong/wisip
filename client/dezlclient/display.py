@@ -138,7 +138,7 @@ class Display:
 		self.screen.reset()
 
 def siCount(count):
-	if count == 1:
+	if count is None:
 		return ""
 	elif count < 1000:
 		return str(count)

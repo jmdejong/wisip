@@ -67,7 +67,7 @@ worldmessages!(
 
 
 pub type ChangeMessage = Vec<(Pos, Vec<Sprite>)>;
-pub type InventoryMessage = (Vec<(String, usize)>, usize);
+pub type InventoryMessage = (Vec<(String, Option<usize>)>, usize);
 pub type GroundMessage = Vec<String>;
 pub type SoundMessage = Vec<(SoundType, String)>;
 

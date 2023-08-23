@@ -29,7 +29,7 @@ impl Inventory {
 	pub fn view(&self) -> InventoryMessage {
 		let view = [(Item::Eyes, 1), (Item::Hands, 1)].iter()
 			.chain(self.items.iter())
-			.map(|(item, count)| (item.name().to_string(), *count))
+			.map(|(item, count)| (item.name().to_string(), if item.quantified() { Some(*count) } else {None}))
 			.collect();
 		(view, self.selector)
 	}
