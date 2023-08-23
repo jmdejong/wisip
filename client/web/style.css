@@ -1,0 +1,135 @@
+
+html, body {
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+}
+
+.main {
+
+}
+
+canvas {
+	background-color: black;
+	display: block;
+	image-rendering: pixelated;
+}
+
+.loginform {
+	border: 1px solid black;
+	padding: 5px;
+}
+
+.chat {
+	position: absolute;
+	bottom: 5px;
+	left: 5px;
+	background-color: #fffc;
+	border: 2px solid #AAA;
+	height: 240px;
+	width: 360px;
+	display: flex;
+	flex-direction: column;
+}
+
+.messages {
+	margin: 0;
+	padding: 5px;
+	list-style: none;
+	overflow: scroll;
+	flex: 1;
+}
+
+.chatinput {
+	display: flex;
+}
+
+.textfield {
+	flex: 1;
+}
+
+.side {
+	position: absolute;
+	top: 5px;
+	right: 5px;
+	display: flex;
+	flex-direction: column;
+}
+
+.coordinates {
+	border: 2px solid #AAA;
+	background-color: #fffc;
+	right: 0px;
+	text-align: right;
+	padding: 2px;
+}
+
+.inventory {
+/* 	flex: right; */
+	border: 2px solid #AAA;
+	height: 240px;
+	width: 200px;
+	overflow-y: scroll;
+	font: monospace;
+	display: block;
+	background-color: #fffc;
+/* 	table-layout: fixed; */
+	list-style: none;
+	padding: 0;
+/* 	position: relative; */
+}
+.inventory-amount {
+	text-align: right;
+/* 	position: absolute; */
+/* 	top: 0; */
+/* 	right: 0; */
+/* 	width: 10%; */
+}
+.inventory-name {
+/* 	width: 100%; */
+}
+.inv-row {
+	display: flex;
+	justify-content: space-between;
+	padding-right: 15px;
+	padding-left: 5px;
+}
+
+.inv-selected {
+	border: 3px solid #886;
+	background-color: #ccbe;
+}
+
+.menu {
+	position: absolute;
+	top: 5px;
+	left: 5px;
+	background-color: #fffc;
+	border: 2px solid #AAA;
+}
+
+.menu-content {
+  display: none; /* Hide menu contents by default */
+}
+
+
+/* When the menu toggle is checked, show the menu contents */
+#menu:focus-within .menu-content {
+  display: block;
+}
+
+.control-container {
+	position: relative;
+/* 	display: flex; */
+	flex-direction: column;
+}
+.controller {
+	position: absolute;
+	bottom: 0;
+	left: 50%;
+	transform: translateX(-50%);
+	width: 100px; /* Adjust the width as needed */
+	height: 100px; /* Adjust the height as needed */
+	background-color: rgba(0, 0, 255, 0.5); /* Example background color */
+	text-align: center;
+}
