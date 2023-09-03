@@ -13,6 +13,8 @@ function main(){
 	}
 }
 
+
+
 function start(e) {
 	let form = e.target;
 	let username = form.username.value;
@@ -76,6 +78,7 @@ class Client {
 		this.host = host;
 		this.display = display;
 		this.websocket = null;
+		this.delay = parseParameters().delay|0;
 	}
 	
 	start(){
@@ -142,7 +145,11 @@ class Client {
 			this.sendInput({move: "south"});
 		});
 		this.websocket.addEventListener("error", console.error);
-		this.websocket.addEventListener("message", msg => this.handleMessage(msg));
+		if (this.delay) {
+			this.websocket.addEventListener("message", msg => setTimeout(() => this.handleMessage(msg), this.delay));
+		} else {
+			this.websocket.addEventListener("message", msg => this.handleMessage(msg));
+		}
 		document.getElementById("chatinput").addEventListener("submit", e => {
 			let inp = e.target.command;
 			this.onCommand(inp.value)
@@ -243,10 +250,17 @@ class Client {
 	}
 
 	sendInput(msg) {
-		if (this.websocket.readyState === WebSocket.OPEN){
-			this.websocket.send(JSON.stringify({input: msg}));
+		let f = () => {
+			if (this.websocket.readyState === WebSocket.OPEN){
+				this.websocket.send(JSON.stringify({input: msg}));
+			} else {
+				console.error("can't send input: websocket not open", this.websocket.readyState,  msg);
+			}
+		};
+		if (this.delay) {
+			setTimeout(f, this.delay);
 		} else {
-			console.error("can't send input: websocket not open", this.websocket.readyState,  msg);
+			f();
 		}
 	}
 	
@@ -272,4 +286,13 @@ class Client {
 		this.print("zoom " + this.zooms);
 		this.display.resize(window.innerWidth, window.innerHeight);
 	}
+}
+
+function parseParameters(){
+	let ps = new URLSearchParams(window.location.search)
+	let parameters = {};
+	for (let p of ps){
+		parameters[p[0]] = p[1];
+	}
+	return parameters;
 }
