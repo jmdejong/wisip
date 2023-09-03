@@ -114,15 +114,6 @@ class Client:
 	
 	def handleWorldUpdate(self, msg):
 		msgType = msg[0]
-		if msgType == 'field':
-			field = msg[1]
-			self.display.drawField(
-				field["width"],
-				field["height"],
-				field["field"],
-				field["mapping"],
-				field["offset"]
-			)
 
 		if msgType == 'viewarea':
 			area = msg[1]["area"]
@@ -141,16 +132,10 @@ class Client:
 			self.display.setFieldCenter(msg[1])
 			self.playerPos = msg[1]
 		
-		# if msgType == "health":
-		# 	health, maxHealth = msg[1]
-		# 	self.display.setHealth(health, maxHealth)
-		# 	if maxHealth is None:
-		# 		self.log("You have died. Restart the client to respawn")
 		if msgType == "inventory":
 			items, selected = msg[1]
 			self.display.setInventory(items, selected)
-		if msgType == "ground":
-			self.display.setGround(msg[1])
+
 		if msgType == "message":
 			text, type = msg[1:3]
 			self.log(text, type)

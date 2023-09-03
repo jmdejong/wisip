@@ -55,11 +55,9 @@ macro_rules! worldmessages {
 }
 
 worldmessages!(
-	field, FieldMessage, "field", true;
 	pos, Pos, "playerpos", true;
 	change, ChangeMessage, "changecells", true;
 	inventory, InventoryMessage, "inventory", true;
-	ground, GroundMessage, "ground", true;
 	sounds, SoundMessage, "messages", false;
 	viewarea, ViewAreaMessage, "viewarea", true;
 	section, SectionMessage, "section", true;
@@ -68,17 +66,7 @@ worldmessages!(
 
 pub type ChangeMessage = Vec<(Pos, Vec<Sprite>)>;
 pub type InventoryMessage = (Vec<(String, Option<usize>)>, usize);
-pub type GroundMessage = Vec<String>;
 pub type SoundMessage = Vec<(SoundType, String)>;
-
-#[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
-pub struct FieldMessage {
-	pub width: i32,
-	pub height: i32,
-	pub field: Vec<usize>,
-	pub mapping: Vec<Vec<Sprite>>,
-	pub offset: Pos
-}
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
 pub struct ViewAreaMessage {

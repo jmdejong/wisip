@@ -182,9 +182,7 @@ class Client {
 	handleWorldMessage(message){
 		let type = message[0];
 		let args = message[1];
-		if (type === "field") {
-			this.display.drawField(args.width, args.height, args.offset[0], args.offset[1], args.field, args.mapping);
-		} else if (type === "viewarea") {
+		if (type === "viewarea") {
 			this.display.setViewArea(args.area);
 		} else if (type === "section") {
 			this.display.drawSection(args.area.w, args.area.h, args.area.x, args.area.y, args.field, args.mapping);
