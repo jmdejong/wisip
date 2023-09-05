@@ -6,7 +6,7 @@ use crate::{
 	item::Item,
 	action::{Action, InteractionType, CraftType, Interactable, InteractionResult},
 	timestamp::Timestamp,
-	worldmessages::SoundType::Explain,
+	worldmessages::SoundType,
 	hashmap,
 	crop::Crop,
 };
@@ -382,7 +382,7 @@ impl Tile {
 		if let Some(name) = self.structure.explain() {
 			if action != Action::Inspect {
 				return Some(InteractionResult {
-					message: Some((Explain, format!("{}: {}", name, item.description().unwrap_or("Unknown")))),
+					message: Some((SoundType::Explain, format!("{}: {}", name, item.description().unwrap_or("Unknown")))),
 					..Default::default()
 				});
 			}
@@ -410,7 +410,7 @@ impl Tile {
 			Action::Inspect => 
 				Some(InteractionResult {
 					message: Some((
-						Explain,
+						SoundType::Explain,
 						format!(
 							"{}  --  {}",
 							self.ground.describe().unwrap_or(""),

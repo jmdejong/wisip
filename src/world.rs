@@ -300,21 +300,21 @@ impl World {
 		}
 		if body_pos.x <= old_area.min().x + EDGE_OFFSET {
 			let new_min = Pos::new(body_pos.x - VIEW_AREA_SIZE.x / 2, old_area.min().y);
-			return (Area::new(new_min, VIEW_AREA_SIZE), Area::between(new_min, Pos::new(old_area.min().x, old_area.max().y)));
+			(Area::new(new_min, VIEW_AREA_SIZE), Area::between(new_min, Pos::new(old_area.min().x, old_area.max().y)))
 		} else if body_pos.y <= old_area.min().y + EDGE_OFFSET {
 			let new_min = Pos::new(old_area.min().x, body_pos.y - VIEW_AREA_SIZE.y / 2);
-			return (Area::new(new_min, VIEW_AREA_SIZE), Area::between(new_min, Pos::new(old_area.max().x, old_area.min().y)));
+			(Area::new(new_min, VIEW_AREA_SIZE), Area::between(new_min, Pos::new(old_area.max().x, old_area.min().y)))
 		} else if body_pos.x >= old_area.max().x - EDGE_OFFSET {
 			let new_min = Pos::new(body_pos.x - VIEW_AREA_SIZE.x / 2, old_area.min().y);
 			let new_area = Area::new(new_min, VIEW_AREA_SIZE);
-			return (new_area, Area::between(Pos::new(old_area.max().x, old_area.min().y), new_area.max()))
+			(new_area, Area::between(Pos::new(old_area.max().x, old_area.min().y), new_area.max()))
 		} else if body_pos.y >= old_area.max().y - EDGE_OFFSET {
 			let new_min = Pos::new(old_area.min().x, body_pos.y - VIEW_AREA_SIZE.y / 2);
 			let new_area = Area::new(new_min, VIEW_AREA_SIZE);
-			return (new_area, Area::between(Pos::new(old_area.min().x, old_area.max().y), new_area.max()))
+			(new_area, Area::between(Pos::new(old_area.min().x, old_area.max().y), new_area.max()))
 		} else {
 			// this function shouldn't get called when this is the case, but let's do something somewhat sensible anyways
-			return (core_area, core_area);
+			(core_area, core_area)
 		}
 	}
 
