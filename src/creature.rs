@@ -9,6 +9,7 @@ use crate::{
 	util::HolderId,
 	inventory::{Inventory, InventorySave},
 	worldmessages::SoundType,
+	vec2::{Vec2, Rect},
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -19,7 +20,8 @@ pub enum Mind {
 #[derive(Debug, Clone)]
 pub struct Creature {
 	pub mind: Mind,
-	pub pos: Pos,
+	pub pos: Vec2,
+	pub shape: Rect,
 	pub cooldown: Duration,
 	pub walk_cooldown: Duration,
 	pub sprite: Sprite,
@@ -41,6 +43,7 @@ impl Creature {
 		Self {
 			mind: Mind::Player(playerid),
 			pos: saved.pos,
+			shape: Rect::new(Vec2::new(0.0, 0.0), Vec2::new(1.0, 1.0)),
 			cooldown: Duration(0),
 			walk_cooldown: Duration(0),
 			sprite: Sprite::PlayerDefault,
@@ -60,6 +63,17 @@ impl Creature {
 			inventory: self.inventory.save()
 		}
 	}
+
+	pub fn view(&self) -> CreatureView {
+		CreatureView {
+			pos: self.pos,
+			sprite: self.sprite
+		}
+	}
+
+	pub fn speed(&self) -> f32 {
+		0.5
+	}
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -75,14 +89,23 @@ impl HolderId for CreatureId {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PlayerSave {
 	pub inventory: InventorySave,
-	pub pos: Pos
+	pub pos: Vec2
 }
 
 impl PlayerSave {
-	pub fn new(pos: Pos) -> Self {
+	pub fn new(pos: Vec2) -> Self {
 		Self {
 			pos,
 			inventory: Vec::new()
 		}
 	}
 }
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct CreatureView {
+	#[serde(rename = "s")]
+	pub sprite: Sprite,
+	#[serde(rename = "p")]
+	pub pos: Vec2
+}
+

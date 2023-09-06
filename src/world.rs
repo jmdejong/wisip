@@ -6,11 +6,12 @@ use crate::{
 	PlayerId,
 	controls::{Control},
 	pos::{Pos, Area},
+	vec2::Vec2,
 	util::Holder,
 	sprite::Sprite,
 	worldmessages::{WorldMessage, SectionMessage, ViewAreaMessage, ChangeMessage, SoundType::{BuildError}},
 	timestamp::{Timestamp},
-	creature::{Creature, Mind, CreatureId, PlayerSave},
+	creature::{Creature, Mind, CreatureId, PlayerSave, CreatureView},
 	player::Player,
 	map::{Map, MapSave}
 };
@@ -24,7 +25,6 @@ pub struct World {
 	ground: Map,
 	players: HashMap<PlayerId, Player>,
 	creatures: Holder<CreatureId, Creature>,
-	drawing: Option<HashMap<Pos, Vec<Sprite>>>,
 	claims: HashMap<PlayerId, Pos>,
 	seed: u32
 }
@@ -39,14 +39,13 @@ impl World {
 			players: HashMap::new(),
 			creatures: Holder::new(),
 			time,
-			drawing: None,
 			claims: HashMap::new(),
 			seed
 		}
 	}
 	
 	pub fn default_player(&mut self) -> PlayerSave {
-		PlayerSave::new(self.ground.player_spawn())
+		PlayerSave::new(Vec2::from_pos(&self.ground.player_spawn()))
 	}
 	
 	pub fn add_player(&mut self, playerid: &PlayerId, saved: PlayerSave) -> Result<(), PlayerError> {
@@ -75,6 +74,9 @@ impl World {
 	
 	pub fn control_player(&mut self, playerid: &PlayerId, control: Control) -> Result<(), PlayerError> {
 		let player = self.players.get_mut(playerid).ok_or_else(|| PlayerError::NotFound(playerid.clone()))?;
+		if let Control::Movement(delta) = control {
+			player.movement = delta.try_normalize();
+		}
 		player.plan = Some(control);
 		Ok(())
 	}
@@ -98,9 +100,6 @@ impl World {
 	}
 	
 	fn update_creatures(&mut self) -> Option<()> {
-		let mut creature_map: HashMap<Pos, CreatureId> = self.creatures.iter()
-			.map(|(creatureid, creature)| (creature.pos, *creatureid))
-			.collect();
 		let plans: HashMap<CreatureId, Control> = self.creatures.iter()
 			.filter(|(_k, c)| c.cooldown.0 <= 0)
 			.filter_map(|(k, c)|
@@ -112,6 +111,21 @@ impl World {
 				creature.cooldown.0 -= 1;
 				continue;
 			}
+			let movement: Option<Vec2> = match &creature.mind {
+				Mind::Player(playerid) => self.players.get(playerid).and_then(|player| player.movement)
+			};
+			if let Some(delta) = movement {
+				let newpos = creature.pos + delta * creature.speed();
+				let blocking = creature.shape
+					.moved(newpos)
+					.outer_area()
+					.iter()
+					.any(|p| self.ground.cell(p).blocking());
+				if !blocking {
+					creature.pos = newpos;
+				}
+			}
+
 			let Some(plan) = plans.get(id) 
 				else {
 					continue 
@@ -119,16 +133,14 @@ impl World {
 			match plan {
 				Control::Move(direction) => {
 					creature.cooldown = creature.walk_cooldown;
-					let newpos = creature.pos + *direction;
-					let tile = self.ground.cell(newpos);
-					if !tile.blocking() && !creature_map.contains_key(&newpos) {
-						if creature_map.get(&creature.pos) == Some(id){
-							creature_map.remove(&creature.pos);
-						}
-						creature_map.insert(newpos, *id);
-						creature.pos = newpos;
-					}
+					let newpos = creature.pos + Vec2::from_pos(&(Pos::new(0, 0) + *direction)) / 2.0;
+					creature.pos = newpos;
+					// let tile = self.ground.cell(newpos);
+					// if !tile.blocking() {
+						// creature.pos = newpos;
+					// }
 				}
+				Control::Movement(_delta) => { }
 				Control::Suicide => {
 					creature.kill();
 				}
@@ -138,70 +150,70 @@ impl World {
 				Control::MoveSelected(selector) => {
 					creature.inventory.move_selected(*selector);
 				}
-				Control::Interact(direction) => {
-					let pos = creature.pos + direction.map(|dir| dir.to_position()).unwrap_or_else(Pos::zero);
-					let tile = self.ground.cell(pos);
-					let item = creature.inventory.selected();
-					let Some(interaction) = tile.interact(item, self.time) 
-						else {
-							continue
-						};
-					if interaction.claim {
-						if let Some(player_id) = creature.player() {
-							if self.claims.contains_key(&player_id) {
-								creature.heard_sounds.push((BuildError, "Only one claim per player allowed".to_string()));
-								continue;
-							}
-							if self.claims.values().any(|p| p.distance_to(pos) < 64) {
-								creature.heard_sounds.push((BuildError, "Too close to existing claim".to_string()));
-								continue;
-							}
-							if pos.distance_to(self.ground.player_spawn()) < 96 {
-								creature.heard_sounds.push((BuildError, "Too close to spawn".to_string()));
-								continue;
-							}
-							self.claims.insert(player_id, pos);
-						} else {
-							creature.heard_sounds.push((
-								BuildError,
-								"Only players can claim land and you're not a player. If you read this something has probably gone wrong.".to_string()
-							));
-							continue;
-						}
-					}
-					if interaction.build {
-						if let Some(claim_pos) = creature.player().as_ref().and_then(|player_id| self.claims.get(player_id)) {
-							if pos.distance_to(*claim_pos) > 24 {
-								creature.heard_sounds.push((
-									BuildError,
-									"Too far from land claim to build".to_string()
-								));
-								continue;
-							}
-						} else {
-							creature.heard_sounds.push((
-								BuildError,
-								"Need land claim to build".to_string()
-							));
-							continue;
-						}
-					}
-					if !creature.inventory.pay(interaction.cost) {
-						continue;
-					}
-					for item in interaction.items {
-						creature.inventory.add(item);
-					}
-					if let Some(remains) = interaction.remains {
-						self.ground.set_structure(pos, remains);
-					}
-					if let Some(remains_ground) = interaction.remains_ground {
-						self.ground.set_ground(pos, remains_ground);
-					}
-					if let Some(message) = interaction.message {
-						creature.heard_sounds.push(message);
-					}
-				}
+				Control::Interact(direction) => { }
+				// 	let pos = creature.pos + direction.map(|dir| dir.to_position()).unwrap_or_else(Pos::zero);
+				// 	let tile = self.ground.cell(pos);
+				// 	let item = creature.inventory.selected();
+				// 	let Some(interaction) = tile.interact(item, self.time)
+				// 		else {
+				// 			continue
+				// 		};
+				// 	if interaction.claim {
+				// 		if let Some(player_id) = creature.player() {
+				// 			if self.claims.contains_key(&player_id) {
+				// 				creature.heard_sounds.push((BuildError, "Only one claim per player allowed".to_string()));
+				// 				continue;
+				// 			}
+				// 			if self.claims.values().any(|p| p.distance_to(pos) < 64) {
+				// 				creature.heard_sounds.push((BuildError, "Too close to existing claim".to_string()));
+				// 				continue;
+				// 			}
+				// 			if pos.distance_to(self.ground.player_spawn()) < 96 {
+				// 				creature.heard_sounds.push((BuildError, "Too close to spawn".to_string()));
+				// 				continue;
+				// 			}
+				// 			self.claims.insert(player_id, pos);
+				// 		} else {
+				// 			creature.heard_sounds.push((
+				// 				BuildError,
+				// 				"Only players can claim land and you're not a player. If you read this something has probably gone wrong.".to_string()
+				// 			));
+				// 			continue;
+				// 		}
+				// 	}
+				// 	if interaction.build {
+				// 		if let Some(claim_pos) = creature.player().as_ref().and_then(|player_id| self.claims.get(player_id)) {
+				// 			if pos.distance_to(*claim_pos) > 24 {
+				// 				creature.heard_sounds.push((
+				// 					BuildError,
+				// 					"Too far from land claim to build".to_string()
+				// 				));
+				// 				continue;
+				// 			}
+				// 		} else {
+				// 			creature.heard_sounds.push((
+				// 				BuildError,
+				// 				"Need land claim to build".to_string()
+				// 			));
+				// 			continue;
+				// 		}
+				// 	}
+				// 	if !creature.inventory.pay(interaction.cost) {
+				// 		continue;
+				// 	}
+				// 	for item in interaction.items {
+				// 		creature.inventory.add(item);
+				// 	}
+				// 	if let Some(remains) = interaction.remains {
+				// 		self.ground.set_structure(pos, remains);
+				// 	}
+				// 	if let Some(remains_ground) = interaction.remains_ground {
+				// 		self.ground.set_ground(pos, remains_ground);
+				// 	}
+				// 	if let Some(message) = interaction.message {
+				// 		creature.heard_sounds.push(message);
+				// 	}
+				// }
 			}
 		}
 		for player in self.players.values_mut() {
@@ -225,37 +237,43 @@ impl World {
 	}
 	
 	
-	fn draw_dynamic(&mut self) -> HashMap<Pos, Vec<Sprite>> {
-		let mut sprites: HashMap<Pos, Vec<Sprite>> = HashMap::new();
-		for creature in self.creatures.values() {
-			sprites.entry(creature.pos).or_insert_with(Vec::new).push(creature.sprite);
-		}
-		sprites.into_iter().map(|(pos, mut sprs)| {
-			sprs.append(&mut self.ground.cell(pos).sprites());
-			(pos, sprs)
-		}).collect()
-	}
+	// fn draw_dynamic(&mut self) -> HashMap<Pos, Vec<Sprite>> {
+	// 	let mut sprites: HashMap<Pos, Vec<Sprite>> = HashMap::new();
+	// 	sprites.into_iter().map(|(pos, mut sprs)| {
+	// 		sprs.append(&mut self.ground.cell(pos).sprites());
+	// 		(pos, sprs)
+	// 	}).collect()
+	// }
 	
-	fn draw_changes(&mut self, mut sprites: HashMap<Pos, Vec<Sprite>>) -> Option<ChangeMessage> {
-		if let Some(last_drawing) = &self.drawing {
-			for pos in last_drawing.keys() {
-				sprites.entry(*pos).or_insert_with(||self.ground.cell(*pos).sprites());
-			}
-			for (pos, tile) in self.ground.modified().into_iter() {
-				sprites.entry(pos).or_insert_with(||tile.sprites());
-			}
-			let sprs: ChangeMessage = sprites.iter()
-				.filter(|(pos, spritelist)| last_drawing.get(pos) != Some(spritelist))
-				.map(|(pos, spritelist)| (*pos, spritelist.clone()))
-				.collect();
-			Some(sprs)
-		} else {None}
+	fn draw_changes(&mut self) -> Option<ChangeMessage> {
+		Some(
+			self.ground.modified().into_iter()
+				.map(|(pos, tile)| (pos, tile.sprites()))
+				.collect()
+		)
 	}
+		// if let Some(last_drawing) = &self.drawing {
+		// 	for pos in last_drawing.keys() {
+		// 		sprites.entry(*pos).or_insert_with(||self.ground.cell(*pos).sprites());
+		// 	}
+		// 	for (pos, tile) in self.ground.modified().into_iter() {
+		// 		sprites.entry(pos).or_insert_with(||tile.sprites());
+		// 	}
+		// 	let sprs: ChangeMessage = sprites.iter()
+		// 		.filter(|(pos, spritelist)| last_drawing.get(pos) != Some(spritelist))
+		// 		.map(|(pos, spritelist)| (*pos, spritelist.clone()))
+		// 		.collect();
+		// 	Some(sprs)
+		// } else {None}
+	// }
 	
 	pub fn view(&mut self) -> HashMap<PlayerId, WorldMessage> {
-		let dynamic_sprites = self.draw_dynamic();
-		let changes = self.draw_changes(dynamic_sprites.clone());
+		let changes = self.draw_changes();
 		let mut views: HashMap<PlayerId, WorldMessage> = HashMap::new();
+		let dynamics: Vec<CreatureView> = self.players.values()
+			.filter_map(|player| self.creatures.get(&player.body))
+			.map(|creature| creature.view())
+			.collect();
 		for (playerid, player) in self.players.iter_mut() {
 			let mut wm = WorldMessage::default();
 			if let Some(body) = self.creatures.get(&player.body) {
@@ -263,21 +281,22 @@ impl World {
 					.map_or(
 						false,
 						|area|
-							body.pos.x > area.min().x + EDGE_OFFSET &&
-							body.pos.x < area.max().x - EDGE_OFFSET &&
-							body.pos.y > area.min().y + EDGE_OFFSET &&
-							body.pos.y < area.max().y - EDGE_OFFSET
+							(body.pos.x.floor() as i32) > area.min().x + EDGE_OFFSET &&
+							(body.pos.x.ceil() as i32) < area.max().x - EDGE_OFFSET &&
+							(body.pos.y.floor() as i32) > area.min().y + EDGE_OFFSET &&
+							(body.pos.y.ceil() as i32) < area.max().y - EDGE_OFFSET
 					 );
 				if !in_view_range {
-					let (total_area, redraw_area) = Self::new_view_area(body.pos, &player.view_area);
+					let (total_area, redraw_area) = Self::new_view_area(body.pos.round(), &player.view_area);
 					player.view_area = Some(total_area);
 					wm.viewarea = Some(ViewAreaMessage{area: total_area});
-					wm.section = Some(draw_field(redraw_area, &mut self.ground, &dynamic_sprites));
+					wm.section = Some(draw_field(redraw_area, &mut self.ground));
 				}
 				if changes.is_some() {
 					wm.change = changes.clone();
 				}
 				wm.pos = Some(body.pos);
+				wm.dynamics = Some(dynamics.clone());
 				wm.inventory = Some(body.inventory.view());
 				if !body.heard_sounds.is_empty() {
 					wm.sounds = Some(body.heard_sounds.clone());
@@ -285,7 +304,6 @@ impl World {
 			}
 			views.insert(playerid.clone(), wm);
 		}
-		self.drawing = Some(dynamic_sprites);
 		self.ground.flush();
 		views
 	}
@@ -337,7 +355,6 @@ impl World {
 			players: HashMap::new(),
 			creatures: Holder::new(),
 			time: save.time,
-			drawing: None,
 			claims: save.claims,
 			seed: save.seed,
 		}
@@ -345,15 +362,12 @@ impl World {
 }
 
 
-fn draw_field(area: Area, tiles: &mut Map, sprites: &HashMap<Pos, Vec<Sprite>>) -> SectionMessage {
+fn draw_field(area: Area, tiles: &mut Map) -> SectionMessage {
 	// println!("redrawing field");
 	let mut values :Vec<usize> = Vec::with_capacity((area.size().x * area.size().y) as usize);
 	let mut mapping: Vec<Vec<Sprite>> = Vec::new();
 	for (pos, tile) in tiles.load_area(area) {
 		let mut tile_sprites = Vec::new();
-		if let Some(dynamic_sprites) = sprites.get(&pos) {
-			tile_sprites.extend_from_slice(dynamic_sprites);
-		}
 		tile_sprites.append(&mut tile.sprites());
 		values.push(
 			match mapping.iter().position(|x| x == &tile_sprites) {

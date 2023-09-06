@@ -27,11 +27,13 @@ mod sprite;
 mod tile;
 mod timestamp;
 mod util;
+mod vec2;
 mod world;
 mod worldmessages;
 
 use self::{
 	pos::{Pos, Direction},
+	vec2::Vec2,
 	player::PlayerId,
 	errors::{Result},
 	sprite::Sprite,
@@ -206,7 +208,7 @@ fn bench_view(iterations: usize) {
 	let player_id = PlayerId("Player".to_string());
 	let now = Instant::now();
 	for i in 0..iterations {
-		player_save.pos = Pos::new(i as i32 * 121 - 22, i as i32 * 8 - 63);
+		player_save.pos = Vec2::new(i as f32 * 121. - 22., i as f32 * 8. - 63.);
 		world.add_player(&player_id, player_save.clone()).unwrap();
 		world.update();
 		world.view();

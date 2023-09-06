@@ -28,7 +28,7 @@ function start(e) {
 	spritemap.addSprites(
 		document.getElementById("spritemap"),
 		{
-			player: {x: 0, y: 0},
+			player: {x: 0, y: 0, layer: "creatures"},
 			sage: {x: 1, y: 0},
 			worktable: {x: 6, y: 0},
 			altar: {x: 7, y: 0},
@@ -71,6 +71,54 @@ function start(e) {
 	window.game_client_debug = client;
 }
 
+class Movement {
+
+	constructor() {
+		this.keys = {
+			KeyW: 0,
+			ArrowUp: 0,
+			KeyS: 0,
+			ArrowDown: 0,
+			KeyA: 0,
+			ArrowLeft: 0,
+			KeyD: 0,
+			ArrowRight: 0
+		};
+	}
+
+	keydown(code) {
+		if (this.keys[code] !== undefined) {
+			this.keys[code] = 1;
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	keyup(code) {
+		if (this.keys[code] !== undefined) {
+			this.keys[code] = 0;
+			return true;
+		} else {
+			return false;
+		}
+	}
+
+	clear() {
+		for (let key in this.keys) {
+			this.keys[key] = 0;
+		}
+	}
+
+	movement() {
+		let right = this.keys.KeyD || this.keys.ArrowRight;
+		let left = this.keys.KeyA || this.keys.ArrowLeft;
+		let up = this.keys.KeyW || this.keys.ArrowUp;
+		let down = this.keys.KeyS || this.keys.ArrowDown;
+		return [right - left, down - up];
+	}
+}
+
 
 class Client {
 	constructor(username, host, display) {
@@ -79,6 +127,7 @@ class Client {
 		this.display = display;
 		this.websocket = null;
 		this.delay = parseParameters().delay|0;
+		this.movement = new Movement();
 	}
 	
 	start(){
@@ -89,14 +138,6 @@ class Client {
 			e.target.send(JSON.stringify({introduction: this.username}));
 		});
 		let keymap = {
-			KeyW: {move: "north"},
-			ArrowUp: {move: "north"},
-			KeyS: {move: "south"},
-			ArrowDown: {move: "south"},
-			KeyA: {move: "west"},
-			ArrowLeft: {move: "west"},
-			KeyD: {move: "east"},
-			ArrowRight: {move: "east"},
 			Period: {select: "next"},
 			Comma: {select: "previous"},
 			NumpadAdd: {select: "next"},
@@ -104,34 +145,38 @@ class Client {
 			Equal: {select: "next"},
 			Minus: {select: "previous"},
 		};
-		let shiftKeymap = {
-			KeyW: {interact: "north"},
-			ArrowUp: {interact: "north"},
-			KeyS: {interact: "south"},
-			ArrowDown: {interact: "south"},
-			KeyA: {interact: "west"},
-			ArrowLeft: {interact: "west"},
-			KeyD: {interact: "east"},
-			ArrowRight: {interact: "east"},
-		}
 		document.addEventListener("keydown", e => {
 			if (document.activeElement.classList.contains("captureinput")){
+				this.stop()
 				if (e.code == "Escape") {
 					document.activeElement.blur();
 				}
 				return;
 			}
-			let action = (e.shiftKey && shiftKeymap[e.code]) || keymap[e.code];
+			if (this.movement.keydown(e.code)) {
+				e.preventDefault();
+				this.sendInput({movement: this.movement.movement()});
+				return;
+			}
+			let action = keymap[e.code];
 			if (action){
 				e.preventDefault();
 				this.sendInput(action);
 			} else {
 				if (e.code == "Enter" || e.code == "KeyT") {
 					e.preventDefault();
+					this.stop();
 					document.getElementById("textinput").focus()
 				}
 			}
 		});
+		document.addEventListener("keyup", e => {
+			if (this.movement.keyup(e.code)) {
+				e.preventDefault();
+				this.sendInput({movement: this.movement.movement()});
+			}
+		});
+		document.addEventListener("blur", e => this.stop())
 		document.getElementById("control-up").addEventListener("click", e => {
 			this.sendInput({move: "north"});
 		});
@@ -158,6 +203,11 @@ class Client {
 		});
 		this.resize();
 		window.addEventListener('resize', e => this.resize());
+	}
+
+	stop() {
+		this.movement.clear();
+		this.sendInput({movement: this.movement.movement()});
 	}
 	
 	handleMessage(msg) {
@@ -191,9 +241,13 @@ class Client {
 			// for (let cell of args){
 				// this.display.drawTile(cell[0][0], cell[0][1], cell[1]);
 			// }
+		} else if (type === "dynamics") {
+			this.display.drawDynamics(args);
 		} else if (type == "playerpos") {
 			this.display.setCenter(args[0], args[1]);
-			document.getElementById("coordinates").textContent = `${args[0]}, ${args[1]}`;
+			let x = ((args[0] * 100) | 0) / 100;
+			let y = ((args[1] * 100) | 0) / 100;
+			document.getElementById("coordinates").textContent = `${x}, ${y}`;
 		} else if (type === "inventory") {
 			this.setInventory(args[0], args[1]);
 		} else if (type === "messages") {

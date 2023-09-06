@@ -7,12 +7,14 @@ use crate::{
 	pos::Area,
 	Sprite,
 	PlayerId,
+	vec2::Vec2,
+	creature::CreatureView
 };
 
 macro_rules! worldmessages {
 	($($name: ident, $typ: ident, $strname: expr, $filter: expr);*;) => {
 	
-		#[derive(Debug, Clone, Default, PartialEq, Eq)]
+		#[derive(Debug, Clone, Default, PartialEq)]
 		pub struct WorldMessage {
 			$(
 				pub $name: Option<$typ>,
@@ -55,18 +57,20 @@ macro_rules! worldmessages {
 }
 
 worldmessages!(
-	pos, Pos, "playerpos", true;
+	pos, Vec2, "playerpos", true;
 	change, ChangeMessage, "changecells", true;
 	inventory, InventoryMessage, "inventory", true;
 	sounds, SoundMessage, "messages", false;
 	viewarea, ViewAreaMessage, "viewarea", true;
 	section, SectionMessage, "section", true;
+	dynamics, DynamicMessage, "dynamics", true;
 );
 
 
 pub type ChangeMessage = Vec<(Pos, Vec<Sprite>)>;
 pub type InventoryMessage = (Vec<(String, Option<usize>)>, usize);
 pub type SoundMessage = Vec<(SoundType, String)>;
+pub type DynamicMessage = Vec<CreatureView>;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, Serialize)]
 pub struct ViewAreaMessage {

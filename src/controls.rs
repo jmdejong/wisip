@@ -3,7 +3,8 @@
 use serde::{Serialize, Deserialize};
 use crate::{
 	PlayerId,
-	Direction
+	Direction,
+	Vec2,
 };
 
 
@@ -11,6 +12,7 @@ use crate::{
 #[serde(rename_all="lowercase")]
 pub enum Control {
 	Move(Direction),
+	Movement(Vec2),
 	Suicide,
 	Interact(Option<Direction>),
 	Select(Selector),

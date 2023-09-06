@@ -5,7 +5,8 @@ use serde::{Serialize, Deserialize};
 use crate::{
 	pos::Area,
 	controls::Control,
-	creature::CreatureId
+	creature::CreatureId,
+	vec2::Vec2,
 };
 
 #[derive(Debug, Default, PartialEq, Eq, Clone, Hash, Serialize, Deserialize)]
@@ -20,6 +21,7 @@ impl fmt::Display for PlayerId {
 #[derive(Debug, Clone)]
 pub struct Player {
 	pub plan: Option<Control>,
+	pub movement: Option<Vec2>,
 	pub body: CreatureId,
 	pub is_new: bool,
 	pub view_area: Option<Area>
@@ -31,6 +33,7 @@ impl Player {
 	pub fn new(body: CreatureId) -> Self {
 		Self {
 			plan: None,
+			movement: None,
 			body,
 			is_new: true,
 			view_area: None
