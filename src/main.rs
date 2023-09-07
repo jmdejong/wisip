@@ -24,6 +24,7 @@ mod random;
 mod randomtick;
 mod server;
 mod sprite;
+mod tickstamp;
 mod tile;
 mod timestamp;
 mod util;
@@ -80,9 +81,9 @@ fn start_world(mut world: World, persistence: FileStorage, config: WorldConfig) 
 	let adresses = config.address
 		.unwrap_or_else(||
 			(if cfg!(target_os = "linux") {
-				vec!["abstract:dezl", "inet:0.0.0.0:9231"]
+				vec!["abstract:dezl", "inet:0.0.0.0:9431"]
 			} else {
-				vec!["inet:127.0.0.1:9231"]
+				vec!["inet:127.0.0.1:9431"]
 			})
 			.iter()
 			.map(|a| a.parse().unwrap())
@@ -117,8 +118,8 @@ fn start_world(mut world: World, persistence: FileStorage, config: WorldConfig) 
 		let actions = gameserver.update();
 		for action in actions {
 			match action {
-				Action::Input(player, control) => {
-					if let Err(err) = world.control_player(&player, control){
+				Action::Input(player, control, timestamp) => {
+					if let Err(err) = world.control_player(&player, control, timestamp){
 						eprintln!("error controlling player {:?}: {:?}", player, err);
 					}
 				}
@@ -219,3 +220,16 @@ fn bench_view(iterations: usize) {
 }
 
 
+
+#[cfg(test)]
+mod tests {
+	use std::time::*;
+
+	#[test]
+	fn convert_time() {
+		let ts: u64 = 1694109026334;
+		let dur = Duration::from_millis(ts);
+		let actual = UNIX_EPOCH + dur;
+		eprintln!("time: {:?}", actual);
+	}
+}

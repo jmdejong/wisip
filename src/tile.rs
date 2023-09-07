@@ -5,7 +5,7 @@ use crate::{
 	sprite::Sprite,
 	item::Item,
 	action::{Action, InteractionType, CraftType, Interactable, InteractionResult},
-	timestamp::Timestamp,
+	tickstamp::Tickstamp,
 	worldmessages::SoundType,
 	hashmap,
 	crop::Crop,
@@ -374,11 +374,11 @@ impl Tile {
 		self.structure.is_open() && self.ground.buildable()
 	}
 	
-	pub fn interact(&self, item: Item, time: Timestamp) -> Option<InteractionResult> {
+	pub fn interact(&self, item: Item, time: Tickstamp) -> Option<InteractionResult> {
 		item.actions().into_iter().filter_map(|action| self.act(action, item, time)).next()
 	}
 	
-	pub fn act(&self, action: Action, item: Item, time: Timestamp) -> Option<InteractionResult> {
+	pub fn act(&self, action: Action, item: Item, time: Tickstamp) -> Option<InteractionResult> {
 		if let Some(name) = self.structure.explain() {
 			if action != Action::Inspect {
 				return Some(InteractionResult {

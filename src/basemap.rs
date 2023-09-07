@@ -2,7 +2,7 @@
 
 use crate::{
 	pos::{Pos, Area},
-	timestamp::Timestamp,
+	tickstamp::Tickstamp,
 	tile::{Tile, Ground, Structure},
 	random::{WhiteNoise, randomize_u32, pick, pick_weighted},
 	randomtick,
@@ -22,9 +22,9 @@ const EDGE_SIZE: i32 = BIOME_SIZE / 4;
 
 pub trait BaseMap {
 
-	fn cell(&mut self, pos: Pos, time: Timestamp) -> Tile;
+	fn cell(&mut self, pos: Pos, time: Tickstamp) -> Tile;
 	
-	fn region(&mut self, area: Area, time: Timestamp) -> Vec<(Pos, Tile)> {
+	fn region(&mut self, area: Area, time: Tickstamp) -> Vec<(Pos, Tile)> {
 		area.iter().map(|pos| (pos, self.cell(pos, time))).collect()
 	}
 	
@@ -140,7 +140,7 @@ impl InfiniteMap {
 	}
 
 
-	fn tile(&self, pos: Pos, time: Timestamp) -> Tile {
+	fn tile(&self, pos: Pos, time: Tickstamp) -> Tile {
 		let (bpos, dpos) = self.biome_pos(pos);
 		let biome = self.biome_at(bpos);
 		let rind = WhiteNoise::new(self.seed + 7943).gen(pos);
@@ -313,12 +313,12 @@ impl InfiniteMap {
 }
 
 impl BaseMap for InfiniteMap {
-	fn cell(&mut self, pos: Pos, time: Timestamp) -> Tile {
+	fn cell(&mut self, pos: Pos, time: Tickstamp) -> Tile {
 		self.tile(pos, time)
 	}
 	
 
-	fn region(&mut self, area: Area, time: Timestamp) -> Vec<(Pos, Tile)> {
+	fn region(&mut self, area: Area, time: Tickstamp) -> Vec<(Pos, Tile)> {
 		area.iter().map(|pos| (pos, self.tile(pos, time))).collect()
 	}
 	
@@ -362,13 +362,13 @@ mod tests {
 	#[test]
 	fn start_pos_has_stone_floor() {
 		let mut map = InfiniteMap::new(9876);
-		assert_eq!(map.cell(map.start_pos(), Timestamp(1)), t!(StoneFloor));
+		assert_eq!(map.cell(map.start_pos(), Tickstamp(1)), t!(StoneFloor));
 	}
 
 	#[test]
 	fn generating_region_gives_same_result_as_separate_cells(){
 		let mut map = InfiniteMap::new(9876);
-		let time = Timestamp(3412);
+		let time = Tickstamp(3412);
 		let mut failed = Vec::new();
 		let mut total = 0;
 		for cx in -2..=2 {

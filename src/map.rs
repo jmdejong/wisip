@@ -4,20 +4,20 @@ use crate::{
 	pos::{Pos, Area, Direction},
 	tile::{Tile, Structure, Ground},
 	basemap::{BaseMap, InfiniteMap},
-	timestamp::{Timestamp, Duration},
+	tickstamp::{Tickstamp, TickDuration},
 	randomtick
 };
 
 pub struct Map {
 	basemap: InfiniteMap,
-	changes: HashMap<Pos, (Tile, Timestamp)>,
-	time: Timestamp,
+	changes: HashMap<Pos, (Tile, Tickstamp)>,
+	time: Tickstamp,
 	modifications: HashSet<Pos>
 }
 
 impl Map {
 	
-	pub fn new(seed: u32, time: Timestamp) -> Self {
+	pub fn new(seed: u32, time: Tickstamp) -> Self {
 		Self {
 			basemap: InfiniteMap::new(seed),
 			changes: HashMap::new(),
@@ -67,7 +67,7 @@ impl Map {
 		self.basemap.player_spawn()
 	}
 	
-	pub fn tick(&mut self, time: Timestamp, areas: Vec<Area>) {
+	pub fn tick(&mut self, time: Tickstamp, areas: Vec<Area>) {
 		self.time = time;
 		let chunk_size = randomtick::CHUNK_SIZE;
 		let tick_pos = randomtick::tick_position(time);
@@ -92,7 +92,7 @@ impl Map {
 		let tick_interval = randomtick::CHUNK_AREA as i64;
 		if let Some((mut built, mut built_time)) = self.changes.get(&pos) {
 			while let Some((nticks, stage, surround)) = built.grow() {
-				let update_time = built_time + Duration(nticks * tick_interval);
+				let update_time = built_time + TickDuration(nticks * tick_interval);
 				if update_time <= self.time {
 					built.structure = stage;
 					built_time = update_time;
@@ -136,7 +136,7 @@ impl Map {
 		self.changes.clone().into_iter().collect()
 	}
 	
-	pub fn load(changes: MapSave, time: Timestamp, seed: u32) -> Self {
+	pub fn load(changes: MapSave, time: Tickstamp, seed: u32) -> Self {
 		Self {
 			basemap: InfiniteMap::new(seed),
 			changes: changes.into_iter().collect(),
@@ -146,5 +146,5 @@ impl Map {
 	}
 }
 
-pub type MapSave = Vec<(Pos, (Tile, Timestamp))>;
+pub type MapSave = Vec<(Pos, (Tile, Tickstamp))>;
 

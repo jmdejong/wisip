@@ -10,7 +10,8 @@ use crate::{
 	util::Holder,
 	sprite::Sprite,
 	worldmessages::{WorldMessage, SectionMessage, ViewAreaMessage, ChangeMessage, SoundType::{BuildError}},
-	timestamp::{Timestamp},
+	tickstamp::{Tickstamp},
+	timestamp::Timestamp,
 	creature::{Creature, Mind, CreatureId, PlayerSave, CreatureView},
 	player::Player,
 	map::{Map, MapSave}
@@ -21,7 +22,7 @@ const VIEW_AREA_SIZE: Pos = Pos::new(128, 128);
 
 pub struct World {
 	pub name: String,
-	pub time: Timestamp,
+	pub time: Tickstamp,
 	ground: Map,
 	players: HashMap<PlayerId, Player>,
 	creatures: Holder<CreatureId, Creature>,
@@ -32,7 +33,7 @@ pub struct World {
 impl World {
 	
 	pub fn new(name: String, seed: u32) -> Self {
-		let time = Timestamp(0);
+		let time = Tickstamp(0);
 		Self {
 			name,
 			ground: Map::new(seed, time),
@@ -72,7 +73,7 @@ impl World {
 		Ok(body.save())
 	}
 	
-	pub fn control_player(&mut self, playerid: &PlayerId, control: Control) -> Result<(), PlayerError> {
+	pub fn control_player(&mut self, playerid: &PlayerId, control: Control, timestamp: Timestamp) -> Result<(), PlayerError> {
 		let player = self.players.get_mut(playerid).ok_or_else(|| PlayerError::NotFound(playerid.clone()))?;
 		if let Control::Movement(delta) = control {
 			player.movement = delta.try_normalize();
@@ -399,7 +400,7 @@ pub enum PlayerError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorldSave {
 	name: String,
-	time: Timestamp,
+	time: Tickstamp,
 	ground: MapSave,
 	claims: HashMap<PlayerId, Pos>,
 	seed: u32

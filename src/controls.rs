@@ -5,6 +5,7 @@ use crate::{
 	PlayerId,
 	Direction,
 	Vec2,
+	timestamp::Timestamp
 };
 
 
@@ -23,7 +24,7 @@ pub enum Control {
 pub enum Action {
 	Join(PlayerId),
 	Leave(PlayerId),
-	Input(PlayerId, Control)
+	Input(PlayerId, Control, Timestamp)
 }
 
 

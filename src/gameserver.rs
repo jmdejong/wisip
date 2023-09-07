@@ -16,7 +16,8 @@ use crate::{
 		ConnectionId,
 		ServerError
 	},
-	PlayerId
+	PlayerId,
+	timestamp::Timestamp,
 };
 
 
@@ -26,7 +27,7 @@ use crate::{
 enum Message {
 	Introduction(String),
 	Chat(String),
-	Input(Value)
+	Input(Control, u64)
 }
 
 struct MessageError {
@@ -194,10 +195,9 @@ impl GameServer {
 				self.broadcast_message(&format!("{}: {}", player, text));
 				Ok(None)
 			}
-			Message::Input(inp) => {
+			Message::Input(control, millis) => {
 				let player = self.players.get(&id).ok_or(merr!(action, "Set a name before you send any other messages"))?;
-				let control = Control::deserialize(&inp).map_err(|err| merr!(action, &format!("unknown action {} {}", inp, err)))?;
-				Ok(Some(Action::Input(player.clone(), control)))
+				Ok(Some(Action::Input(player.clone(), control, Timestamp::from_epoch_millis(millis))))
 			}
 		}
 	}

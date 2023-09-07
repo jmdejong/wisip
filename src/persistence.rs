@@ -50,13 +50,13 @@ impl FileStorage {
 	fn default_save_dir(world_name: &str) -> Option<PathBuf> {
 		if let Some(pathname) = env::var_os("XDG_DATA_HOME") {
 			let mut path = PathBuf::from(pathname);
-			path.push("dezl");
+			path.push("wisip");
 			path.push("saves");
 			path.push(world_name);
 			Some(path)
 		} else if let Some(pathname) = env::var_os("HOME") {
 			let mut path = PathBuf::from(pathname);
-			path.push(".dezl");
+			path.push(".wisip");
 			path.push("saves");
 			path.push(world_name);
 			Some(path)

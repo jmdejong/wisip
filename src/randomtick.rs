@@ -1,7 +1,7 @@
 
 use crate::{
 	pos::Pos,
-	timestamp::Timestamp
+	tickstamp::Tickstamp
 };
 
 pub const CHUNK_SIZE: i32 = 64;
@@ -10,7 +10,7 @@ const STEP_INVERSE: i64 = 53;
 pub const CHUNK_AREA: i64 = (CHUNK_SIZE * CHUNK_SIZE) as i64;
 const XOR: i64 = 0b1101110110_i64.rem_euclid(CHUNK_AREA);
 
-pub fn tick_position(time: Timestamp) -> Pos {
+pub fn tick_position(time: Tickstamp) -> Pos {
 	let ind = ((time.0^XOR) * STEP).rem_euclid(CHUNK_AREA) as i32;
 	Pos::new(ind % CHUNK_SIZE, ind / CHUNK_SIZE)
 }
@@ -19,7 +19,7 @@ fn tick_time(pos: Pos) -> i64 {
 	((pos.x.rem_euclid(CHUNK_SIZE) + pos.y.rem_euclid(CHUNK_SIZE) * CHUNK_SIZE) as i64 * STEP_INVERSE).rem_euclid(CHUNK_AREA) ^ XOR
 }
 
-pub fn tick_num(pos: Pos, time: Timestamp) -> i64 {
+pub fn tick_num(pos: Pos, time: Tickstamp) -> i64 {
 	time.0.div_euclid(CHUNK_AREA)
 		+ i64::from(tick_time(pos) <= time.0.rem_euclid(CHUNK_AREA))
 }
@@ -36,7 +36,7 @@ mod tests {
 	#[test]
 	fn tick_time_reverses_tick_position() {
 		for i in 0..5000.min(CHUNK_AREA as i64) {
-			assert_eq!(tick_time(tick_position(Timestamp(i))) as i64, i);
+			assert_eq!(tick_time(tick_position(Tickstamp(i))) as i64, i);
 		}
 	}
 	
@@ -52,9 +52,9 @@ mod tests {
 	
 	#[test]
 	fn times_with_multiples_of_chunk_area_in_between_give_save_tick_pos() {
-		let time = Timestamp(5);
-		let larger_time = Timestamp(5+CHUNK_AREA * 9);
-		let neg_time = Timestamp(5 - CHUNK_AREA *11);
+		let time = Tickstamp(5);
+		let larger_time = Tickstamp(5+CHUNK_AREA * 9);
+		let neg_time = Tickstamp(5 - CHUNK_AREA *11);
 		let pos = tick_position(time);
 		assert_eq!(pos, tick_position(larger_time));
 		assert_eq!(pos, tick_position(neg_time));
@@ -62,28 +62,28 @@ mod tests {
 	
 	#[test]
 	fn tick_num_updates_on_tick_time(){
-		let time = Timestamp(12300);
+		let time = Tickstamp(12300);
 		let pos = tick_position(time);
 		let tick = tick_num(pos, time);
 		assert_eq!(
 			tick,
-			tick_num(pos, Timestamp(time.0 - 1 + CHUNK_AREA as i64))
+			tick_num(pos, Tickstamp(time.0 - 1 + CHUNK_AREA as i64))
 		);
 		assert_eq!(
 			tick - 1,
-			tick_num(pos, Timestamp(time.0 - 1))
+			tick_num(pos, Tickstamp(time.0 - 1))
 		);
 		assert_eq!(
 			tick - 1,
-			tick_num(pos, Timestamp(time.0 - CHUNK_AREA as i64))
+			tick_num(pos, Tickstamp(time.0 - CHUNK_AREA as i64))
 		);
 		assert_eq!(
 			tick + 1,
-			tick_num(pos, Timestamp(time.0 + CHUNK_AREA as i64))
+			tick_num(pos, Tickstamp(time.0 + CHUNK_AREA as i64))
 		);
 		assert_eq!(
 			tick - 2,
-			tick_num(pos, Timestamp(time.0 - 1 - CHUNK_AREA as i64))
+			tick_num(pos, Tickstamp(time.0 - 1 - CHUNK_AREA as i64))
 		);
 	}
 }

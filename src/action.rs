@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
 	item::Item,
 	tile::{Structure, Ground},
-	timestamp::Timestamp,
+	tickstamp::Tickstamp,
 	worldmessages::SoundType,
 	random
 };
@@ -100,7 +100,7 @@ impl Interactable {
 		Self::new(InteractionType::Take, 0, &[], Some(Structure::Air), items)
 	}
 	
-	pub fn apply(&self, action: Interact, time: Timestamp) -> Option<InteractionResult> {
+	pub fn apply(&self, action: Interact, time: Tickstamp) -> Option<InteractionResult> {
 		if self.action_type == action.typ && action.level >= self.min_level {
 			let relative_level = (action.level - self.min_level) as usize;
 			let odds = if relative_level < self.level_odds.len() {

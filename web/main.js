@@ -9,7 +9,7 @@ function main(){
 	loginForm.addEventListener("submit", start);
 	let hostInput = document.getElementById("hostinput");
 	if (hostInput.value === hostInput.defaultValue) {
-		hostInput.value = `ws://${window.location.hostname || "localhost"}:9231`;
+		hostInput.value = `ws://${window.location.hostname || "localhost"}:9431`;
 	}
 }
 
@@ -302,9 +302,10 @@ class Client {
 	}
 
 	sendInput(msg) {
+		let now = Date.now();
 		let f = () => {
 			if (this.websocket.readyState === WebSocket.OPEN){
-				this.websocket.send(JSON.stringify({input: msg}));
+				this.websocket.send(JSON.stringify({input: [msg, now]}));
 			} else {
 				console.error("can't send input: websocket not open", this.websocket.readyState,  msg);
 			}
