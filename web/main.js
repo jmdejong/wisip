@@ -238,9 +238,6 @@ class Client {
 			this.display.drawSection(args.area.w, args.area.h, args.area.x, args.area.y, args.field, args.mapping);
 		} else if (type === "changecells") {
 			this.display.changeTiles(args);
-			// for (let cell of args){
-				// this.display.drawTile(cell[0][0], cell[0][1], cell[1]);
-			// }
 		} else if (type === "dynamics") {
 			this.display.drawDynamics(args);
 		} else if (type == "playerpos") {

@@ -186,26 +186,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f2696e8a945f658fd14dc3b87242e6b80cd0f36ff04ea560fa39082368847946"
 
 [[package]]
-name = "dezl"
-version = "0.1.0"
-dependencies = [
- "clap",
- "ctrlc",
- "enum-assoc",
- "enum_dispatch",
- "json5",
- "mio",
- "nix",
- "rand",
- "serde",
- "serde_json",
- "time",
- "tungstenite",
- "unicode_categories",
- "users",
-]
-
-[[package]]
 name = "digest"
 version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -919,3 +899,23 @@ name = "windows_x86_64_msvc"
 version = "0.48.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1a515f5799fe4961cb532f983ce2b23082366b898e52ffbce459c86f67c8378a"
+
+[[package]]
+name = "wisip"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "ctrlc",
+ "enum-assoc",
+ "enum_dispatch",
+ "json5",
+ "mio",
+ "nix",
+ "rand",
+ "serde",
+ "serde_json",
+ "time",
+ "tungstenite",
+ "unicode_categories",
+ "users",
+]
